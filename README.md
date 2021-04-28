@@ -1,2 +1,7 @@
-# rp-group-55-common
+# JQF + BigFuzz: Fuzz Testing for Data Analytics
+
+
+/jqf-bigfuzz -c .:$(/direction/to/BigFuzz/scripts/classpath.sh) testdriver testmethod num/null
+
+
 

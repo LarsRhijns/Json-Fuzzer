@@ -1,0 +1,4 @@
+# file: ~/.gitignore_global
+.idea/*
+# Ignores crash reports & sample data
+2021*
