@@ -7,5 +7,7 @@ target/*
 *.class
 *.log
 fuzz/target/
+conf
+conf+cov
 # Ignores crash reports & sample data
 2021*
