@@ -5,6 +5,17 @@
     <groupId>edu.berkeley.cs.jqf</groupId>
     <artifactId>jqf</artifactId>
     <version>1.2-SNAPSHOT</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.krraghavan</groupId>
+            <artifactId>xeger</artifactId>
+            <version>1.0.0-RELEASE</version>
+        </dependency></dependencies>
     <packaging>pom</packaging>
 
     <name>jqf</name>
