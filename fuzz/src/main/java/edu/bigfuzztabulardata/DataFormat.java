@@ -1,6 +1,6 @@
 package edu.bigfuzztabulardata;
 
-import nl.flotsam.xeger.Xeger;
+import com.github.curiousoddman.rgxgen.RgxGen;
 
 public class DataFormat {
     private String dataType;
@@ -13,15 +13,15 @@ public class DataFormat {
         this.specialValues = specialValues;
     }
 
-    //TODO: somehow make it return as the appropriate datatype; Xeger distribution seems off (often small numbers)
+    //TODO: somehow make it return as the appropriate datatype; Xeger distribution seems off -> RgxGen seems way more random and evenly distributed
 
     /**
-     * Uses the Xeger library to generate a random input that lies within a range defined by a regular expression.
+     * Uses the RgxGen library to generate a random input that lies within a range defined by a regular expression.
      * @return Random input within a range.
      */
     public String generateInputInRange() {
         String s = "";
-        Xeger generator = new Xeger(range);
+        RgxGen generator = new RgxGen(range);
         s = generator.generate();
         return s;
     }

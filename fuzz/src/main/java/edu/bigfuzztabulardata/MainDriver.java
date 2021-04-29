@@ -10,6 +10,9 @@ public class MainDriver {
 
         InputManager im = new InputManager(file);
         System.out.println(im.getInputs()[0].generateInputInRange());
+        System.out.println(im.getInputs()[1].generateInputInRange());
+        System.out.println(im.getInputs()[2].generateInputInRange());
+        System.out.println(im.getInputs()[3].generateInputInRange());
         System.out.println(im.toString());
 
     }

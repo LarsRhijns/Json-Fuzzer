@@ -1,1 +1,1 @@
-"Integer [0-9]+ 1,10,19,35","Integer [0-120] apple,orange,banana","String , abc,123",Integer .*,Integer 5,"String (a|b)* a,b,c"
+"Integer [0-9]{1,15} 1,10,19,35","Integer [a-zA-Z0-9_]{1,20} apple,orange,banana","String , abc,123","Integer .{1,32}",Integer 5,"String (a|b)* a,b,c"
