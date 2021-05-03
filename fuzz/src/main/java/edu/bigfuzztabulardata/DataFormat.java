@@ -6,11 +6,13 @@ public class DataFormat {
     private String dataType;
     private String range;
     private String[] specialValues;
+    private boolean defaultRange;
 
-    public DataFormat(String dataType, String range, String[] specialValues) {
+    public DataFormat(String dataType, String range, String[] specialValues, boolean defaultRange) {
         this.dataType = dataType;
         this.range = range;
         this.specialValues = specialValues;
+        this.defaultRange = defaultRange;
     }
 
     //TODO: somehow make it return as the appropriate datatype; Xeger distribution seems off -> RgxGen seems way more random and evenly distributed
@@ -23,6 +25,12 @@ public class DataFormat {
         String s = "";
         RgxGen generator = new RgxGen(range);
         s = generator.generate();
+        if (defaultRange) {
+            if(dataType.equals("byte") || dataType.equals("short") || dataType.equals("int") || dataType.equals("long")) {
+                long decimal = Long.parseLong(s, 2);
+                s = decimal + "";
+            }
+        }
         return s;
     }
 

@@ -64,13 +64,53 @@ public class InputManager {
                 if (splitInputs.length == 3) {
                     specialValues = splitInputs[2].split(",");
                 }
-                DataFormat df = new DataFormat(splitInputs[0], splitInputs[1], specialValues);
+                DataFormat df;
+                if (splitInputs[1].equals(".*")) {
+                    df = new DataFormat(splitInputs[0], getDefaultRange(splitInputs[0]), specialValues, true);
+                } else {
+                    df = new DataFormat(splitInputs[0], splitInputs[1], specialValues, false);
+                }
                 processedInputs[i] = df;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         return processedInputs;
+    }
+
+    public String getDefaultRange(String dataType) {
+        String range = "";
+        switch (dataType) {
+            case "byte":
+                range = "(-|^$)1[0-1]{1,6}";;
+                break;
+            case "short":
+                range = "(-|^$)1[0-1]{1,14}";;
+                break;
+            case "int":
+                range = "(-|^$)1[0-1]{1,30}";;
+                break;
+            case "long":
+                range = "(-|^$)1[0-1]{1,62}";;
+                break;
+            case "float": //TODO: Dont allow range on floats for the moment
+                range = "";;
+                break;
+            case "double": //TODO: Dont allow range on doubles for the moment
+                range = "";;
+                break;
+            case "boolean":
+                range = "true|false";;
+                break;
+            case "char":
+                range = ".";;
+                break;
+            case "String":
+                range = ".*";
+                break;
+        }
+
+        return range;
     }
 
     /**
