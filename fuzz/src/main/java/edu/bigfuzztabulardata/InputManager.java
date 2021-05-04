@@ -65,15 +65,17 @@ public class InputManager {
                     specialValues = splitInputs[2].split(",");
                 }
                 DataFormat df;
-                if (splitInputs[1].equals(".*")) {
+                if (splitInputs[1].equals("regex(.*)")) {
                     String dataType = splitInputs[0];
                     if (splitInputs[0].contains("array")) {
                         dataType = DataFormat.getArrayType(splitInputs[0]);
-                        System.out.println("Array type found: " + dataType);
+                        System.out.println("Array type found: " + dataType); //TODO: remove prints
                     }
-                    df = new DataFormat(splitInputs[0], getDefaultRange(dataType), specialValues, true);
+                    df = new DataFormat(splitInputs[0], getDefaultRange(dataType), "regex", specialValues, true);
+                } else if (splitInputs[1].substring(0, 6).equals("regex(")){
+                    df = new DataFormat(splitInputs[0], DataFormat.trimRangeString(splitInputs[1]), "regex", specialValues, false);
                 } else {
-                    df = new DataFormat(splitInputs[0], splitInputs[1], specialValues, false);
+                    df = new DataFormat(splitInputs[0], DataFormat.trimRangeString(splitInputs[1]), "interval", specialValues, false);
                 }
                 processedInputs[i] = df;
             } catch (Exception e) {

@@ -2,15 +2,19 @@ package edu.bigfuzztabulardata;
 
 import com.github.curiousoddman.rgxgen.RgxGen;
 
+import java.util.Random;
+
 public class DataFormat {
     private String dataType;
     private String range;
+    private String rangeType;
     private String[] specialValues;
     private final boolean defaultRange;
 
-    public DataFormat(String dataType, String range, String[] specialValues, boolean defaultRange) {
+    public DataFormat(String dataType, String range, String rangeType, String[] specialValues, boolean defaultRange) {
         this.dataType = dataType;
         this.range = range;
+        this.rangeType = rangeType;
         this.specialValues = specialValues;
         this.defaultRange = defaultRange;
     }
@@ -22,7 +26,16 @@ public class DataFormat {
      * @return Random input within a range.
      */
     public String generateInputInRange() {
+        String s = "";
+        if (rangeType.equals("regex")) {
+            s = generateRegexValue();
+        } else {
+            s = generateIntervalValue();
+        }
+        return s;
+    }
 
+    private String generateRegexValue() {
         RgxGen generator = new RgxGen(range);
         String s = generator.generate();
         if (defaultRange) {
@@ -32,6 +45,14 @@ public class DataFormat {
             }
         }
         return s;
+    }
+
+    private String generateIntervalValue() {
+        String s = "";
+        String[] bounds = range.split("-");
+        long low = Long.parseLong(bounds[0]);
+        long high = Long.parseLong(bounds[1]);
+        return low + (long) (Math.random() * (high - low)) + "";
     }
 
     /**
@@ -56,10 +77,10 @@ public class DataFormat {
      */
     public String toString() {
         if (getSpecialValues() == null) {
-            return "DataType: " + getDataType() + " | Range: " + getRange();
+            return "DataType: " + getDataType() + " | Range (" + rangeType + "): " + getRange();
         }
         String s = "";
-        s += "DataType: " + getDataType() + " | Range: " + getRange() + " | Special Values: " + "[";
+        s += "DataType: " + getDataType() + " | Range (" + rangeType + "): " + getRange() + " | Special Values: " + "[";
         for (int i = 0; i < getSpecialValues().length; i++) {
             s+= getSpecialValues()[i] + ", ";
         }
@@ -71,6 +92,16 @@ public class DataFormat {
 
     public static String getArrayType(String dataType) {
         return dataType.substring(6, dataType.length() - 1);
+    }
+
+    public static String trimRangeString(String range) {
+        String trimmedString = "";
+        if (range.substring(0, 6).equals("regex(")) {
+            trimmedString = range.substring(6, range.length() - 1);
+        } else {
+            trimmedString = range.substring(9, range.length() - 1);
+        }
+        return trimmedString;
     }
 
     public String getDataType() {

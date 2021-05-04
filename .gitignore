@@ -1,6 +1,7 @@
 # file: ~/.gitignore_global
 *.DS_Store
 .idea/*
+.fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/*
 classes/*
 target/*
 **/target
