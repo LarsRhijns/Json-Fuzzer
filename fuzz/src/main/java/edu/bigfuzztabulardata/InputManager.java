@@ -57,7 +57,7 @@ public class InputManager {
                 String input = inputs[i];
                 String[] splitInputs = input.split(" ");
                 if (splitInputs.length > 3) {
-                    //TODO: find a way to allow/remove whitespaces in the inputfile
+                    //TODO: find a way to allow/remove whitespaces in the input file.
                     throw new Exception("Input file contains invalid whitespaces.");
                 }
                 String[] specialValues = null;
@@ -78,25 +78,30 @@ public class InputManager {
         return processedInputs;
     }
 
-    public String getDefaultRange(String dataType) {
+    /**
+     * In case there is no specification for the range (or .*), return a regex that represents all possible values of the corresponding datatype.
+     * @param dataType
+     * @return
+     */
+    public String getDefaultRange(String dataType) { //TODO: Add support for arrays.
         String range = "";
         switch (dataType) {
             case "byte":
-                range = "(-|^$)1[0-1]{1,6}";;
+                range = "(-|^$)[0-1]{1,7}";;
                 break;
             case "short":
-                range = "(-|^$)1[0-1]{1,14}";;
+                range = "(-|^$)[0-1]{1,15}";;
                 break;
             case "int":
-                range = "(-|^$)1[0-1]{1,30}";;
+                range = "(-|^$)[0-1]{1,31}";;
                 break;
             case "long":
-                range = "(-|^$)1[0-1]{1,62}";;
+                range = "(-|^$)[0-1]{1,63}";;
                 break;
-            case "float": //TODO: Dont allow range on floats for the moment
+            case "float": //TODO: Don't allow range on floats for the moment
                 range = "";;
                 break;
-            case "double": //TODO: Dont allow range on doubles for the moment
+            case "double": //TODO: Don't allow range on doubles for the moment
                 range = "";;
                 break;
             case "boolean":

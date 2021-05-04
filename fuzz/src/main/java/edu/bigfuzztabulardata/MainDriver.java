@@ -9,6 +9,7 @@ public class MainDriver {
         File file = new File(dataSpecificationInput);
 
         InputManager im = new InputManager(file);
+
         System.out.println(im.getInputs()[0].generateInputInRange());
         System.out.println(im.getInputs()[1].generateInputInRange());
         System.out.println(im.getInputs()[2].generateInputInRange());
@@ -17,6 +18,8 @@ public class MainDriver {
         System.out.println(im.getInputs()[5].generateInputInRange());
         System.out.println(im.getInputs()[6].generateInputInRange());
         System.out.println(im.toString());
+        InputGenerator ig = new InputGenerator(im.getInputs());
+        ig.generateInputFile();
 
     }
 }
