@@ -2,7 +2,6 @@ package edu.bigfuzztabulardata;
 
 import com.opencsv.CSVWriter;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -12,6 +11,8 @@ public class InputGenerator {
 
     DataFormat[] inputSpecification;
     String generatedInputFilesFolder = "fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/";
+    private static final int INPUT_FILE_AMOUNT_OF_LINES = 5;
+    private static final int ARRAY_SIZE = 5;
 
     public InputGenerator(DataFormat[] inputSpecification) {
         this.inputSpecification = inputSpecification;
@@ -28,7 +29,7 @@ public class InputGenerator {
         try {
 
             CSVWriter writer = new CSVWriter(new FileWriter(filePath));
-            for (int i = 0; i < 2; i++) { //TODO: i is the amount of lines; figure out how many lines an input file should have.
+            for (int i = 0; i < INPUT_FILE_AMOUNT_OF_LINES; i++) { //TODO: i is the amount of lines; figure out how many lines an input file should have.
                 String[] inputData = generateInputData();
                 writer.writeNext(inputData);
             }
@@ -46,8 +47,11 @@ public class InputGenerator {
     private String[] generateInputData() {
         String[] dataFile = new String[inputSpecification.length];
         for(int i = 0; i < inputSpecification.length; i++) {
-
-            dataFile[i] = inputSpecification[i].generateInputInRange();
+            if (inputSpecification[i].getDataType().contains("array")) {
+                dataFile[i] = inputSpecification[i].generateArrayInputInRange(ARRAY_SIZE); //TODO: Find a way to get the correct array size/ Build support for arrays within arrays?
+            } else {
+                dataFile[i] = inputSpecification[i].generateInputInRange();
+            }
         }
 
         return dataFile;

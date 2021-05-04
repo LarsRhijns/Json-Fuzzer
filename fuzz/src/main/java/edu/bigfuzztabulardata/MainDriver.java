@@ -1,7 +1,6 @@
 package edu.bigfuzztabulardata;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 public class MainDriver {
     public static void main(String[] args) {
@@ -17,9 +16,11 @@ public class MainDriver {
         System.out.println(im.getInputs()[4].generateInputInRange());
         System.out.println(im.getInputs()[5].generateInputInRange());
         System.out.println(im.getInputs()[6].generateInputInRange());
+        System.out.println(im.getInputs()[7].generateInputInRange());
         System.out.println(im.toString());
         InputGenerator ig = new InputGenerator(im.getInputs());
-        ig.generateInputFile();
+        String filePath = ig.generateInputFile();
+        System.out.println("Input file generated at: " + filePath);
 
     }
 }

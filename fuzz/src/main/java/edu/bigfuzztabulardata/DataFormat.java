@@ -6,7 +6,7 @@ public class DataFormat {
     private String dataType;
     private String range;
     private String[] specialValues;
-    private boolean defaultRange;
+    private final boolean defaultRange;
 
     public DataFormat(String dataType, String range, String[] specialValues, boolean defaultRange) {
         this.dataType = dataType;
@@ -22,16 +22,32 @@ public class DataFormat {
      * @return Random input within a range.
      */
     public String generateInputInRange() {
-        String s = "";
+
         RgxGen generator = new RgxGen(range);
-        s = generator.generate();
+        String s = generator.generate();
         if (defaultRange) {
-            if(dataType.equals("byte") || dataType.equals("short") || dataType.equals("int") || dataType.equals("long")) {
+            if(dataType.contains("byte") || dataType.contains("short") || dataType.contains("int") || dataType.contains("long")) {
                 long decimal = Long.parseLong(s, 2);
                 s = decimal + "";
             }
         }
         return s;
+    }
+
+    /**
+     * Generates a String representation of an array of the corresponding dataType.
+     * @param arraySize size of the array.
+     * @return String representation of an input array.
+     */
+    public String generateArrayInputInRange(int arraySize) {
+        String array = "[";
+        for (int i = 0; i < arraySize; i++) {
+            array += generateInputInRange() + ", ";
+        }
+        array = array.substring(0, array.length() - 2);
+        array += "]";
+
+        return array;
     }
 
     /**
@@ -51,6 +67,10 @@ public class DataFormat {
         s += "]";
 
         return s;
+    }
+
+    public static String getArrayType(String dataType) {
+        return dataType.substring(6, dataType.length() - 1);
     }
 
     public String getDataType() {

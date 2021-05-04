@@ -66,7 +66,12 @@ public class InputManager {
                 }
                 DataFormat df;
                 if (splitInputs[1].equals(".*")) {
-                    df = new DataFormat(splitInputs[0], getDefaultRange(splitInputs[0]), specialValues, true);
+                    String dataType = splitInputs[0];
+                    if (splitInputs[0].contains("array")) {
+                        dataType = DataFormat.getArrayType(splitInputs[0]);
+                        System.out.println("Array type found: " + dataType);
+                    }
+                    df = new DataFormat(splitInputs[0], getDefaultRange(dataType), specialValues, true);
                 } else {
                     df = new DataFormat(splitInputs[0], splitInputs[1], specialValues, false);
                 }
