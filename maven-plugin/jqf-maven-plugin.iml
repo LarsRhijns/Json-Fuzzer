@@ -33,7 +33,6 @@
     <orderEntry type="library" name="Maven: org.apache.maven.resolver:maven-resolver-spi:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven.resolver:maven-resolver-util:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven.shared:maven-shared-utils:3.2.1" level="project" />
-    <orderEntry type="library" name="Maven: commons-io:commons-io:2.5" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.sisu:org.eclipse.sisu.inject:0.3.3" level="project" />
     <orderEntry type="library" name="Maven: com.google.inject:guice:no_aop:4.0" level="project" />
     <orderEntry type="library" name="Maven: aopalliance:aopalliance:1.0" level="project" />
@@ -60,5 +59,6 @@
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-analysis:6.2.1" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-tree:6.2.1" level="project" />
     <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.6" level="project" />
+    <orderEntry type="library" name="Maven: commons-io:commons-io:2.5" level="project" />
   </component>
 </module>
