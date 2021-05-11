@@ -25,7 +25,7 @@ public class InputGenerator {
     public String generateInputFile() {
         String fileName = "InputFile";
         fileName += new SimpleDateFormat("yyyyMMddHHmmssSS").format(Calendar.getInstance().getTime());
-        String filePath = generatedInputFilesFolder + fileName + ".txt";
+        String filePath = generatedInputFilesFolder + fileName + ".csv";
         try {
 
             CSVWriter writer = new CSVWriter(new FileWriter(filePath));
