@@ -6,7 +6,7 @@ public class MainDriver {
     public static void main(String[] args) {
         String dataSpecificationInput = "fuzz/src/main/java/edu/bigfuzztabulardata/dataset/salaryAnalysisFileFormat";
         File file = new File(dataSpecificationInput);
-
+        Mutation m = new Mutation();
         InputManager im = new InputManager(file);
 
 //        System.out.println(im.getInputs()[0].generateInputInRange());
