@@ -15,7 +15,7 @@ public class Mutation {
 
     private static final int MUTATIONS_AMOUNT = 6;
     private static final String GENERATED_INPUT_FILES_FOLDER = "fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/";
-    private String currentFile = "";
+    private int mutationGeneration = 0;
 
     /**
      * String fileName = "InputFile";
@@ -23,92 +23,96 @@ public class Mutation {
      *         String filePath = GENERATED_INPUT_FILES_FOLDER + fileName + ".csv";
      */
     public Mutation() {
-        currentFile = generateFileName();
+
     }
 
     public void mutate(List<String[]> data) {
-        currentFile = generateFileName();
-        performRandomMutation(data);
+        performRandomMutation(data, constructFilePath());
     }
 
-    public void mutateFile(String inputFile) {
-        currentFile = "Mutated File: " + inputFile; //TODO: Make it possible to mutate a file multiple times without overwriting it
+    public void mutateFile(String fileName) {
+        String currentFile = constructFilePath(fileName); //TODO: Make it possible to mutate a file multiple times without overwriting it
         List<String[]> data;
         try {
-            CSVReader reader = new CSVReader(new FileReader(inputFile));
+            CSVReader reader = new CSVReader(new FileReader(currentFile));
             data = reader.readAll();
-            performRandomMutation(data);
+            performRandomMutation(data, constructFilePath(fileName + "-mutation" + mutationGeneration));
+            mutationGeneration++;
         } catch (IOException | CsvException e) {
             e.printStackTrace();
         }
     }
 
-    public void performRandomMutation(List<String[]> data) {
+    public void performRandomMutation(List<String[]> data, String currentFile) {
         int r = (int) (Math.random() * MUTATIONS_AMOUNT);
+        List<String[]> newData= null;
         switch (r) {
             case 0:
-                dataDistributionMutation(data);
+                newData = dataDistributionMutation(data);
                 break;
             case 1:
-                dataTypeMutation(data);
+                newData = dataTypeMutation(data);
                 break;
             case 2:
-                dataFormatMutation(data);
+                newData = dataFormatMutation(data);
                 break;
             case 3:
-                dataColumnMutation(data);
+                newData = dataColumnMutation(data);
                 break;
             case 4:
-                nullDataMutation(data);
+                newData = nullDataMutation(data);
                 break;
             case 5:
-                emptyDataMutation(data);
+                newData = emptyDataMutation(data);
                 break;
         }
+
+        writeMutation(newData, currentFile);
     }
 
-    private void dataDistributionMutation(List<String[]> data) {
-        List<String[]> newData = null;
-
-        writeMutation(data, currentFile);
+    private List<String[]> dataDistributionMutation(List<String[]> data) {
+        List<String[]> newData = data;
+        return newData;
     }
 
-    private void dataTypeMutation(List<String[]> data) {
-        List<String[]> newData = null;
+    private List<String[]> dataTypeMutation(List<String[]> data) {
+        List<String[]> newData = data;
 
-        writeMutation(data, currentFile);
+        return newData;
     }
 
-    private void dataFormatMutation(List<String[]> data) {
-        List<String[]> newData = null;
+    private List<String[]> dataFormatMutation(List<String[]> data) {
+        List<String[]> newData = data;
 
-        writeMutation(data, currentFile);
+        return newData;
     }
 
-    private void dataColumnMutation(List<String[]> data) {
-        List<String[]> newData = null;
+    private List<String[]> dataColumnMutation(List<String[]> data) {
+        List<String[]> newData = data;
 
-        writeMutation(data, currentFile);
+        return newData;
     }
 
-    private void nullDataMutation(List<String[]> data) {
-        List<String[]> newData = null;
+    private List<String[]> nullDataMutation(List<String[]> data) {
+        List<String[]> newData = data;
 
-        writeMutation(data, currentFile);
+        return newData;
     }
 
-    private void emptyDataMutation(List<String[]> data) {
-        List<String[]> newData = null;
+    private List<String[]> emptyDataMutation(List<String[]> data) {
+        List<String[]> newData = data;
 
-        writeMutation(data, currentFile);
+        return newData;
     }
 
     private String writeMutation(List<String[]> data, String newFilePath) {
         try {
             CSVWriter writer = new CSVWriter(new FileWriter(newFilePath));
+            System.out.println(newFilePath);
             for (String[] dataRow : data) {
                 writer.writeNext(dataRow);
             }
+            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -116,7 +120,11 @@ public class Mutation {
         return newFilePath;
     }
 
-    private String generateFileName() {
+    private String constructFilePath(String fileName) {
+        return GENERATED_INPUT_FILES_FOLDER + fileName + ".csv";
+    }
+
+    private String constructFilePath() {
         String fileName = "MutatedFile";
         fileName += new SimpleDateFormat("yyyyMMddHHmmssSS").format(Calendar.getInstance().getTime());
         return GENERATED_INPUT_FILES_FOLDER + fileName + ".csv";

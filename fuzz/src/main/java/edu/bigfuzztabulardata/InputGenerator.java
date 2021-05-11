@@ -37,7 +37,7 @@ public class InputGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return filePath;
+        return fileName;
     }
 
     /**
