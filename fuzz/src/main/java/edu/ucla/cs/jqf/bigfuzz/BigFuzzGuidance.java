@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
 import static java.lang.Math.ceil;
 import static java.lang.Math.log;
 
@@ -188,7 +189,7 @@ public class BigFuzzGuidance implements Guidance {
         }
         testInputFiles.add(currentInputFile);
 
-        System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile );
+        if (PRINT_METHODNAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
         InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
 
         return targetStream;
@@ -229,11 +230,11 @@ public class BigFuzzGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-
+        System.out.println("--Current trial: " + numTrials);
         // Stop timeout handling
         this.runStart = null;
 
-        System.out.println("BigFuzz::handleResult");
+        if (PRINT_METHODNAMES) { System.out.println("BigFuzz::handleResult"); }
         System.out.println(result);
 
         this.numTrials++;
@@ -252,7 +253,6 @@ public class BigFuzzGuidance implements Guidance {
 
         // Stopping criteria
         if (numTrials >= maxTrials) {
-            System.out.println("current trial: " + numTrials);
             this.keepGoing = false;
             System.out.println("keepGoing: "+keepGoing);
         }

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BigFuzzDriver {
+    public static boolean PRINT_METHODNAMES = false;
+
     public static void main(String[] args) {
         if (args.length < 2) {
             System.err.println("Usage: java " + BigFuzzDriver.class + " TEST_CLASS TEST_METHOD [MAX_TRIALS]");
