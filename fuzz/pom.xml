@@ -8,9 +8,9 @@
 	    <version>1.2-SNAPSHOT</version>
 	</parent>
 
-    <artifactId>jqf-fuzz</artifactId>
+    <artifactId>bigfuzz-guidance</artifactId>
 
-    <name>jqf-fuzz</name>
+    <name>bigfuzz-guidance</name>
     <description>JQF: Feedback-directed Quickcheck for Java - Guided fuzzing interface</description>
     <packaging>jar</packaging>
 
