@@ -6,7 +6,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
-//import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 
@@ -32,6 +32,7 @@ public class BigFuzzGuidance implements Guidance {
 
     /** The name of the test for display purposes. */
     protected final String testName;
+    private final String outputDirName;
 
     private boolean keepGoing = true;
     private static boolean KEEP_GOING_ON_ERROR = true;
@@ -99,11 +100,18 @@ public class BigFuzzGuidance implements Guidance {
     ArrayList<String> testInputFiles = new ArrayList<String>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out, String outputDirName) throws IOException {
 
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
-        //this.outputDirectory = outputDirectory;
+
+        // create or empty the output directory
+        this.outputDirName = outputDirName;
+        File outputDir = new File(outputDirName);
+        boolean newOutputDirCreated = outputDir.mkdir();
+        if (!newOutputDirCreated) {
+            FileUtils.cleanDirectory(FileUtils.getFile(outputDirName));
+        }
 
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
@@ -162,7 +170,7 @@ public class BigFuzzGuidance implements Guidance {
 //                mutation.writeFile(fileName);
 
                 String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date());
-                System.out.println(nextInputFile);
+                nextInputFile = this.outputDirName + "/" + nextInputFile;
                 mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
                 currentInputFile = nextInputFile;
 
@@ -174,7 +182,7 @@ public class BigFuzzGuidance implements Guidance {
         }
         testInputFiles.add(currentInputFile);
 
-        System.out.println("BigFuzzSalaryGuidance::getInput: "+numTrials+": "+currentInputFile );
+        System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile );
         InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
 
         return targetStream;
