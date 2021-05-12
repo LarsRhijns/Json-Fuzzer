@@ -16,14 +16,15 @@ public class Mutation {
     private static final int MUTATIONS_AMOUNT = 6;
     private static final String GENERATED_INPUT_FILES_FOLDER = "fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/";
     private int mutationGeneration = 0;
+    private DataFormat[] dataSpecification;
 
     /**
      * String fileName = "InputFile";
      *         fileName += new SimpleDateFormat("yyyyMMddHHmmssSS").format(Calendar.getInstance().getTime());
      *         String filePath = GENERATED_INPUT_FILES_FOLDER + fileName + ".csv";
      */
-    public Mutation() {
-
+    public Mutation(DataFormat[] dataSpecification) {
+        this.dataSpecification = dataSpecification;
     }
 
     public void mutate(List<String[]> data) {
@@ -44,7 +45,8 @@ public class Mutation {
     }
 
     public void performRandomMutation(List<String[]> data, String currentFile) {
-        int r = (int) (Math.random() * MUTATIONS_AMOUNT);
+        //int r = (int) (Math.random() * MUTATIONS_AMOUNT);
+        int r = 0;
         List<String[]> newData= null;
         switch (r) {
             case 0:
@@ -72,18 +74,23 @@ public class Mutation {
 
     private List<String[]> dataDistributionMutation(List<String[]> data) {
         List<String[]> newData = data;
+        int randomRow = (int) (Math.random() * newData.size());
+        int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
+        newData.get(randomRow)[randomColumn] = dataSpecification[randomColumn].generateInputOutsideRange();
         return newData;
     }
 
     private List<String[]> dataTypeMutation(List<String[]> data) {
         List<String[]> newData = data;
-
+        int randomRow = (int) (Math.random() * newData.size());
+        int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
+        newData.get(randomRow)[randomColumn] = dataSpecification[randomColumn].changeDataType();
         return newData;
     }
 
     private List<String[]> dataFormatMutation(List<String[]> data) {
         List<String[]> newData = data;
-
+        //TODO: I need an example of datatypes that use delimiters; Or do they mean the CSV inputfile?
         return newData;
     }
 
@@ -101,7 +108,9 @@ public class Mutation {
 
     private List<String[]> emptyDataMutation(List<String[]> data) {
         List<String[]> newData = data;
-
+        int randomRow = (int) (Math.random() * newData.size());
+        int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
+        newData.get(randomRow)[randomColumn] = "";
         return newData;
     }
 

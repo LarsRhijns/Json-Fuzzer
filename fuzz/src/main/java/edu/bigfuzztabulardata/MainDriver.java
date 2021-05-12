@@ -8,7 +8,6 @@ public class MainDriver {
         File file = new File(dataSpecificationInput);
 
         InputManager im = new InputManager(file);
-        Mutation m = new Mutation();
 
         System.out.println(im.toString());
 
@@ -16,6 +15,8 @@ public class MainDriver {
 
         String fileName = ig.generateInputFile();
         System.out.println("Input file generated: " + fileName);
+
+        Mutation m = new Mutation(im.getInputs());
 
         m.mutateFile(fileName);
         m.mutateFile(fileName);

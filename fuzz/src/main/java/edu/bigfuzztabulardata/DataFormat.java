@@ -48,11 +48,51 @@ public class DataFormat {
     }
 
     private String generateIntervalValue() {
-        String s = "";
         String[] bounds = range.split("-");
         long low = Long.parseLong(bounds[0]);
         long high = Long.parseLong(bounds[1]);
         return low + (long) (Math.random() * (high - low)) + "";
+    }
+
+    public String generateInputOutsideRange() { //TODO: still a lot of trouble with this
+        String s = "";
+        if (rangeType.equals("regex")) {
+            s = generateRegexValueOutsideRange();
+        } else {
+            s = generateIntervalValueOutsideRange();
+        }
+        return s;
+    }
+
+    private String generateRegexValueOutsideRange() {
+        RgxGen generator = new RgxGen(range);
+        String s = generator.generateNotMatching(); //TODO: it now generates just any string
+//        if (dataType.contains("int")) { //TODO: Doesnt work properly; Library's fault?; Look into the concept again later
+//            RgxGen generator = new RgxGen("[^0-9]*|" + range);
+//            s = generator.generateNotMatching();
+//        }
+        if (defaultRange) {
+            return "TODO:DefaultRange";
+        }
+        return s;
+    }
+
+    private String generateIntervalValueOutsideRange() { //TODO: generate values close to the interval boundaries
+        String[] bounds = range.split("-");
+        long low = Long.parseLong(bounds[0]);
+        long high = Long.parseLong(bounds[1]);
+
+        if ((int) (Math.random() * 2) == 0) {
+            return Integer.MIN_VALUE + (long) (Math.random() * (low - Integer.MIN_VALUE)) + "";
+        }
+
+        return high + (long) (Math.random() * (Integer.MAX_VALUE - high)) + "";
+    }
+
+    public String changeDataType() {
+        String s = "";
+
+        return s;
     }
 
     /**
@@ -126,5 +166,13 @@ public class DataFormat {
 
     public void setSpecialValues(String[] specialValues) {
         this.specialValues = specialValues;
+    }
+
+    public String getRangeType() {
+        return rangeType;
+    }
+
+    public boolean isDefaultRange() {
+        return defaultRange;
     }
 }
