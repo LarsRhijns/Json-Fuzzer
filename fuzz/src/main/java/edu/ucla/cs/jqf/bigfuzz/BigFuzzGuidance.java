@@ -145,8 +145,6 @@ public class BigFuzzGuidance implements Guidance {
     @Override
     public InputStream getInput()
     {
-    //    System.out.println("BigFuzzSalaryGuidance::getInput");
-        //return Guidance.createInputStream(() -> random.nextInt(256));
         // Clear coverage stats for this run
         runCoverage.clear();
 
@@ -171,11 +169,6 @@ public class BigFuzzGuidance implements Guidance {
         {
             try
             {
-//                mutation.mutate(initialInputFile);//currentInputFile
-//                String fileName = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+".csv'").format(new Date());
-//                currentInputFile = fileName;
-//                mutation.writeFile(fileName);
-
                 String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date());
                 nextInputFile = this.outputDirName + "/" + nextInputFile;
                 mutation.mutate(initialInputFile, nextInputFile);//currentInputFile

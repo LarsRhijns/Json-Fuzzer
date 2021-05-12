@@ -43,22 +43,21 @@ public class BigFuzzDriver {
 
        } catch (Exception e) {
             e.printStackTrace();
-//            System.exit(2);
         }
 
     }
 
     /**
-     * Prints the evaluation to the Terminal.
+     * Prints the configuration and the results from the run to the Terminal.
      *
-     * @param testClassName
-     * @param testMethodName
-     * @param file
-     * @param maxTrials
-     * @param duration
-     * @param startTime
-     * @param endTime
-     * @param guidance
+     * @param testClassName Class name which is being tested
+     * @param testMethodName Test method name which is used to perform the test
+     * @param file  Input file for the testing
+     * @param maxTrials maximal amount of trials configuration
+     * @param duration maximal duration of the trials configuration
+     * @param startTime start time of the program
+     * @param endTime end time of the program
+     * @param guidance guidance class which is used to perform the BigFuzz testing
      */
     private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzGuidance guidance) {
         // Print configuration
@@ -76,13 +75,13 @@ public class BigFuzzDriver {
 
         // Failures
         System.out.println("Total Failures: " + guidance.totalFailures);
-        System.out.println("Unique Failures (UF): " + guidance.uniqueFailures.size());
-        System.out.println("UF Found at: " + guidance.uniqueFailureRuns);
+        System.out.println("Unique Failures: " + guidance.uniqueFailures.size());
+        System.out.println("Unique Failures found at: " + guidance.uniqueFailureRuns);
         List<Boolean> runFoundUniqueFailure = new ArrayList<>();
         for (long i = 0; i < maxTrials; i++) {
             runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
         }
-        System.out.println("UF found per run: " + runFoundUniqueFailure);
+        System.out.println("Unique Failure found per run: " + runFoundUniqueFailure);
 
         // Run time
         long totalDuration = endTime - startTime;
