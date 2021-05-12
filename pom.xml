@@ -98,7 +98,7 @@
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
-                <artifactId>jqf-fuzz</artifactId>
+                <artifactId>bigfuzz-guidance</artifactId>
                 <version>1.2-SNAPSHOT</version>
             </dependency>
             <dependency>
@@ -108,7 +108,7 @@
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
-                <artifactId>jqf-customarray</artifactId>
+                <artifactId>bigfuzz-dfcoverage</artifactId>
                 <version>1.2-SNAPSHOT</version>
             </dependency>
         </dependencies>
