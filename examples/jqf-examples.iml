@@ -95,6 +95,15 @@
     <orderEntry type="library" scope="TEST" name="Maven: com.google.testing.compile:compile-testing:0.15" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.google.truth.extensions:truth-java8-extension:0.37" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.google.auto.value:auto-value:1.5.3" level="project" />
+    <orderEntry type="module-library">
+      <library name="Maven: com.sun:tools:11.0.10">
+        <CLASSES>
+          <root url="jar://C:/Program Files/Java/jdk1.8.0_144/jre/../lib/tools.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" scope="TEST" name="Maven: com.google.errorprone:error_prone_core:2.2.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.github.stephenc.jcip:jcip-annotations:1.0-1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.pcollections:pcollections:2.1.2" level="project" />
