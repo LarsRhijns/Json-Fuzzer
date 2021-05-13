@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,6 +6,7 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation for I5: unsupported DF operator
  */
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -17,7 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class IncomeAggregationMutation implements BigFuzzMutation{
+public class IncomeAggregationMutation implements BigFuzzMutation {
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;
