@@ -187,6 +187,9 @@ public class MutationTemplate implements BigFuzzMutation {
                 int columnIndexNewElement = r.nextInt(rowElements.length+1);
                 mutationResult = addOneElement(rowElements, one, columnIndexNewElement);
                 break;
+            case 5:
+                mutationResult = emptyOneElement(rowElements, elementId);
+                break;
         }
         return mutationResult;
     }
@@ -211,8 +214,12 @@ public class MutationTemplate implements BigFuzzMutation {
      * @return list of elements where the element on the elementId is mutated from an integer to a float + a random value.
      */
     private String[] changeToFloat(String[] rowElements, int elementId) {
-        //TODO: Add check to see if the column can be parsed to an Integer, otherwise just return the original value
-        int value = Integer.parseInt(rowElements[elementId]);
+        int value;
+        try {
+            value = Integer.parseInt(rowElements[elementId]);
+        } catch (Exception e) {
+            return rowElements;
+        }
         float v = (float) value + r.nextFloat();
         rowElements[elementId] = Float.toString(v);
         return rowElements;
