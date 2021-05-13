@@ -17,7 +17,8 @@ public class MutationTemplate implements BigFuzzMutation {
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
-    int maxGenerateTimes = 10;
+    int maxGenerateTimes = 20;
+    int maxDuplicatedTimes = 10;
 
     /**
      * Read a random line from the input file which contains references to other input file. Use selected file to perform the mutation
@@ -111,39 +112,57 @@ public class MutationTemplate implements BigFuzzMutation {
 
         // Randomly select the column which will be mutated
         int rowElementId = r.nextInt(list.size());
-
         int method = selectMutationMethod();
-        System.out.println("Mutation: method=" + method + ", line_index=" + lineNum + ", column_index= " + rowElementId);
 
         // Mutate the row using the selected mutation method
         String[] mutationResult = applyMutationMethod(method, rowElements, rowElementId);
+        System.out.println("Mutation: method=" + method + ", line_index=" + lineNum + ", column_index= " + rowElementId);
+        // Mutate method 6: different delimiter
+        char delimiter = ',';
+        if(method == 6) {
+            delimiter = changeDelimiter(',');
+        }
 
         // Append all row elements together and set the mutation result in the original input list.
-        String rowString = listToString(mutationResult);
+        String mutatedRowString = listToString(mutationResult, delimiter);
+        String rowString = list.get(lineNum);
+
+        System.out.println("Input before mutation:"+ rowString);
+        System.out.println("Input after mutation:"+ mutatedRowString);
+
         list.set(lineNum, rowString);
+    }
+
+    /**
+     * Changes delimiter that is different from the provided character
+     * @param c character which this method should not return
+     * @return return a new delimiter ~ if c is ', returns ' if c is not '
+     */
+    private char changeDelimiter(char c) {
+        if (c == ',') {
+            return '~';
+        }
+        return ',';
     }
 
     /***
      * Randomly select a mutation method between 0 (inc) and 5 (ex).
-     * @return random number between 0 <= x < 5
+     * @return random number between 0 <= x < 6
      */
     private int selectMutationMethod() {
-        // 0: random change value
-        // 1: random change into float
-        // 2: random insert
-        // 3: random delete one column
-        // 4: random add one coumn
-        return r.nextInt(5);
+        return r.nextInt(7);
     }
 
     /**
      * Apply a mutation method to the provided list, on a specific element ID if applicable for said mutation method.
      * @param method integer indicating a method. Integers correspond to the following operations:
-     *         0: random change value
-     *         1: random change into float
-     *         2: random insert value in element
-     *         3: random delete one column/element
-     *         4: random add one column/element
+     *         0: random change value   (M1)
+     *         1: random change into float (M2)
+     *         2: random insert value in element (M4)
+     *         3: random delete one column/element (M5)
+     *         4: random add one column/element (?)
+     *         5: Empty String (M6)
+     *         6: random delimiter (M3), not applied in this method
      * @param rowElements Element list on which the mutation is performed
      * @param elementId Element ID of which element needs to be mutated (if applicable by the mutation method)
      * @return mutated element list. If undefined method is provided the original list is returned.
@@ -210,7 +229,6 @@ public class MutationTemplate implements BigFuzzMutation {
         return rowElements;
     }
 
-
     /**
      * Add one element to the provided String list. Provided value is inserted at the provided index. If the element needs to be inserted at the en of the list, use index input.size() + 1
      * @param rowElements String list in which the new element is inserted
@@ -253,10 +271,27 @@ public class MutationTemplate implements BigFuzzMutation {
         return result.toArray(rowElements);
     }
 
+    /**
+     * Empties (empty string) the element at the specified elementId index
+     * @param rowElements list of String from which one index needs to be removed
+     * @param elementId Index of the element that needs to be removed
+     * @return list of rowElements, where the element at index is removed
+     */
+    private String[] emptyOneElement(String[] rowElements, int elementId) {
+        rowElements[elementId] = "";
+        return rowElements;
+    }
 
     @Override
     public void randomDuplicateRows(ArrayList<String> rows) {
-
+        int ind = r.nextInt(rows.size());
+        int duplicatedTimes = r.nextInt(maxDuplicatedTimes)+1;
+        String duplicatedValue = rows.get(ind);
+        for(int i=0;i<duplicatedTimes;i++)
+        {
+            int insertPos = r.nextInt(rows.size());
+            rows.add(insertPos, duplicatedValue);
+        }
     }
 
     @Override
@@ -322,13 +357,13 @@ public class MutationTemplate implements BigFuzzMutation {
     }
 
 
-    private String listToString(String[] mutationResult) {
+    private String listToString(String[] mutationResult, char delimiter) {
         StringBuilder row = new StringBuilder();
         for (int j = 0; j < mutationResult.length; j++) {
             if (j == 0) {
                 row = new StringBuilder(mutationResult[j]);
             } else {
-                row.append(",").append(mutationResult[j]);
+                row.append(delimiter).append(mutationResult[j]);
             }
         }
         return row.toString();

@@ -42,12 +42,12 @@ public class BigFuzzGuidance implements Guidance {
     protected final long maxDurationMillis;
 
     /** The number of trials completed. */
-    private long numTrials = 0;
+    protected long numTrials = 0;
 
     /** The number of valid inputs. */
     protected long numValid = 0;
 
-    private final long maxTrials;
+    protected final long maxTrials;
     private final PrintStream out;
     private long numDiscards = 0;
     private final float maxDiscardRatio = 0.9f;
@@ -67,8 +67,15 @@ public class BigFuzzGuidance implements Guidance {
     /** The maximum number of keys covered by any single input found so far. */
     protected int maxCoverage = 0;
 
+    /** The list of total failures found so far. */
+    protected int totalFailures = 0;
+
     /** The set of unique failures found so far. */
     protected Set<List<StackTraceElement>> uniqueFailures = new HashSet<>();
+
+    /** List of runs which have at which new unique failures have been detected. */
+    protected List<Long> uniqueFailureRuns = new ArrayList<>();
+
 
     // ---------- LOGGING / STATS OUTPUT ------------
 
@@ -343,10 +350,13 @@ public class BigFuzzGuidance implements Guidance {
             while (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
             }
+            this.totalFailures++;
+
 
             //   Attempt to add this to the set of unique failures
             if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
                 int crashIdx = uniqueFailures.size() - 1;
+                uniqueFailureRuns.add(numTrials);
 
                 infoLog("%s", "Found crash: " + error.getClass() + " - " + (msg != null ? msg : ""));
 
