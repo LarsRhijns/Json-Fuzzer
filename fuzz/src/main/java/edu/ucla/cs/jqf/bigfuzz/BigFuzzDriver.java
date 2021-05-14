@@ -33,7 +33,7 @@ public class BigFuzzDriver {
             String title = testClassName+"#"+testMethodName;
               Duration duration = Duration.of(100, ChronoUnit.SECONDS);
              //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err, "output");
+             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, startTime, duration, System.err, "output");
 
              // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
@@ -78,16 +78,16 @@ public class BigFuzzDriver {
         System.out.println("Total Failures: " + guidance.totalFailures);
         System.out.println("Unique Failures: " + guidance.uniqueFailures.size());
         System.out.println("Unique Failures found at: " + guidance.uniqueFailureRuns);
-        List<Boolean> runFoundUniqueFailure = new ArrayList<>();
-        for (long i = 0; i < maxTrials; i++) {
-            runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
-        }
-        System.out.println("Unique Failure found per run: " + runFoundUniqueFailure);
+//        List<Boolean> runFoundUniqueFailure = new ArrayList<>();
+//        for (long i = 0; i < maxTrials; i++) {
+//            runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
+//        }
+//        System.out.println("Unique Failure found per run: " + runFoundUniqueFailure);
 
         // Run time
         long totalDuration = endTime - startTime;
         if (guidance.numTrials != maxTrials) {
-            System.out.println("Could not complete all trials in the given duration.");
+            System.out.println("!! Could not complete all trials in the given duration.");
         }
         System.out.println("Total run time：" + totalDuration + "ms");
         System.out.println("Tests run: " + guidance.numTrials);

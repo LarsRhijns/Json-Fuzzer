@@ -40,6 +40,9 @@ public class BigFuzzGuidance implements Guidance {
     private static boolean KEEP_GOING_ON_ERROR = true;
     private Coverage coverage;
 
+    /** Time at which the driver started running. */
+    private final long startTime;
+
     /** The max amount of time to run for, in milli-seconds */
     protected final long maxDurationMillis;
 
@@ -108,9 +111,10 @@ public class BigFuzzGuidance implements Guidance {
     ArrayList<String> testInputFiles = new ArrayList<String>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out, String outputDirName) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
 
         this.testName = testName;
+        this.startTime = startTime;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
 
         // create or empty the output directory
@@ -246,7 +250,9 @@ public class BigFuzzGuidance implements Guidance {
         }
 
         // Stopping criteria
-        if (numTrials >= maxTrials) {
+        long currentMillis = System.currentTimeMillis() - startTime;
+        if (numTrials >= maxTrials
+                || currentMillis >= this.maxDurationMillis) {
             this.keepGoing = false;
         }
 
