@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
 import static java.lang.Math.ceil;
 import static java.lang.Math.log;
 
@@ -204,7 +205,7 @@ public class BigFuzzGuidance implements Guidance {
 
     /** Writes a line of text to the log file. */
     protected void infoLog(String str, Object... args) {
-        if (verbose) {
+        if (verbose && PRINT_MUTATIONDETAILS) {
             String line = String.format(str, args);
             if (logFile != null) {
                 appendLineToFile(logFile, line);
@@ -247,7 +248,6 @@ public class BigFuzzGuidance implements Guidance {
         // Stopping criteria
         if (numTrials >= maxTrials) {
             this.keepGoing = false;
-            System.out.println("keepGoing: "+keepGoing);
         }
 
         if (numTrials > 10 && ((float) numDiscards)/((float) (numTrials)) > maxDiscardRatio) {

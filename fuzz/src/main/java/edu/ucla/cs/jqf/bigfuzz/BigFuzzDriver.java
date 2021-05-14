@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BigFuzzDriver {
+    // These booleans are for debugging purposes only, toggle them if you want to see the information
     public static boolean PRINT_METHODNAMES = false;
+    public static boolean PRINT_MUTATIONDETAILS = false;
 
     public static void main(String[] args) {
         if (args.length < 2) {

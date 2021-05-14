@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
 
 @RunWith(JQF.class)
 public class SalaryAnalysisDriver {
@@ -21,7 +22,9 @@ public class SalaryAnalysisDriver {
         if (PRINT_METHODNAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
         SalaryAnalysis analysis = new SalaryAnalysis();
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-        System.out.println("fileList size: " + fileList.size());
+        if (PRINT_MUTATIONDETAILS) {
+            System.out.println("fileList size: " + fileList.size());
+        }
         analysis.SalaryAnalysis(fileList.get(0));
     }
 
