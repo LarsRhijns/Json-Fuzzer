@@ -41,7 +41,7 @@ public interface BigFuzzMutation {
 
     public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows);
 
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows);
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows);
 
     public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows);
 
