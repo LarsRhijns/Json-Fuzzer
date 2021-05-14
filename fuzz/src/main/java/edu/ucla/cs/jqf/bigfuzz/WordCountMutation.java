@@ -135,15 +135,15 @@ public class WordCountMutation implements BigFuzzMutation{
     private String randomChangeByte(String instr)
     {
         String ret = "";
-        System.out.println(instr.length());
+        System.out.println("randomChangeByte instr length: " + instr.length());
         //int pos = r.nextInt(instr.length());
         int pos = (int)(Math.random() * instr.length());
-        System.out.println(pos);
+        System.out.println("randomChangeByte pos: " + pos);
 
         //random change several bytes
         //char temp = (char)(Math.random() * 256);
         String r = RandomStringUtils.randomAscii((int)(Math.random() * 5));
-        System.out.println(r);
+        System.out.println("randomChangeByte randomAscii: " + r);
 //        char[] rchars = r.toCharArray();
 
 

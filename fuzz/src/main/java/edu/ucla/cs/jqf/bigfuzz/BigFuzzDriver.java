@@ -21,7 +21,6 @@ public class BigFuzzDriver {
         String testClassName = args[0];
         String testMethodName = args[1];
         Long maxTrials = args.length > 2 ? Long.parseLong(args[2]) : Long.MAX_VALUE;
-        System.out.println("maxTrials: "+maxTrials);
 //        File outputDirectory = new File("../fuzz-results");
 
 

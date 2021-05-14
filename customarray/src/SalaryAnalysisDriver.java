@@ -20,9 +20,8 @@ public class SalaryAnalysisDriver {
 //        byte[] bytes = fileName.getBytes();
         if (PRINT_METHODNAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
         SalaryAnalysis analysis = new SalaryAnalysis();
-        System.out.println(fileName);
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-        System.out.println(fileList.size());
+        System.out.println("fileList size: " + fileList.size());
         analysis.SalaryAnalysis(fileList.get(0));
     }
 
