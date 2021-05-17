@@ -3,11 +3,14 @@ package edu.bigfuzztabulardata;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -45,8 +48,8 @@ public class Mutation {
     }
 
     public void performRandomMutation(List<String[]> data, String currentFile) {
-        //int r = (int) (Math.random() * MUTATIONS_AMOUNT);
-        int r = 0;
+        int r = (int) (Math.random() * MUTATIONS_AMOUNT);
+        r = 1;
         List<String[]> newData= null;
         switch (r) {
             case 0:
@@ -73,6 +76,7 @@ public class Mutation {
     }
 
     private List<String[]> dataDistributionMutation(List<String[]> data) {
+        //TODO: Fix implementation
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());
         int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
@@ -81,10 +85,11 @@ public class Mutation {
     }
 
     private List<String[]> dataTypeMutation(List<String[]> data) {
+        //TODO: Implement
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());
         int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
-        newData.get(randomRow)[randomColumn] = dataSpecification[randomColumn].changeDataType();
+        newData.get(randomRow)[randomColumn] = dataSpecification[randomColumn].changeDataType(newData.get(randomRow)[randomColumn]);
         return newData;
     }
 
@@ -100,12 +105,26 @@ public class Mutation {
         return newData;
     }
 
+    /**
+     * Picks a random cell and removes the cell.
+     * @param data dataset to mutate.
+     * @return the mutated dataset.
+     */
     private List<String[]> nullDataMutation(List<String[]> data) {
         List<String[]> newData = data;
-
+        int randomRow = (int) (Math.random() * newData.size());
+        int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
+        String[] updatedColumn = newData.get(randomRow);
+        updatedColumn = (String[]) ArrayUtils.remove(updatedColumn, randomColumn);
+        newData.set(randomRow, updatedColumn);
         return newData;
     }
 
+    /**
+     * Picks a random cell and removes its data.
+     * @param data dataset to mutate.
+     * @return the mutated dataset.
+     */
     private List<String[]> emptyDataMutation(List<String[]> data) {
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());

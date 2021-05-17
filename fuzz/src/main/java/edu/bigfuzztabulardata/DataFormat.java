@@ -89,11 +89,161 @@ public class DataFormat {
         return high + (long) (Math.random() * (Integer.MAX_VALUE - high)) + "";
     }
 
-    public String changeDataType() {
+    public String changeDataType(String element) {
+        //TODO: There could be more variation in the way the data type is changed
         String s = "";
-
+        switch (dataType) {
+            case "byte":
+                // Relevant data type mutation: Too high, float/double, String
+                s = changeDataTypeByte(element);
+                break;
+            case "short":
+                // Relevant data type mutation: Too high, float/double, String
+                s = changeDataTypeShort(element);
+                break;
+            case "int":
+                s = changeDataTypeInt(element);
+                // Relevant data type mutation: Too high, float/double, String
+                break;
+            case "long":
+                // Relevant data type mutation: float/double, String
+                s = changeDataTypeLong(element);
+                break;
+            case "float":
+                // Relevant data type mutation: Too high, String
+                s = changeDataTypeFloat(element);
+                break;
+            case "double":
+                // Relevant data type mutation: String
+                s = changeDataTypeDouble(element);
+                break;
+            case "boolean":
+                // Relevant data type mutation: Anything that is not True/False
+                s = changeDataTypeBoolean(element);
+                break;
+            case "char":
+                // Relevant data type mutation: Too long
+                s = changeDataTypeChar(element);
+                break;
+            case "String":
+                // Relevant data type mutation: None
+                s = changeDataTypeString(element);
+                break;
+            case "Array":
+                // Relevant data type mutation: changetype of a random element?/ all elements?, make the array itself not an array?
+                s = changeDataTypeArray(element);
+        }
         return s;
     }
+
+    public String changeDataTypeByte(String element) {
+        String s = "";
+        int r = (int) (Math.random() * 3);
+        switch (r) {
+            case 0:
+                s = element + ".0";
+                break;
+            case 1:
+                s = element + "q";
+                break;
+            case 2:
+                short temp = (short) Byte.MAX_VALUE + 1;
+                s = temp + "";
+                break;
+        }
+        return s;
+    }
+
+    public String changeDataTypeShort(String element) {
+        String s = "";
+        int r = (int) (Math.random() * 3);
+        switch (r) {
+            case 0:
+                s = element + ".0";
+                break;
+            case 1:
+                s = element + "q";
+                break;
+            case 2:
+                int temp = (int) Short.MAX_VALUE + 1;
+                s = temp + "";
+                break;
+        }
+        return s;
+    }
+
+    public String changeDataTypeInt(String element) {
+        String s = "";
+        int r = (int) (Math.random() * 3);
+        switch (r) {
+            case 0:
+                s = element + ".0";
+                break;
+            case 1:
+                s = element + "q";
+                break;
+            case 2:
+                long temp = (long) Integer.MAX_VALUE + 1;
+                s = temp + "";
+                break;
+        }
+        return s;
+    }
+
+    public String changeDataTypeLong(String element) {
+        String s = "";
+        int r = (int) (Math.random() * 2);
+        switch (r) {
+            case 0:
+                s = element + ".0";
+                break;
+            case 1:
+                s = element + "q";
+                break;
+        }
+        return s;
+    }
+
+    public String changeDataTypeFloat(String element) {
+        String s = "";
+        int r = (int) (Math.random() * 2);
+        switch (r) {
+            case 0:
+                s = element + "q";
+                break;
+            case 1:
+                double temp = Float.MAX_VALUE + 1;
+                s = temp + "";
+                break;
+        }
+        return s;
+    }
+
+    public String changeDataTypeDouble(String element) {
+        return element + "q";
+    }
+
+    public String changeDataTypeBoolean(String element) {
+        return element + "q";
+    }
+
+    public String changeDataTypeChar(String element) {
+        return element + "q";
+    }
+
+    public String changeDataTypeString(String element) {
+        //TODO: Not relevant for Strings (every datatype is also a valid string), Dont do this mutation on strings?
+        String s = "";
+        return element;
+    }
+
+    public String changeDataTypeArray(String element) {
+        // TODO: Implement this
+        String s = "";
+        return element;
+    }
+
+
 
     /**
      * Generates a String representation of an array of the corresponding dataType.

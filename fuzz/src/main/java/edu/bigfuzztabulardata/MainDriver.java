@@ -18,8 +18,9 @@ public class MainDriver {
 
         Mutation m = new Mutation(im.getInputs());
 
-        m.mutateFile(fileName);
-        m.mutateFile(fileName);
+        for (int i = 0; i < 2; i++) {
+            m.mutateFile(fileName);
+        }
 
     }
 }
