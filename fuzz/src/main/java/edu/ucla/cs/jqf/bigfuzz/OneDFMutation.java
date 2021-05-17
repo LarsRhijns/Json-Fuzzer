@@ -118,9 +118,9 @@ public class OneDFMutation implements BigFuzzMutation{
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println(list.size());
+        System.out.println("mutate size: " + list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println(list.get(lineNum));
+        System.out.println("mutate linenum: " + list.get(lineNum));
         // 0: random change value
         // 1: random change into float
         // 2: random insert
@@ -129,7 +129,7 @@ public class OneDFMutation implements BigFuzzMutation{
         String[] columns = list.get(lineNum).split(",");
         int method = r.nextInt(5);
         int columnID = r.nextInt(Integer.parseInt("1"));
-        System.out.println("********"+method+" "+lineNum+" "+columnID);
+        System.out.println("OneDFMutation *** "+method+" "+lineNum+" "+columnID);
         if(method == 0){
             columns[columnID] = Integer.toString(r.nextInt());
         }

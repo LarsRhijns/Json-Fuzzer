@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
 import static java.lang.Math.ceil;
 import static java.lang.Math.log;
 
@@ -38,11 +40,14 @@ public class BigFuzzGuidance implements Guidance {
     private static boolean KEEP_GOING_ON_ERROR = true;
     private Coverage coverage;
 
+    /** Time at which the driver started running. */
+    private final long startTime;
+
     /** The max amount of time to run for, in milli-seconds */
     protected final long maxDurationMillis;
 
     /** The number of trials completed. */
-    private long numTrials = 0;
+    protected long numTrials = 0;
 
     /** The number of valid inputs. */
     protected long numValid = 0;
@@ -67,8 +72,14 @@ public class BigFuzzGuidance implements Guidance {
     /** The maximum number of keys covered by any single input found so far. */
     protected int maxCoverage = 0;
 
+    /** The list of total failures found so far. */
+    protected int totalFailures = 0;
+
     /** The set of unique failures found so far. */
     protected Set<List<StackTraceElement>> uniqueFailures = new HashSet<>();
+
+    /** List of runs which have at which new unique failures have been detected. */
+    protected List<Long> uniqueFailureRuns = new ArrayList<>();
 
     // ---------- LOGGING / STATS OUTPUT ------------
 
@@ -100,9 +111,10 @@ public class BigFuzzGuidance implements Guidance {
     ArrayList<String> testInputFiles = new ArrayList<String>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out, String outputDirName) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
 
         this.testName = testName;
+        this.startTime = startTime;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
 
         // create or empty the output directory
@@ -138,8 +150,6 @@ public class BigFuzzGuidance implements Guidance {
     @Override
     public InputStream getInput()
     {
-    //    System.out.println("BigFuzzSalaryGuidance::getInput");
-        //return Guidance.createInputStream(() -> random.nextInt(256));
         // Clear coverage stats for this run
         runCoverage.clear();
 
@@ -164,11 +174,6 @@ public class BigFuzzGuidance implements Guidance {
         {
             try
             {
-//                mutation.mutate(initialInputFile);//currentInputFile
-//                String fileName = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+".csv'").format(new Date());
-//                currentInputFile = fileName;
-//                mutation.writeFile(fileName);
-
                 String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date());
                 nextInputFile = this.outputDirName + "/" + nextInputFile;
                 mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
@@ -182,7 +187,7 @@ public class BigFuzzGuidance implements Guidance {
         }
         testInputFiles.add(currentInputFile);
 
-        System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile );
+        if (PRINT_METHODNAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
         InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
 
         return targetStream;
@@ -204,7 +209,7 @@ public class BigFuzzGuidance implements Guidance {
 
     /** Writes a line of text to the log file. */
     protected void infoLog(String str, Object... args) {
-        if (verbose) {
+        if (verbose && PRINT_MUTATIONDETAILS) {
             String line = String.format(str, args);
             if (logFile != null) {
                 appendLineToFile(logFile, line);
@@ -223,11 +228,11 @@ public class BigFuzzGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-
+        System.out.println("--Current trial: " + numTrials);
         // Stop timeout handling
         this.runStart = null;
 
-        System.out.println("BigFuzz::handleResult");
+        if (PRINT_METHODNAMES) { System.out.println("BigFuzz::handleResult"); }
         System.out.println(result);
 
         this.numTrials++;
@@ -245,10 +250,10 @@ public class BigFuzzGuidance implements Guidance {
         }
 
         // Stopping criteria
-        if (numTrials >= maxTrials) {
-            System.out.println("current trial: " + numTrials);
+        long currentMillis = System.currentTimeMillis() - startTime;
+        if (numTrials >= maxTrials
+                || currentMillis >= this.maxDurationMillis) {
             this.keepGoing = false;
-            System.out.println("keepGoing: "+keepGoing);
         }
 
         if (numTrials > 10 && ((float) numDiscards)/((float) (numTrials)) > maxDiscardRatio) {
@@ -349,10 +354,12 @@ public class BigFuzzGuidance implements Guidance {
             while (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
             }
+            this.totalFailures++;
 
             //   Attempt to add this to the set of unique failures
             if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
                 int crashIdx = uniqueFailures.size() - 1;
+                uniqueFailureRuns.add(numTrials);
 
                 infoLog("%s", "Found crash: " + error.getClass() + " - " + (msg != null ? msg : ""));
 

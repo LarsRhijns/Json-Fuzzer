@@ -118,12 +118,12 @@ public class RandomMutation implements BigFuzzMutation{
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println("list size: "+ list.size());
+        System.out.println("mutate size: "+ list.size());
 //        int lineNum = r.nextInt(list.size());
         int lineNum =(int)(Math.random() * list.size());
 
 
-        System.out.println("line number " + lineNum);
+        System.out.println("mutate linenum: " + lineNum);
         String line = randomChangeByte(list.get(lineNum));
         list.set(lineNum, line);
     }
@@ -131,10 +131,10 @@ public class RandomMutation implements BigFuzzMutation{
     private String randomChangeByte(String instr)
     {
         String ret = "";
-        System.out.println(instr.length());
+        System.out.println("randomChangeByte instr length: " + instr.length());
         //int pos = r.nextInt(instr.length());
         int pos = (int)(Math.random() * instr.length());
-        System.out.println(pos);
+        System.out.println("randomChangeByte pos: " + pos);
         //random change byte
         char temp = (char)r.nextInt(256);
         char[] characters = instr.toCharArray();
