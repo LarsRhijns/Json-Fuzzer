@@ -84,10 +84,16 @@ public class BigFuzzDriver {
         System.out.println("Unique Failures: " + guidance.uniqueFailures.size());
         System.out.println("Unique Failures found at: " + guidance.uniqueFailureRuns);
         List<Boolean> runFoundUniqueFailure = new ArrayList<>();
+        int cumm = 0;
+        List<Integer> runFoundUniqueFailureCumm = new ArrayList<>();
         for (long i = 0; i < maxTrials; i++) {
             runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
+            if(guidance.uniqueFailureRuns.contains(i))
+                cumm++;
+            runFoundUniqueFailureCumm.add(cumm);
         }
         System.out.println("Unique Failure found per run: " + runFoundUniqueFailure);
+        System.out.println("Unique Failure found per run: " + runFoundUniqueFailureCumm);
 
         // Run time
         long totalDuration = endTime - startTime;
