@@ -7,6 +7,7 @@ package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
  */
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.ucla.cs.jqf.bigfuzz.MultiMutation;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -238,6 +239,11 @@ public class OneDFMutation implements BigFuzzMutation {
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+
     }
 
 }

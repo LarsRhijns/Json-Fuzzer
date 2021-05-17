@@ -192,4 +192,9 @@ public class RandomMutation implements BigFuzzMutation{
         del.delete();
     }
 
+    @Override
+    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+
+    }
+
 }

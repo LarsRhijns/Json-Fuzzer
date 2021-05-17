@@ -19,10 +19,13 @@ public class BigFuzzDriver {
 
         String testClassName = args[0];
         String testMethodName = args[1];
+
         Long maxTrials = args.length > 2 ? Long.parseLong(args[2]) : Long.MAX_VALUE;
         System.out.println("maxTrials: " + maxTrials);
-//        File outputDirectory = new File("../fuzz-results");
 
+        int intMultiMutationMethod = args.length > 3 ? Integer.parseInt(args[3]) : 0;
+        MultiMutation.MultiMutationMethod multiMutationMethod = MultiMutation.intToMultiMutationMethod(intMultiMutationMethod);
+        System.out.println("mutationMethod: " + multiMutationMethod);
 
         String file = "dataset/conf";
         try {
@@ -32,6 +35,9 @@ public class BigFuzzDriver {
             Duration duration = Duration.of(100, ChronoUnit.SECONDS);
             //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err, "output");
+
+            // Set the provided input argument multiMutationMethod in the guidance mutation
+            guidance.setMultiMutationMethod(multiMutationMethod);
 
             // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);

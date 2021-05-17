@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public interface BigFuzzMutation {
 
+
     /**
      * mutate on an csv file
      * @param inputFile
@@ -52,4 +53,6 @@ public interface BigFuzzMutation {
      */
     public void writeFile(String outputFile) throws IOException;
     public void deleteFile(String currentFile) throws IOException;
+
+    void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod);
 }

@@ -463,4 +463,8 @@ public class BigFuzzGuidance implements Guidance {
         }
         return coverage;
     }
+
+    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+        mutation.setMultiMutationMethod(multiMutationMethod);
+    }
 }

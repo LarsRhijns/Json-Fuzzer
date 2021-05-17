@@ -3,6 +3,7 @@ package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 //import org.apache.commons.lang.ArrayUtils;
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.ucla.cs.jqf.bigfuzz.MultiMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -286,6 +287,11 @@ public class StudentGradeMutation implements BigFuzzMutation {
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+
     }
 
 }
