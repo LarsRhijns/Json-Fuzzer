@@ -1,5 +1,7 @@
 package edu.bigfuzztabulardata;
 
+import com.github.curiousoddman.rgxgen.RgxGen;
+
 import java.io.File;
 
 public class MainDriver {
@@ -18,7 +20,7 @@ public class MainDriver {
 
         Mutation m = new Mutation(im.getInputs());
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 10; i++) {
             m.mutateFile(fileName);
         }
 

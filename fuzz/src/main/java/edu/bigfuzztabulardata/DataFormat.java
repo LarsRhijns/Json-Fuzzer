@@ -19,8 +19,6 @@ public class DataFormat {
         this.defaultRange = defaultRange;
     }
 
-    //TODO: somehow make it return as the appropriate datatype; Xeger distribution seems off -> RgxGen seems way more random and evenly distributed
-
     /**
      * Uses the RgxGen library to generate a random input that lies within a range defined by a regular expression.
      * @return Random input within a range.
@@ -233,13 +231,11 @@ public class DataFormat {
 
     public String changeDataTypeString(String element) {
         //TODO: Not relevant for Strings (every datatype is also a valid string), Dont do this mutation on strings?
-        String s = "";
         return element;
     }
 
     public String changeDataTypeArray(String element) {
         // TODO: Implement this
-        String s = "";
         return element;
     }
 

@@ -1,1 +1,1 @@
-byte .*,short .*,int .*,long .*,boolean .*,char .*,String .{5},array(byte) .*
+byte regex(.*),short regex(.*),int regex(.*),long regex(.*),boolean regex(.*),char regex(.*),String regex(.*),array(byte) regex(.*)

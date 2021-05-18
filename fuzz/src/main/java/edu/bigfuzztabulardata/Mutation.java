@@ -1,5 +1,6 @@
 package edu.bigfuzztabulardata;
 
+import com.github.curiousoddman.rgxgen.RgxGen;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class Mutation {
 
-    private static final int MUTATIONS_AMOUNT = 6;
+    private static final int MUTATIONS_AMOUNT = 5;
     private static final String GENERATED_INPUT_FILES_FOLDER = "fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/";
     private int mutationGeneration = 0;
     private DataFormat[] dataSpecification;
@@ -49,7 +50,7 @@ public class Mutation {
 
     public void performRandomMutation(List<String[]> data, String currentFile) {
         int r = (int) (Math.random() * MUTATIONS_AMOUNT);
-        r = 1;
+//        r = 2;
         List<String[]> newData= null;
         switch (r) {
             case 0:
@@ -59,15 +60,12 @@ public class Mutation {
                 newData = dataTypeMutation(data);
                 break;
             case 2:
-                newData = dataFormatMutation(data);
-                break;
-            case 3:
                 newData = dataColumnMutation(data);
                 break;
-            case 4:
+            case 3:
                 newData = nullDataMutation(data);
                 break;
-            case 5:
+            case 4:
                 newData = emptyDataMutation(data);
                 break;
         }
@@ -84,8 +82,12 @@ public class Mutation {
         return newData;
     }
 
+    /**
+     * Picks a random cell and changes the datatype of the element.
+     * @param data dataset to mutate.
+     * @return the mutated dataset.
+     */
     private List<String[]> dataTypeMutation(List<String[]> data) {
-        //TODO: Implement
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());
         int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
@@ -93,15 +95,19 @@ public class Mutation {
         return newData;
     }
 
-    private List<String[]> dataFormatMutation(List<String[]> data) {
-        List<String[]> newData = data;
-        //TODO: I need an example of datatypes that use delimiters; Or do they mean the CSV inputfile?
-        return newData;
-    }
-
+    /**
+     * Picks a random random and adds an extra column at a random index.
+     * @param data dataset to mutate.
+     * @return the mutated dataset.
+     */
     private List<String[]> dataColumnMutation(List<String[]> data) {
         List<String[]> newData = data;
-
+        int randomRow = (int) (Math.random() * newData.size());
+        int randomColumn = (int) (Math.random() * (newData.get(randomRow).length + 1));
+        RgxGen generator = new RgxGen(".*");
+        String[] updatedColumn = newData.get(randomRow);
+        updatedColumn = (String[]) ArrayUtils.add(updatedColumn, randomColumn, generator.generate());
+        newData.set(randomRow, updatedColumn);
         return newData;
     }
 

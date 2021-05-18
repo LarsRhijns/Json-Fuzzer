@@ -29,7 +29,7 @@ public class InputGenerator {
         try {
 
             CSVWriter writer = new CSVWriter(new FileWriter(filePath));
-            for (int i = 0; i < INPUT_FILE_AMOUNT_OF_LINES; i++) { //TODO: i is the amount of lines; figure out how many lines an input file should have.
+            for (int i = 0; i < INPUT_FILE_AMOUNT_OF_LINES; i++) { //TODO: i is the amount of lines; BigFuzz-> generates 1 to 20 lines (randomly chosen)
                 String[] inputData = generateInputData();
                 writer.writeNext(inputData);
             }
