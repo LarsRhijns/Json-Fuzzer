@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Salary Object",
+  "description": "Salary data input",
+  "additionalProperties": {
+    "not": {}
+  },
+  "properties": {
+    "EmployeeNumber": {
+      "type": "integer",
+      "maximum": 90000,
+      "minimum": 90099
+    },
+    "UnknownNumber": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "Salary": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967296
+    }
+  }
+}
