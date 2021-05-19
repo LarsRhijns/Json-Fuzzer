@@ -13,6 +13,9 @@ import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
 
 public class JsonGenerator {
+    /**
+     * Sanity check to see that library execution works
+     */
     public static void main(String[] args) {
         try {
             //String schemaPath = "src/test/resources/Schema4.json";
