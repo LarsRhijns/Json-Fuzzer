@@ -78,9 +78,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.jignesh-dhua</groupId>
+            <groupId>com.github.LarsRhijns</groupId>
             <artifactId>json-generator</artifactId>
-            <version>develop-2bd840f692-1</version>
+            <version>v1.0</version>
         </dependency>
     </dependencies>
 

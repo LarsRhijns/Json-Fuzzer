@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "title": "My schema",
+    "description": "Created with Liquid Studio 2018 (https://www.liquid-technologies.com)",
+    "additionalProperties": {
+        "not": {}
+    },
+    "properties": {
+        "Number": {
+            "type": "integer",
+            "multipleOf": 10,
+            "maximum": 100,
+            "minimum": -100
+        },
+        "Name": {
+            "type": "string",
+            "title": "Title of Name",
+            "$id": "#Name",
+    		"description": "Description of name",
+            "pattern": "^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$"
+        },
+        "status": {
+            "type": "boolean",
+            "title": "Status",
+    		"description": "Description of Status"
+        },
+        "Department": {
+            "enum":  ["EE", "CS", "AM", "WB", "IO"]
+        },
+        "Array": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "first_name": {"$ref" : "#Name"},
+                        "num" : { "type":  "number"}
+                    }
+                },
+                {
+                    "type": "string"
+                },
+                {
+                    "enum": ["Street", "Avenue", "Boulevard"]
+                },
+                {
+                    "enum": ["NW", "NE", "SW", "SE"]
+                }
+            ]
+        }
+    }
+}
