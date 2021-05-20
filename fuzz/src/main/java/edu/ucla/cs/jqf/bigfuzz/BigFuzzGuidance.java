@@ -8,15 +8,27 @@ import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
-
-import java.nio.channels.FileChannel;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -34,7 +46,6 @@ public class BigFuzzGuidance implements Guidance {
 
     /** The name of the test for display purposes. */
     protected final String testName;
-    private final String outputDirName;
 
     private boolean keepGoing = true;
     private static boolean KEEP_GOING_ON_ERROR = true;
@@ -51,6 +62,21 @@ public class BigFuzzGuidance implements Guidance {
 
     /** The number of valid inputs. */
     protected long numValid = 0;
+
+    /** The directory where fuzzing results are written. */
+    protected final File outputDirectory;
+
+    /** The directory where saved inputs are written. */
+    protected File coverageInputsDirectory;
+
+    /** The directory where saved inputs are written. */
+    protected File uniqueFailuresDirectory;
+
+    /** The directory where all inputs are written. */
+    protected File allValidInputsDirectory;
+
+    /** The directory where all mutations are written. */
+    protected File allInputsDirectory;
 
     private final long maxTrials;
     private final PrintStream out;
@@ -89,15 +115,16 @@ public class BigFuzzGuidance implements Guidance {
     /** Whether to print log statements to stderr (debug option; manually edit). */
     protected final boolean verbose = true;
 
-
     /** The file where log data is written. */
     protected File logFile;
+
+    /** The file where saved plot data is written. */
+    protected File statsFile;
 
     // ------------- TIMEOUT HANDLING ------------
 
     /** Date when last run was started. */
     protected Date runStart;
-
 
     // ------------- FUZZING HEURISTICS ------------
 
@@ -107,107 +134,121 @@ public class BigFuzzGuidance implements Guidance {
     /** Whether to steal responsibility from old inputs (this increases computation cost). */
     static final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
 
-    protected final String initialInputFile;
+    protected final File initialInputFile;
     BigFuzzMutation mutation = new IncomeAggregationMutation();
-    private String currentInputFile;
+    private File currentInputFile;
+    private File lastWorkingInputFile;
 
-    ArrayList<String> testInputFiles = new ArrayList<String>();
+    /** Set of files that can be used as input */
+    Set<File> testInputFiles = new HashSet<>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFileName, long maxTrials, long startTime, Duration duration, PrintStream out, File outputDirectory) throws IOException {
 
         this.testName = testName;
         this.startTime = startTime;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
-
-        // create or empty the output directory
-        this.outputDirName = outputDirName;
-        File outputDir = new File(outputDirName);
-        boolean newOutputDirCreated = outputDir.mkdir();
-        if (!newOutputDirCreated) {
-            FileUtils.cleanDirectory(FileUtils.getFile(outputDirName));
-        }
-
+        this.outputDirectory = outputDirectory;
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
         }
-        this.initialInputFile = initialInputFile;
-        this.currentInputFile = initialInputFile;
+        File initialFile = new File(initialInputFileName);
+        this.initialInputFile = initialFile;
+        this.currentInputFile = initialFile;
+        this.lastWorkingInputFile = initialFile;
         this.maxTrials = maxTrials;
         this.out = out;
+
+        prepareOutputDirectory();
     }
 
-    private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
-        FileChannel inputChannel = null;
-        FileChannel outputChannel = null;
-        try {
-            inputChannel = new FileInputStream(source).getChannel();
-            outputChannel = new FileOutputStream(dest).getChannel();
-            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-        } finally {
-            inputChannel.close();
-            outputChannel.close();
+    private void prepareOutputDirectory() throws IOException {
+        // Create the output directory if it does not exist
+        if (!outputDirectory.exists()) {
+            if (!outputDirectory.mkdirs()) {
+                throw new IOException("Could not create output directory" +
+                        outputDirectory.getAbsolutePath());
+            }
+        } else {
+            // Empty the output directory
+            FileUtils.cleanDirectory(FileUtils.getFile(outputDirectory));
         }
+
+        // Make sure we can write to output directory
+        if (!outputDirectory.isDirectory() || !outputDirectory.canWrite()) {
+            throw new IOException("Output directory is not a writable directory: " +
+                    outputDirectory.getAbsolutePath());
+        }
+
+        // Create and name files and directories after AFL
+        this.coverageInputsDirectory = new File(outputDirectory, "new_coverage_inputs");
+        if (!this.coverageInputsDirectory.mkdirs()) {
+            System.out.println("!! Could not create directory: " + coverageInputsDirectory);
+        }
+        this.uniqueFailuresDirectory = new File(outputDirectory, "unique_failures");
+        if (!this.uniqueFailuresDirectory.mkdirs()) {
+            System.out.println("!! Could not create directory: " + uniqueFailuresDirectory);
+        }
+        this.allValidInputsDirectory = new File(outputDirectory, "all_valid_inputs");
+        if (!this.allValidInputsDirectory.mkdirs()) {
+            System.out.println("!! Could not create directory: " + allValidInputsDirectory);
+        }
+        this.allInputsDirectory = new File(outputDirectory, "all_inputs");
+        if (!this.allInputsDirectory.mkdirs()) {
+            FileUtils.cleanDirectory(FileUtils.getFile(allInputsDirectory));
+        }
+
+        this.statsFile = new File(outputDirectory, "plot_data");
+        if (!statsFile.createNewFile()) {
+            assert statsFile.delete();
+        }
+        this.logFile = new File(outputDirectory, "fuzz.log");
+        if (!logFile.createNewFile()) {
+            assert logFile.delete();
+        }
+
+        appendLineToFile(statsFile,"# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
+                "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, valid_inputs, invalid_inputs, valid_cov");
     }
 
     @Override
-    public InputStream getInput()
-    {
+    public InputStream getInput() throws IOException {
         // Clear coverage stats for this run
         runCoverage.clear();
 
+        File nextInputFile = new File(allValidInputsDirectory, "input_" + this.numTrials);
+        File mutationFile = new File(allInputsDirectory, "mutation_" + this.numTrials);
 
-        ///copy the configuration/input file
-        if(testInputFiles.isEmpty())
+        File[] possibleInputs = allValidInputsDirectory.listFiles();
+        if (Objects.requireNonNull(possibleInputs).length == 0)
         {
-            String fileName = currentInputFile.substring(currentInputFile.lastIndexOf('/')+1);
-            File src = new File(currentInputFile);
-            File dst = new File(fileName);
-            try
-            {
-                copyFileUsingFileChannels(src, dst);
-            }
-            catch (IOException e)
-            {
-                System.out.println(e);
-            }
-            currentInputFile = fileName;
+            // Copy the initial input/configuration file
+            FileUtils.copyFile(initialInputFile, nextInputFile);
         }
         else
         {
-            try
-            {
-                String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date());
-                nextInputFile = this.outputDirName + "/" + nextInputFile;
-                mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
-                currentInputFile = nextInputFile;
-
-            }
-            catch (IOException e)
-            {
-                System.out.println(e);
+            // Mutate an input file
+            mutation.mutate(currentInputFile.getPath(), mutationFile.getPath());
+            FileUtils.copyFile(mutationFile, nextInputFile);
+            if (!mutationFile.delete()) {
+                System.out.println("!! Could not delete mutationFile: " + mutationFile);
             }
         }
-        testInputFiles.add(currentInputFile);
+
+        currentInputFile = nextInputFile;
 
         if (PRINT_METHODNAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
-        InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
 
-        return targetStream;
+        return new ByteArrayInputStream(currentInputFile.getPath().getBytes());
     }
 
     /** Writes a line of text to a given log file. */
     protected void appendLineToFile(File file, String line) throws GuidanceException {
-
         try (PrintWriter out = new PrintWriter(new FileWriter(file, true))) {
             out.println(line);
         } catch (IOException e) {
-            //System.out.println("appendLineToFile:throw: "+e.getMessage());
             throw new GuidanceException(e);
-        } finally {
-            out.close();
         }
-
     }
 
     /** Writes a line of text to the log file. */
@@ -300,7 +341,7 @@ public class BigFuzzGuidance implements Guidance {
                 // Must be responsible for some branch
                 assert(responsibilities.size() > 0);
                 toSave = true;
-                why = why + "+cov";
+                why += "+cov";
             }
 
             // Save if new valid coverage is found
@@ -308,7 +349,7 @@ public class BigFuzzGuidance implements Guidance {
                 // Must be responsible for some branch
                 assert(responsibilities.size() > 0);
                 toSave = true;
-                why = why + "+valid";
+                why += "+valid";
             }
 
             if (toSave) {
@@ -321,30 +362,33 @@ public class BigFuzzGuidance implements Guidance {
 //                        currentInput.size(),
                         nonZeroAfter);
 
-                // Change current inputfile name
-                File src = new File(currentInputFile);
-                currentInputFile += why;
-                File des = new File(currentInputFile);
-                src.renameTo(des);
+                // Change current input file name
+                File src = currentInputFile;
+                File des = new File(coverageInputsDirectory, currentInputFile.getName());
+                // save the file if it increased coverage
+                if (why.contains("+cov")) {
+                    if (!des.exists()) {
+                        try {
+                            FileUtils.copyFile(src, des);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    lastWorkingInputFile = src;
+                    testInputFiles.add(des);
+                }
             }
             else {
                 try {
-                    mutation.deleteFile(currentInputFile);
+                    mutation.deleteFile(currentInputFile.getPath());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                try {
-//                    List<String> deleteList = Files.readAllLines(Paths.get(currentInputFile));
-//                    for(int i = 0; i < deleteList.size(); i++)
-//                    {
-//                        File del = new File(deleteList.get(i));
-//                        del.delete();
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-                File src2 = new File(currentInputFile);
-                src2.delete();
+                File src2 = currentInputFile;
+                if (!src2.delete()) {
+                    System.out.println("!! Could not delete File " + src2);
+                }
+                currentInputFile = lastWorkingInputFile;
             }
         }else if (result == Result.FAILURE || result == Result.TIMEOUT) {
 //            if (out != null) {
@@ -363,7 +407,6 @@ public class BigFuzzGuidance implements Guidance {
 
             //   Attempt to add this to the set of unique failures
             if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
-                int crashIdx = uniqueFailures.size() - 1;
                 uniqueFailureRuns.add(numTrials);
 
                 infoLog("%s", "Found crash: " + error.getClass() + " - " + (msg != null ? msg : ""));
@@ -371,29 +414,34 @@ public class BigFuzzGuidance implements Guidance {
 //                String how = currentInput.desc;
                 String why = result == Result.FAILURE ? "+crash" : "+hang";
 //                infoLog("Saved - %s %s %s", saveFile.getPath(), how, why);
+                if (PRINT_MUTATIONDETAILS) {
+                    System.out.println("Unique failure found: " + why + "\n\t" + rootCause);
+                }
 
-                File src = new File(currentInputFile);
-                currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + rootCause;
-                File des = new File(currentInputFile);
-                src.renameTo(des);
-            } else {
+                File src = currentInputFile;
+                File des = new File(uniqueFailuresDirectory, currentInputFile.getName());
+                // save the file if it increased coverage
+                if (why.contains("+crash")) {
+                    try {
+                        FileUtils.copyFile(src, des);
+                        lastWorkingInputFile = src;
+                        testInputFiles.add(des);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            else {
                 try {
-                    mutation.deleteFile(currentInputFile);
+                    mutation.deleteFile(currentInputFile.getPath());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                try {
-//                    List<String> deleteList = Files.readAllLines(Paths.get(currentInputFile));
-//                    for(int i = 0; i < deleteList.size(); i++)
-//                    {
-//                        File del = new File(deleteList.get(i));
-//                        del.delete();
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-                File src2 = new File(currentInputFile);
-                src2.delete();
+                File src2 = currentInputFile;
+                if (!src2.delete()) {
+                    System.out.println("!! Could not delete File " + src2);
+                }
+                currentInputFile = lastWorkingInputFile;
             }
         }
     }

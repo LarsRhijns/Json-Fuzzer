@@ -153,12 +153,11 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
     public void mutate(String inputFile, String nextInputFile) throws IOException
     {
         List<String> fileList = Files.readAllLines(Paths.get(inputFile));
-        Random random = new Random();
-        int n = random.nextInt(fileList.size());
+        int n = r.nextInt(fileList.size());
         String fileToMutate = fileList.get(n);
         mutateFile(fileToMutate);
 
-        String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/')+1);
+        String fileName = nextInputFile + "_M";
         writeFile(fileName);
 
         String path = System.getProperty("user.dir")+"/"+fileName;
@@ -267,7 +266,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         String[] columns = list.get(lineNum).split(",");
 
         int method = (int)(Math.random() * 2);
-        int columnID = (int)(Math.random() * 2)+1;
+        int columnID = r.nextInt(columns.length);
         if (PRINT_MUTATIONDETAILS) {
             System.out.println("IncomeAggregationMutation *** "+method+" "+lineNum+" "+columnID);
             System.out.println("mutate size: " + list.size());
