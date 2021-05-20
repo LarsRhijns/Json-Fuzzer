@@ -17,7 +17,7 @@ import static edu.ucla.cs.jqf.bigfuzz.HighOrderMutation.*;
 
 public class MutationTemplate implements BigFuzzMutation {
     Random r = new Random();
-    ArrayList<String> fileRows = new ArrayList<String>();
+    ArrayList<String> fileRows = new ArrayList<>();
     String delete;
     int maxGenerateTimes = 20;
     int maxDuplicatedTimes = 10;
@@ -32,7 +32,7 @@ public class MutationTemplate implements BigFuzzMutation {
      *
      * @param inputFile     File from which a line is read which contains other input files paths
      * @param nextInputFile File path where the new input should be stored
-     * @throws IOException
+     * @throws IOException When method fails to write file name to directory "user.dir/"
      */
     public void mutate(String inputFile, String nextInputFile) throws IOException {
         // Select random row from input file to mutate over
@@ -48,13 +48,14 @@ public class MutationTemplate implements BigFuzzMutation {
         String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/') + 1);
         writeFile(fileName);
 
-        // Genereate a path string, which can be used to delete the input file if it is not needed anymore
+        // Generate a path string, which can be used to delete the input file if it is not needed anymore
         String path = System.getProperty("user.dir") + "/" + fileName;
         delete = path;
 
         // write next input config
         BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
 
+        // Write the input to the pre-defined path
         for (int i = 0; i < fileList.size(); i++) {
             if (i == n)
                 bw.write(path);
@@ -75,7 +76,7 @@ public class MutationTemplate implements BigFuzzMutation {
      * Loads provided path to input file and calls mutation in loaded input. Applies changes to the field "fileRows"
      *
      * @param inputFile path to input file
-     * @throws IOException
+     * @throws IOException Throws exception if it fails to read to content of the input file
      */
     public void mutateFile(String inputFile) throws IOException {
         // Create a reader for the file
@@ -84,7 +85,7 @@ public class MutationTemplate implements BigFuzzMutation {
 
         ArrayList<String> rows = new ArrayList<>();
 
-        // If the file exists, add every line to the rows list.
+        // If the file exists, add every line to the rows list. These will be all provided input seeds to the program
         if (file.exists()) {
             String readLine;
             while ((readLine = br.readLine()) != null) {
@@ -98,14 +99,19 @@ public class MutationTemplate implements BigFuzzMutation {
         br.close();
 
         // Mutate the loaded rows
-        //TODO: 50/50 chance of generating extra rows
+        //TODO: 50/50 chance of generating extra rows, but row generation is not implemented by BigFuzz
         mutate(rows);
 
         fileRows = rows;
     }
 
+    /**
+     * Mutate the provides input rows. Method select one of the rows provided in the list and uses it to mutate. Said line will be directly applied to the provided list
+     *
+     * @param rows List of program inputs in which one row will be mutated
+     */
     public void mutate(ArrayList<String> rows) {
-        // TODO: add seed to configuration/result -> evaluation such that the results can be reproducded?
+        // TODO: add seed to configuration/result -> evaluation such that the results can be reproduced?
         r.setSeed(System.currentTimeMillis());
 
         // Select the line in the input to be mutated and split the value son the delimiter
@@ -113,7 +119,8 @@ public class MutationTemplate implements BigFuzzMutation {
         String[] rowElements = rows.get(lineNum).split(",");
         String rowString = rows.get(lineNum);
 
-        String mutatedElements[] = rowElements;
+        // Depending on the multi Mutation method used to start this program, correct mutation method will be applied. Default is a single mutation
+        String[] mutatedElements;
         switch (multiMutationMethod) {
             case Permute_random:
             case Permute_2:
@@ -128,9 +135,8 @@ public class MutationTemplate implements BigFuzzMutation {
             default:
                 mutatedElements = mutateLine(rowElements);
         }
-        //TODO: Dynamic delimmitter
-
-        // Change the delimmiter back to ',' after mutation
+        //TODO: Dynamic delimiter
+        // Change the delimiter back to ',' after mutation
         delimiter = ',';
 
         // Append all row elements together and set the mutation result in the original input list.
@@ -141,11 +147,19 @@ public class MutationTemplate implements BigFuzzMutation {
         rows.set(lineNum, mutatedRowString);
     }
 
+    /**
+     * Apply the smart mutation to the passed row columns/elements. This method tries to stack as many mutations as given in one of the input parameters of the program.
+     * The mutation takes the mutation rules, defined in HighOrderMutation, when stacking mutations.
+     * If the mutation stacking fails on one of the columns, mutations stacking is stopped even when the max amount of mutation stacks is not reached. This means the method is not deterministic.
+     *
+     * @param rowElements elements on which the mutations need to be applied
+     * @return mutated elements
+     */
     private String[] smart_mutate(String[] rowElements) {
         // Create lists of applied mutations to a column per rowElement
-        ArrayList<ArrayList<HighOrderMutationMethod>> appliedMutationperColumn = new ArrayList<>();
+        ArrayList<ArrayList<HighOrderMutationMethod>> appliedMutationPerColumn = new ArrayList<>();
         for (int i = 0; i < rowElements.length; i++) {
-            appliedMutationperColumn.add(new ArrayList<>());
+            appliedMutationPerColumn.add(new ArrayList<>());
         }
 
         // Create a mutation list containing the mutation and element ID
@@ -165,7 +179,7 @@ public class MutationTemplate implements BigFuzzMutation {
             int rowElementId = r.nextInt(rowElements.length - elementDeletionCount);
 
             // Get a random mutations method which can still be applied to the randomly selected column
-            HighOrderMutationMethod mutationMethod = HighOrderMutation.getRandomSmartMutation(r, appliedMutationperColumn.get(rowElementId));
+            HighOrderMutationMethod mutationMethod = HighOrderMutation.getRandomSmartMutation(r, appliedMutationPerColumn.get(rowElementId));
 
             // If No mutation is found, there can't be more mutations stacked. Stop trying to stack mutations
             if (mutationMethod == HighOrderMutationMethod.NoMutation) {
@@ -178,7 +192,7 @@ public class MutationTemplate implements BigFuzzMutation {
             }
 
             mutations.add(new MutationPair(rowElementId, mutationMethod));
-            appliedMutationperColumn.get(rowElementId).add(mutationMethod);
+            appliedMutationPerColumn.get(rowElementId).add(mutationMethod);
         }
 
         // Apply all mutations in sequential order
@@ -189,15 +203,20 @@ public class MutationTemplate implements BigFuzzMutation {
         return rowElements;
     }
 
+    /**
+     * Apply a single random mutation on provided elements
+     * @param rowElements Elements on which mutation is applied
+     * @return mutated elements
+     */
     private String[] mutateLine(String[] rowElements) {
         // Randomly select the column which will be mutated
         int rowElementId = r.nextInt(rowElements.length);
         HighOrderMutationMethod method = selectMutationMethod();
-        System.out.println("Mutation: method=" + method + ", column_index= " + rowElementId);
 
         // Mutate the row using the selected mutation method
         String[] mutationResult = applyMutationMethod(method, rowElements, rowElementId);
-        // Mutate method 6: different delimiter
+
+        // If the mutation is to change the delimiter, do so.
         if (method == HighOrderMutationMethod.ChangeDelimiter) {
             changeDelimiter();
         }
@@ -205,6 +224,11 @@ public class MutationTemplate implements BigFuzzMutation {
         return mutationResult;
     }
 
+    /**
+     *  Stack mutations randomly defined in the program arguments. If Mutations can interfere/cancel each other out.
+     * @param rows elements that should be mutated
+     * @return mutated elements
+     */
     private String[] mutate_permute(String[] rows) {
         int mutationCount = 1;
         switch (multiMutationMethod) {
@@ -232,40 +256,27 @@ public class MutationTemplate implements BigFuzzMutation {
     }
 
     /**
-     * Changes delimiter that is different from the provided character
-     *
-     * @return return a new delimiter ~ if c is ', returns ' if c is not '
+     * Changes delimiter that is different from default delimiter
      */
     private void changeDelimiter() {
+        //TODO Add dynamic delimiters
         if (delimiter == ',') {
             delimiter = '~';
         }
-        //TODO Add dynamic delimiters
-//        else {
-//            delimiter = ',';
-//        }
     }
 
     /***
-     * Randomly select a mutation method between 0 (inc) and 7 (ex).
-     * @return random number between 0 <= x < 6
+     * Randomly select a mutation method.
+     * @return Random MutationMethod
      */
     private HighOrderMutation.HighOrderMutationMethod selectMutationMethod() {
-        //r.nextInt(mutationMethodCount);
         return HighOrderMutation.getRandomMutation(r);
     }
 
     /**
      * Apply a mutation method to the provided list, on a specific element ID if applicable for said mutation method.
      *
-     * @param method      integer indicating a method. Integers correspond to the following operations:
-     *                    0: random change value   (M1)
-     *                    1: random change into float (M2)
-     *                    2: random insert value in element (M4)
-     *                    3: random delete one column/element (M5)
-     *                    4: random add one column/element (?)
-     *                    5: Empty String (M6)
-     *                    6: random delimiter (M3), not applied in this method
+     * @param method      a method matching the HighOrderMutation methods. If HighOrderMutation Method is not defined, no mutation is applied
      * @param rowElements Element list on which the mutation is performed
      * @param elementId   Element ID of which element needs to be mutated (if applicable by the mutation method)
      * @return mutated element list. If undefined method is provided the original list is returned.
@@ -274,19 +285,18 @@ public class MutationTemplate implements BigFuzzMutation {
         String[] mutationResult = rowElements;
         switch (method) {
             case ChangeValue:
-                if (rowElements[elementId] != null && rowElements[elementId] != "")
+                if (rowElements[elementId] != null && !rowElements[elementId].equals(""))
                     mutationResult = changeToRandomValue(rowElements, elementId);
                 break;
             case ChangeType:
                 mutationResult = changeToFloat(rowElements, elementId);
                 break;
-            // TODO: Not a high order mutation? Maybe combine with Change Value
-//            case :
-//                if(rowElements[elementId] != null && rowElements[elementId] != "")
-//                    mutationResult = changeToRandomInsert(rowElements, elementId);
-//                break;
+            case RandomCharacter:
+                if(rowElements[elementId] != null && !rowElements[elementId].equals(""))
+                    mutationResult = changeToRandomInsert(rowElements, elementId);
+                break;
             case RemoveElement:
-                mutationResult = removeOneElement(rowElements, elementId);
+                mutationResult = removeOneElement(rowElements);
                 break;
             case AddElement:
                 String one = Integer.toString(r.nextInt(10000));
@@ -309,6 +319,7 @@ public class MutationTemplate implements BigFuzzMutation {
      * @return list of elements where the element on the elementId index is mutated
      */
     private String[] changeToRandomInsert(String[] rowElements, int elementId) {
+        // Take a random ASCII character which could be used as delimiter in a column
         char temp = (char) r.nextInt(255);
         int pos = r.nextInt(rowElements[elementId].length());
         rowElements[elementId] = rowElements[elementId].substring(0, pos) + temp + rowElements[elementId].substring(pos);
@@ -375,19 +386,20 @@ public class MutationTemplate implements BigFuzzMutation {
      * Takes a list of String of which it then removes one element. The provided index is removed.
      *
      * @param rowElements list of String from which one index needs to be removed
-     * @param index       not used
      * @return a new list of String, where the element at index is removed
      */
-    public static String[] removeOneElement(String[] rowElements, int index) {
-        LinkedList<String> result = new LinkedList<>();
+    public static String[] removeOneElement(String[] rowElements) {
+        if(rowElements == null || rowElements.length == 0) {
+            return rowElements;
+        }
+
+        String[] result = new String[rowElements.length-1];
 
         // Remove last element from the rowElements
         // Smart_mutations relies on the last element being removed
-        for (int i = 0; i < rowElements.length - 1; i++) {
-            result.add(rowElements[i]);
-        }
+        System.arraycopy(rowElements, 0, result, 0, rowElements.length - 1);
 
-        return result.toArray(rowElements);
+        return result;
     }
 
     /**
@@ -439,7 +451,7 @@ public class MutationTemplate implements BigFuzzMutation {
     }
 
     @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 
@@ -450,16 +462,16 @@ public class MutationTemplate implements BigFuzzMutation {
 
     @Override
     public void writeFile(String outputFile) throws IOException {
-        File fout = new File(outputFile);
-        FileOutputStream fos = new FileOutputStream(fout);
+        File f_out = new File(outputFile);
+        FileOutputStream fos = new FileOutputStream(f_out);
 
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 
-        for (int i = 0; i < fileRows.size(); i++) {
-            if (fileRows.get(i) == null) {
+        for (String fileRow : fileRows) {
+            if (fileRow == null) {
                 continue;
             }
-            bw.write(fileRows.get(i));
+            bw.write(fileRow);
             bw.newLine();
         }
 
@@ -467,6 +479,7 @@ public class MutationTemplate implements BigFuzzMutation {
         fos.close();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
@@ -478,7 +491,11 @@ public class MutationTemplate implements BigFuzzMutation {
         this.multiMutationMethod = multiMutationMethod;
     }
 
-
+    /**
+     * Concatenated the list of string elements to a string using the delimiter
+     * @param mutationResult elements that need to be concatenated
+     * @return String of concatenated elements
+     */
     private String listToString(String[] mutationResult) {
         StringBuilder row = new StringBuilder();
         for (int j = 0; j < mutationResult.length; j++) {

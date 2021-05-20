@@ -217,7 +217,7 @@ public class NumberSeriesMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 

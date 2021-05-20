@@ -90,7 +90,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation {
         }
     }
 
-    public void randomDuplacteOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
+    public void randomDuplicateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
     {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         ArrayList<String> tempRows = new ArrayList<String>(rows);
