@@ -140,7 +140,7 @@ public class MutationTemplate implements BigFuzzMutation {
         System.out.println("Input after mutation:" + mutatedRowString);
 
         // HARD CODED MUTATIONS:
-        mutatedRowString = nextMutationResultInList();
+        //mutatedRowString = nextMutationResultInList();
 
         rows.set(lineNum, mutatedRowString);
     }

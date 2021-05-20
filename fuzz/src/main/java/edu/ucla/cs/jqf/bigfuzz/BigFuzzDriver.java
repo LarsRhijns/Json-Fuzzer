@@ -32,7 +32,7 @@ public class BigFuzzDriver {
         ArrayList<ArrayList<String>> inputs = new ArrayList();
         ArrayList<ArrayList<String>> methods = new ArrayList();
         ArrayList<ArrayList<String>> columns = new ArrayList();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 50; i++) {
             System.out.println("******** START OF PROGRAM ITERATION: " + i + "**********************");
             String file = "dataset/conf";
             try {
@@ -45,6 +45,9 @@ public class BigFuzzDriver {
 
                 // Set the provided input argument multiMutationMethod in the guidance mutation
                 guidance.setMultiMutationMethod(multiMutationMethod);
+
+                // Set the test class name in the guidance for the failure tracking
+                guidance.setTestClassName(testClassName);
 
                 // Run the Junit test
                 GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);

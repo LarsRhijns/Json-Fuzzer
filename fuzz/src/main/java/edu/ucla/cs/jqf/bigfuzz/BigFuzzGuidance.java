@@ -105,6 +105,7 @@ public class BigFuzzGuidance implements Guidance {
     private String currentInputFile;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
+    private String testClassName;
 
 
     public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out, String outputDirName) throws IOException {
@@ -395,8 +396,28 @@ public class BigFuzzGuidance implements Guidance {
             this.totalFailures++;
 
 
+
             //   Attempt to add this to the set of unique failures
-            if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
+            //TODO Only check the elements until the program driver for unique strack trace
+            ArrayList<StackTraceElement> testProgramTraceElements = new ArrayList<>();
+            boolean testClassFound = false;
+            for (int i = 0; i < rootCause.getStackTrace().length; i++) {
+                // If the test class has been found in the stacktrace, but this element is no longer said test class then the stacktrace will only contain the test framework, not the test program.
+                if(testClassFound && !rootCause.getStackTrace()[i].getClassName().equals(testClassName) ) {
+                    break;
+                }
+
+                testProgramTraceElements.add(rootCause.getStackTrace()[i]);
+
+                // Check the currect element of the stacktrace if it originated from the test class.
+                if(rootCause.getStackTrace()[i].getClassName().equals(testClassName)) {
+                    testClassFound = true;
+                }
+            }
+
+
+//            if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
+            if (uniqueFailures.add(testProgramTraceElements)) {
                 int crashIdx = uniqueFailures.size() - 1;
                 uniqueFailureRuns.add(numTrials);
 
@@ -509,5 +530,9 @@ public class BigFuzzGuidance implements Guidance {
 
     public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
         mutation.setMultiMutationMethod(multiMutationMethod);
+    }
+
+    public void setTestClassName(String testClassName) {
+        this.testClassName = testClassName;
     }
 }
