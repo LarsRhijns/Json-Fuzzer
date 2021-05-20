@@ -113,7 +113,6 @@ public class BigFuzzGuidance implements Guidance {
     private String currentInputFile;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
-    private String testClassName;
 
 
     public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
