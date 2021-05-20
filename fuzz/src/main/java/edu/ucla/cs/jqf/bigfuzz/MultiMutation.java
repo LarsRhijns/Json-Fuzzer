@@ -8,7 +8,8 @@ public class MultiMutation {
         Permute_2,
         Permute_3,
         Permute_4,
-        Permute_5
+        Permute_5,
+        Smart_mutate
     }
 
     public static MultiMutationMethod intToMultiMutationMethod(int i) {
@@ -19,6 +20,7 @@ public class MultiMutation {
             case 3: return MultiMutationMethod.Permute_3;
             case 4: return MultiMutationMethod.Permute_4;
             case 5: return MultiMutationMethod.Permute_5;
+            case 6: return MultiMutationMethod.Smart_mutate;
             default: return MultiMutationMethod.Disabled;
         }
     }

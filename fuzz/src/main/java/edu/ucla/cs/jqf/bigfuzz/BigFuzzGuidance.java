@@ -467,4 +467,10 @@ public class BigFuzzGuidance implements Guidance {
     public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
         mutation.setMultiMutationMethod(multiMutationMethod);
     }
+
+    public void setMutationStackCount(int intMutationStackCount) {
+        if(mutation instanceof MutationTemplate) {
+            ((MutationTemplate)mutation).setMutationStackCount(intMutationStackCount);
+        }
+    }
 }

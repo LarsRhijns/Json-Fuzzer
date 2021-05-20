@@ -2,6 +2,7 @@ package edu.ucla.cs.jqf.bigfuzz;
 
 //import org.apache.commons.lang.ArrayUtils;
 
+import com.sun.tools.javac.util.Pair;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -12,13 +13,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import static edu.ucla.cs.jqf.bigfuzz.HighOrderMutation.*;
+
 public class MutationTemplate implements BigFuzzMutation {
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
     int maxGenerateTimes = 20;
     int maxDuplicatedTimes = 10;
-    int mutationMethodCount = 6;
+    int mutationMethodCount = 7;
+    int maxMutationStack = 2;
     char delimiter = ',';
 
     public MultiMutation.MultiMutationMethod multiMutationMethod = MultiMutation.MultiMutationMethod.Disabled;
@@ -118,6 +122,9 @@ public class MutationTemplate implements BigFuzzMutation {
             case Permute_5:
                 mutatedElements = mutate_permute(rowElements);
                 break;
+            case Smart_mutate:
+                mutatedElements = smart_mutate(rowElements);
+                break;
             default:
                 mutatedElements = mutateLine(rowElements);
         }
@@ -134,17 +141,65 @@ public class MutationTemplate implements BigFuzzMutation {
         rows.set(lineNum, mutatedRowString);
     }
 
+    private String[] smart_mutate(String[] rowElements) {
+        // Create lists of applied mutations to a column per rowElement
+        ArrayList<ArrayList<HighOrderMutationMethod>> appliedMutationperColumn = new ArrayList<>();
+        for (int i = 0; i < rowElements.length; i++) {
+            appliedMutationperColumn.add(new ArrayList<>());
+        }
+
+        // Create a mutation list containing the mutation and element ID
+        LinkedList<Pair<Integer, HighOrderMutationMethod>> mutations = new LinkedList<>();
+
+        // If the mutation will delete an element, the next mutation should not apply a mutation to that column. Keep a counter of the amount of columns removed
+        // ASSUMPTION: remove element will always remove the LAST element
+        int elementDeletionCount = 0;
+
+        // Generate as many mutations as possible which is withing the maxMutationStack value.
+        for (int i = 0; i < maxMutationStack; i++) {
+            // If all the elements have been deleted, stop stacking mutations as no more mutations can be applied
+            if (elementDeletionCount == rowElements.length) {
+                break;
+            }
+            // Randomly select the column which will be mutated
+            int rowElementId = r.nextInt(rowElements.length - elementDeletionCount);
+
+            // Get a random mutations method which can still be applied to the randomly selected column
+            HighOrderMutationMethod mutationMethod = HighOrderMutation.getRandomSmartMutation(r, appliedMutationperColumn.get(rowElementId));
+
+            // If No mutation is found, there can't be more mutations stacked. Stop trying to stack mutations
+            if (mutationMethod == HighOrderMutationMethod.NoMutation) {
+                break;
+            }
+
+            // If the mutation will delete an element, the next mutation should not
+            if (mutationMethod == HighOrderMutationMethod.RemoveElement) {
+                elementDeletionCount++;
+            }
+
+            mutations.add(new Pair<>(rowElementId, mutationMethod));
+            appliedMutationperColumn.get(rowElementId).add(mutationMethod);
+        }
+
+        // Apply all mutations in sequential order
+        for (Pair<Integer, HighOrderMutationMethod> pair :
+                mutations) {
+            rowElements = applyMutationMethod(pair.snd, rowElements, pair.fst);
+        }
+        return rowElements;
+    }
+
     private String[] mutateLine(String[] rowElements) {
         // Randomly select the column which will be mutated
         int rowElementId = r.nextInt(rowElements.length);
-        int method = selectMutationMethod();
+        HighOrderMutationMethod method = selectMutationMethod();
         System.out.println("Mutation: method=" + method + ", column_index= " + rowElementId);
 
         // Mutate the row using the selected mutation method
         String[] mutationResult = applyMutationMethod(method, rowElements, rowElementId);
         // Mutate method 6: different delimiter
-        if (method == 6) {
-           changeDelimiter();
+        if (method == HighOrderMutationMethod.ChangeDelimiter) {
+            changeDelimiter();
         }
 
         return mutationResult;
@@ -154,7 +209,7 @@ public class MutationTemplate implements BigFuzzMutation {
         int mutationCount = 1;
         switch (multiMutationMethod) {
             case Permute_random:
-                mutationCount = r.nextInt(mutationMethodCount+1);
+                mutationCount = r.nextInt(mutationMethodCount);
                 break;
             case Permute_2:
                 mutationCount = 2;
@@ -183,7 +238,7 @@ public class MutationTemplate implements BigFuzzMutation {
      */
     private void changeDelimiter() {
         if (delimiter == ',') {
-            delimiter= '~';
+            delimiter = '~';
         }
         //TODO Add dynamic delimiters
 //        else {
@@ -195,8 +250,9 @@ public class MutationTemplate implements BigFuzzMutation {
      * Randomly select a mutation method between 0 (inc) and 7 (ex).
      * @return random number between 0 <= x < 6
      */
-    private int selectMutationMethod() {
-        return r.nextInt(mutationMethodCount+1);
+    private HighOrderMutation.HighOrderMutationMethod selectMutationMethod() {
+        //r.nextInt(mutationMethodCount);
+        return HighOrderMutation.getRandomMutation(r);
     }
 
     /**
@@ -214,29 +270,30 @@ public class MutationTemplate implements BigFuzzMutation {
      * @param elementId   Element ID of which element needs to be mutated (if applicable by the mutation method)
      * @return mutated element list. If undefined method is provided the original list is returned.
      */
-    private String[] applyMutationMethod(int method, String[] rowElements, int elementId) {
+    private String[] applyMutationMethod(HighOrderMutationMethod method, String[] rowElements, int elementId) {
         String[] mutationResult = rowElements;
         switch (method) {
-            case 0:
-                if(rowElements[elementId] != null && rowElements[elementId] != "")
+            case ChangeValue:
+                if (rowElements[elementId] != null && rowElements[elementId] != "")
                     mutationResult = changeToRandomValue(rowElements, elementId);
                 break;
-            case 1:
+            case ChangeType:
                 mutationResult = changeToFloat(rowElements, elementId);
                 break;
-            case 2:
-                if(rowElements[elementId] != null && rowElements[elementId] != "")
-                    mutationResult = changeToRandomInsert(rowElements, elementId);
-                break;
-            case 3:
+            // TODO: Not a high order mutation? Maybe combine with Change Value
+//            case :
+//                if(rowElements[elementId] != null && rowElements[elementId] != "")
+//                    mutationResult = changeToRandomInsert(rowElements, elementId);
+//                break;
+            case RemoveElement:
                 mutationResult = removeOneElement(rowElements, elementId);
                 break;
-            case 4:
+            case AddElement:
                 String one = Integer.toString(r.nextInt(10000));
                 int columnIndexNewElement = r.nextInt(rowElements.length + 1);
                 mutationResult = addOneElement(rowElements, one, columnIndexNewElement);
                 break;
-            case 5:
+            case EmptyColumn:
                 mutationResult = emptyOneElement(rowElements, elementId);
                 break;
         }
@@ -318,16 +375,16 @@ public class MutationTemplate implements BigFuzzMutation {
      * Takes a list of String of which it then removes one element. The provided index is removed.
      *
      * @param rowElements list of String from which one index needs to be removed
-     * @param index       Index of the element that needs to be removed
+     * @param index       not used
      * @return a new list of String, where the element at index is removed
      */
     public static String[] removeOneElement(String[] rowElements, int index) {
         LinkedList<String> result = new LinkedList<>();
 
-        for (int i = 0; i < rowElements.length; i++) {
-            if (i != index) {
-                result.add(rowElements[i]);
-            }
+        // Remove last element from the rowElements
+        // Smart_mutations relies on the last element being removed
+        for (int i = 0; i < rowElements.length - 1; i++) {
+            result.add(rowElements[i]);
         }
 
         return result.toArray(rowElements);
@@ -432,5 +489,9 @@ public class MutationTemplate implements BigFuzzMutation {
             }
         }
         return row.toString();
+    }
+
+    public void setMutationStackCount(int intMutationStackCount) {
+        maxMutationStack = intMutationStackCount;
     }
 }

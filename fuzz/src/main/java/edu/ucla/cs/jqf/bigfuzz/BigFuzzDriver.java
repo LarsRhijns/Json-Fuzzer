@@ -27,6 +27,11 @@ public class BigFuzzDriver {
         MultiMutation.MultiMutationMethod multiMutationMethod = MultiMutation.intToMultiMutationMethod(intMultiMutationMethod);
         System.out.println("mutationMethod: " + multiMutationMethod);
 
+        // This variable is used for the multiMutationMethod: Smart_mutate
+        // If the selected multiMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
+        int intMutationStackCount = args.length > 4 ? Integer.parseInt(args[4]) : multiMutationMethod == MultiMutation.MultiMutationMethod.Smart_mutate ? 2 : 0 ;
+        System.out.println("mutationMethod: " + multiMutationMethod);
+
         String file = "dataset/conf";
         try {
             long startTime = System.currentTimeMillis();
@@ -38,6 +43,7 @@ public class BigFuzzDriver {
 
             // Set the provided input argument multiMutationMethod in the guidance mutation
             guidance.setMultiMutationMethod(multiMutationMethod);
+            guidance.setMutationStackCount(intMutationStackCount);
 
             // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
