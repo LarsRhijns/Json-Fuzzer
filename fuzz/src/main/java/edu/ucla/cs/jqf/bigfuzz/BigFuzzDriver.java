@@ -7,8 +7,9 @@ import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import java.io.File;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class BigFuzzDriver {
     // These booleans are for debugging purposes only, toggle them if you want to see the information
@@ -73,6 +74,81 @@ public class BigFuzzDriver {
                 e.printStackTrace();
             }
         }
+
+        for (int i = 0; i < uniqueFailureResults.size(); i++) {
+            System.out.println(uniqueFailureResults.get(i));
+        }
+        for (int i = 0; i < inputs.size(); i++) {
+            System.out.print("Run " + i +" [");
+            for (int j = 0; j < inputs.get(i).size(); j++) {
+                System.out.print("\"" + inputs.get(i).get(j) + "\", ");
+            }
+            System.out.println();
+        }
+
+        for (int i = 0; i < methods.size(); i++) {
+            System.out.print("Run " + i +"[");
+            for (int j = 0; j < methods.get(i).size(); j++) {
+                System.out.print("(" + methods.get(i).get(j) + "), ");
+            }
+            System.out.println("]");
+        }
+        for (int i = 0; i < columns.size(); i++) {
+            System.out.print("Run " + i +"[");
+            for (int j = 0; j < columns.get(i).size(); j++) {
+                System.out.print("(" + columns.get(i).get(j) + "), ");
+            }
+            System.out.println("]");
+        }
+
+
+    }
+
+    private static void writeToLists(BigFuzzGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns) {
+        int cumm = 0;
+        ArrayList<Integer> runFoundUniqueFailureCumm = new ArrayList<>();
+        for (long j = 0; j < maxTrials; j++) {
+            if (guidance.uniqueFailureRuns.contains(j))
+                cumm++;
+            runFoundUniqueFailureCumm.add(cumm);
+        }
+        LinkedList<Integer> methodtracker = ((MutationTemplate) guidance.mutation).mutationMethodTracker;
+        LinkedList<Integer> columntracker = ((MutationTemplate) guidance.mutation).mutationColumnTracker;
+        HashMap<Integer,Integer> methodMap = new HashMap();
+        HashMap<Integer,Integer> columnMap = new HashMap();
+        for (int i = 0; i < methodtracker.size(); i++) {
+            int method = methodtracker.get(i);
+            int column = columntracker.get(i);
+            if(methodMap.containsKey(method)) {
+                methodMap.put(method, methodMap.get(method) +1);
+            } else {
+                methodMap.put(method, 1);
+            }
+            if(columnMap.containsKey(column)) {
+                columnMap.put(column, columnMap.get(column) +1);
+            } else {
+                columnMap.put(column, 1);
+            }
+        }
+        Iterator<Map.Entry<Integer,Integer>> it = methodMap.entrySet().iterator();
+        ArrayList<String>  methodStringList = new ArrayList();
+        while(it.hasNext()) {
+            Map.Entry e = it.next();
+            methodStringList.add( e.getKey() + ": " + e.getValue());
+        }
+
+        Iterator<Map.Entry<Integer,Integer>> it2 = columnMap.entrySet().iterator();
+        ArrayList<String> columnStringList =  new ArrayList();
+        while(it2.hasNext()) {
+            Map.Entry e = it2.next();
+            columnStringList.add(  e.getKey() + ": " + e.getValue());
+        }
+
+
+        methods.add(methodStringList);
+        columns.add(columnStringList);
+        inputs.add(guidance.inputs);
+        uniqueFailureResults.add(runFoundUniqueFailureCumm);
     }
 
     /**
@@ -110,7 +186,7 @@ public class BigFuzzDriver {
         List<Integer> runFoundUniqueFailureCumm = new ArrayList<>();
         for (long i = 0; i < maxTrials; i++) {
             runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
-            if(guidance.uniqueFailureRuns.contains(i))
+            if (guidance.uniqueFailureRuns.contains(i))
                 cumm++;
             runFoundUniqueFailureCumm.add(cumm);
         }
@@ -132,5 +208,6 @@ public class BigFuzzDriver {
         System.out.println("Total coverage: " + totalCov);
         System.out.println("Valid coverage: " + validCov);
         System.out.println("Percent valid coverage: " + (float) validCov / totalCov * 100 + "%");
+
     }
 }

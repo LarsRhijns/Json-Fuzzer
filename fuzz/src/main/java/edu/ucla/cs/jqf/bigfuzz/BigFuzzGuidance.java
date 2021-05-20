@@ -83,6 +83,7 @@ public class BigFuzzGuidance implements Guidance {
 
     /** List of runs which have at which new unique failures have been detected. */
     protected List<Long> uniqueFailureRuns = new ArrayList<>();
+    protected ArrayList<String> inputs = new ArrayList();
 
     // ---------- LOGGING / STATS OUTPUT ------------
 
@@ -112,6 +113,7 @@ public class BigFuzzGuidance implements Guidance {
     private String currentInputFile;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
+    private String testClassName;
 
 
     public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
@@ -154,7 +156,7 @@ public class BigFuzzGuidance implements Guidance {
     public InputStream getInput()
     {
         // Clear coverage stats for this run
-        runCoverage = new Coverage();
+        runCoverage= new Coverage();
 
         ///copy the configuration/input file
         if(testInputFiles.isEmpty())
@@ -193,8 +195,55 @@ public class BigFuzzGuidance implements Guidance {
 
         if (PRINT_METHODNAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
         InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
-
+        saveInput(targetStream);
         return targetStream;
+    }
+
+    private void saveInput(InputStream targetStream) {
+        String inputFileName = loadInput(currentInputFile);
+        StringBuilder contentBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFileName)))
+        {
+
+            String sCurrentLine;
+            while ((sCurrentLine = br.readLine()) != null)
+            {
+                contentBuilder.append(sCurrentLine);
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        inputs.add( contentBuilder.toString());
+    }
+
+    private String loadInput(String inputFileName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFileName)))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return stringBuilder.toString();
+    }
+
+    private String loadInput(InputStream targetStream) {
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(targetStream))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+       return stringBuilder.toString();
     }
 
     /** Writes a line of text to a given log file. */
@@ -405,6 +454,7 @@ public class BigFuzzGuidance implements Guidance {
                 src2.delete();
             }
         }
+        runCoverage = new Coverage();
     }
 
     // Compute a set of branches for which the current input may assume responsibility

@@ -28,20 +28,14 @@
  */
 package edu.berkeley.cs.jqf.fuzz.junit;
 
-import java.io.PrintStream;
-
-import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.JQF;
+import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.instrument.tracing.SingleSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.TraceLogger;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzGuidance;
 import org.junit.internal.TextListener;
 import org.junit.internal.runners.ErrorReportingRunner;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Request;
-import org.junit.runner.Result;
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
+import org.junit.runner.*;
 
 import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
 
@@ -164,7 +158,10 @@ public class GuidedFuzzing {
         TraceLogger.resetSingleton();
 
         // Set the static guided instance
+        unsetGuidance();
         setGuidance(guidance);
+
+        TraceLogger.resetSingleton();
 
         // Register callback
         SingleSnoop.setCallbackGenerator(guidance::generateCallBack);
