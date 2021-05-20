@@ -43,6 +43,8 @@ import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
+
 public class GuidedFuzzing {
 
     private static Guidance guidance;
@@ -193,6 +195,7 @@ public class GuidedFuzzing {
             if (out != null) {
                 junit.addListener(new TextListener(out));
             }
+            if (PRINT_METHODNAMES) { System.out.println("GuidedFuzz:Test"); }
             return junit.run(testRunner);
         } finally {
             unsetGuidance();

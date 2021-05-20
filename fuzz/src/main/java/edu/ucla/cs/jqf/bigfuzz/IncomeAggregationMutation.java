@@ -1,13 +1,11 @@
-package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
+package edu.ucla.cs.jqf.bigfuzz;
 
 //import org.apache.commons.lang.ArrayUtils;
 
 /*
- mutation for I4: two JDU tree
+ mutation for I5: unsupported DF operator
  */
 
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.ucla.cs.jqf.bigfuzz.MultiMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -19,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class AgeAnalysisMutation implements BigFuzzMutation {
+public class IncomeAggregationMutation implements BigFuzzMutation{
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;
@@ -64,7 +62,7 @@ public class AgeAnalysisMutation implements BigFuzzMutation {
             String zip = "9" + "0"+ "0" + r.nextInt(10) + r.nextInt(10);
             int age = (int)(Math.random()*99);
             numberAsString = zip +","+Integer.toString(age)+","+numberAsString;
-            rows.add(numberAsString);
+           rows.add(numberAsString);
         }
     }
 
@@ -90,7 +88,7 @@ public class AgeAnalysisMutation implements BigFuzzMutation {
         }
     }
 
-    public void randomDuplicateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
+    public void randomDuplacteOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
     {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         ArrayList<String> tempRows = new ArrayList<String>(rows);
@@ -148,11 +146,6 @@ public class AgeAnalysisMutation implements BigFuzzMutation {
     public void deleteFile(String currentInputFile) throws IOException {
         File del = new File(delete);
         del.delete();
-    }
-
-    @Override
-    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
-
     }
 
     public void mutate(String inputFile, String nextInputFile) throws IOException
@@ -261,9 +254,9 @@ public class AgeAnalysisMutation implements BigFuzzMutation {
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println("mutate size: " + list.size());
+        System.out.println(list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println("mutate linenum: " +list.get(lineNum));
+        System.out.println(list.get(lineNum));
 //        // 0: random change value
         // 1: random change into string
 //        // 2: random insert
@@ -273,7 +266,7 @@ public class AgeAnalysisMutation implements BigFuzzMutation {
 
         int method = (int)(Math.random() * 2);
         int columnID = (int)(Math.random() * 2)+1;
-        System.out.println("AgeAnalysisMutation *** "+method+" "+lineNum+" "+columnID);
+        System.out.println("********"+method+" "+lineNum+" "+columnID);
 //        if(method == 0){
 //            columns[columnID] = Integer.toString(r.nextInt());
 //        }

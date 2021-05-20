@@ -121,9 +121,9 @@ public class StudentGradeMutation implements BigFuzzMutation {
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println("list size: " + list.size());
+        System.out.println("mutate size: " + list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println("original line: " + list.get(lineNum));
+        System.out.println("mutate linenum: " + list.get(lineNum));
 
         if(list.get(lineNum).isEmpty()) return;
         int method =(int)(Math.random() * 3);

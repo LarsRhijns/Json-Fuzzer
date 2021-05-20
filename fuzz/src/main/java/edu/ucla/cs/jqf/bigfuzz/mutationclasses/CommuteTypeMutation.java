@@ -144,9 +144,9 @@ public class CommuteTypeMutation implements BigFuzzMutation {
     @Override
     public void mutate(ArrayList<String> list) {
         r.setSeed(System.currentTimeMillis());
-        System.out.println(list.size());
+        System.out.println("mutate size: " + list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println(list.get(lineNum));
+        System.out.println("mutate linenum: " + list.get(lineNum));
         // 0: random change value
         // 1: random change into float
         // 2: random insert
@@ -155,7 +155,7 @@ public class CommuteTypeMutation implements BigFuzzMutation {
         String[] columns = list.get(lineNum).split(",");
         int method = r.nextInt(2);
         int columnID = (int)(Math.random() * columns.length);
-        System.out.println("********"+method+" "+lineNum+" "+columnID);
+        System.out.println("CommuteTypeMutation ***"+method+" "+lineNum+" "+columnID);
 
         if(method==0) {
             String r = RandomStringUtils.randomAscii((int)(Math.random() * 5));
@@ -186,9 +186,9 @@ public class CommuteTypeMutation implements BigFuzzMutation {
 
     public void mutate1(ArrayList<String> list) {
         r.setSeed(System.currentTimeMillis());
-        System.out.println(list.size());
+        System.out.println("mutate1 size: " + list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println(list.get(lineNum));
+        System.out.println("mutate1 linenum: " + list.get(lineNum));
         // 0: random change value
         // 1: random change into float
         // 2: random insert
@@ -197,7 +197,7 @@ public class CommuteTypeMutation implements BigFuzzMutation {
         String[] columns = list.get(lineNum).split(",");
         int method = r.nextInt(2);
         int columnID = (int)(Math.random() * columns.length);
-        System.out.println("********"+method+" "+lineNum+" "+columnID);
+        System.out.println("CommuteTypeMutation *** "+method+" "+lineNum+" "+columnID);
 
         if(method==0) {
             String r = RandomStringUtils.randomAscii((int)(Math.random() * 5));

@@ -42,6 +42,8 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
+
 /**
  * This class extends JUnit and Quickcheck runners to enable guided
  * fuzz testing. 
@@ -85,7 +87,7 @@ public class JQF extends JUnitQuickcheck {
 
     @Override public Statement methodBlock(FrameworkMethod method) {
         if (method.getAnnotation(Fuzz.class) != null) {
-            System.out.println("JQF:methodBlock");
+            if (PRINT_METHODNAMES) { System.out.println("JQF:methodBlock"); }
             return new FuzzStringStatement(method, getTestClass(), generatorRepository);
         }
         return super.methodBlock(method);
