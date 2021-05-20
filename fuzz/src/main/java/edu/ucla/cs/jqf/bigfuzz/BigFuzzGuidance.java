@@ -31,7 +31,7 @@ import static java.lang.Math.log;
 public class BigFuzzGuidance implements Guidance {
 
     /** The name of the test for display purposes. */
-    protected final String testName;
+    public final String testName;
     private final String outputDirName;
 
     private boolean keepGoing = true;
@@ -75,7 +75,7 @@ public class BigFuzzGuidance implements Guidance {
 
     /** List of runs which have at which new unique failures have been detected. */
     protected List<Long> uniqueFailureRuns = new ArrayList<>();
-
+    protected ArrayList<String> inputs = new ArrayList();
 
     // ---------- LOGGING / STATS OUTPUT ------------
 
@@ -146,7 +146,7 @@ public class BigFuzzGuidance implements Guidance {
     public InputStream getInput()
     {
         // Clear coverage stats for this run
-        runCoverage.clear();
+        runCoverage= new Coverage();
 
         ///copy the configuration/input file
         if(testInputFiles.isEmpty())
@@ -184,9 +184,60 @@ public class BigFuzzGuidance implements Guidance {
         testInputFiles.add(currentInputFile);
 
         System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile );
-        InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
 
+
+        //*************
+        //**********
+        InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
+        saveInput(targetStream);
         return targetStream;
+    }
+
+    private void saveInput(InputStream targetStream) {
+        String inputFileName = loadInput(currentInputFile);
+        StringBuilder contentBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFileName)))
+        {
+
+            String sCurrentLine;
+            while ((sCurrentLine = br.readLine()) != null)
+            {
+                contentBuilder.append(sCurrentLine);
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        inputs.add( contentBuilder.toString());
+    }
+
+    private String loadInput(String inputFileName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFileName)))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return stringBuilder.toString();
+    }
+
+    private String loadInput(InputStream targetStream) {
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(targetStream))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+       return stringBuilder.toString();
     }
 
     /** Writes a line of text to a given log file. */
@@ -324,16 +375,7 @@ public class BigFuzzGuidance implements Guidance {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                try {
-//                    List<String> deleteList = Files.readAllLines(Paths.get(currentInputFile));
-//                    for(int i = 0; i < deleteList.size(); i++)
-//                    {
-//                        File del = new File(deleteList.get(i));
-//                        del.delete();
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+
                 File src2 = new File(currentInputFile);
                 src2.delete();
             }
@@ -388,6 +430,7 @@ public class BigFuzzGuidance implements Guidance {
                 src2.delete();
             }
         }
+        runCoverage = new Coverage();
     }
 
     // Compute a set of branches for which the current input may assume responsibility

@@ -47,7 +47,7 @@ import janala.logger.inst.Instruction;
  */
 public class TraceLogger extends AbstractLogger {
 
-    private static final TraceLogger singleton = new TraceLogger();
+    private static TraceLogger singleton = new TraceLogger();
 
     private final ThreadLocal<ThreadTracer> tracer
     //    private final ThreadLocal<ThreadTracer> tracer
@@ -60,6 +60,11 @@ public class TraceLogger extends AbstractLogger {
     /** Returns a handle to the singleton instance. */
     public static TraceLogger get() {
         return singleton;
+    }
+
+    /** Returns a handle to the singleton instance. */
+    public static void resetSingleton() {
+        singleton = new TraceLogger();
     }
 
     /** Logs an instrumented byteode instruction for the current thread. */

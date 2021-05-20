@@ -29,6 +29,7 @@ public class SalaryAnalysis {
             System.out.println("File does not exist!");
             return;
         }
+        System.out.println("Input to program: " + list);
         ArrayList<SalaryItem> results1 = CustomArray.map1(list);
         ArrayList<SalaryItem> results2 = CustomArray.filter1(results1, "90024");
         ArrayList<Pair<String, Integer>> results3 = CustomArray.map2(results2);

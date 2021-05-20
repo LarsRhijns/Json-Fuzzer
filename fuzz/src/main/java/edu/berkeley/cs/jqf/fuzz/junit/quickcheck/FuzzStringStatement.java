@@ -146,7 +146,8 @@ public class FuzzStringStatement extends Statement {
                             while ((line = bufferedReader.readLine()) != null) {
                                 stringBuilder.append(line);
                             }
-                        } catch (IOException e) {
+                        }
+                        catch (IOException e) {
                             e.printStackTrace();
                         }
                         //System.out.println("StreamBackedRandom getValue: "+stringBuilder.toString());
@@ -178,18 +179,7 @@ public class FuzzStringStatement extends Statement {
 
                     // Attempt to run the trial and submit spark job
                     new TrialRunner(testClass.getJavaClass(), method, args).run();
-//                    try
-//                    {
-//                     //   System.out.println(sendKondorShellName+" "+currentFile+", "+count);
-//                        System.out.println("Current Input:" + currentFile + ", " + count);
-//                        System.out.println("Waiting for Spark Job Execution...");
-//                        count++;
-//                        SPARK_JOB_SUBMIT.executeShell(sendKondorShellName+" "+currentFile);
-//                    }
-//                    catch (IOException e)
-//                    {
-//
-//                    }
+
                     // If we reached here, then the trial must be a success
                     result = SUCCESS;
                 } catch (GuidanceException e) {

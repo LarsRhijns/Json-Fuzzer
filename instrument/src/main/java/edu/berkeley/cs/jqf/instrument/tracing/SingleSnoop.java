@@ -92,6 +92,7 @@ public final class SingleSnoop {
      *                   <tt>FooBar#main</tt>).
      */
     public static void startSnooping(String entryPoint) {
+//        entryPoints.clear();
         // Mark entry point
         entryPoints.put(Thread.currentThread(), entryPoint);
         // XXX: Offer a dummy instruction to warm-up

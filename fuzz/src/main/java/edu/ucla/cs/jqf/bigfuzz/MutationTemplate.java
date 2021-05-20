@@ -7,10 +7,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class MutationTemplate implements BigFuzzMutation {
     Random r = new Random();
@@ -20,6 +17,17 @@ public class MutationTemplate implements BigFuzzMutation {
     int maxDuplicatedTimes = 10;
     int mutationMethodCount = 6;
     char delimiter = ',';
+
+    int[] fixedMutationList = {0,1,2,3};
+    int fixedMutationpointer = 0;
+
+    String[] fixedMutationResultList = {"90024,20,10900", "90024,,10900", "20,10900,null", "90024,10900,null", "20,10900,null", "900Ë24,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,7409,10900", "90024,1822942453,10900", "9002ë4,20,10900", ",20,10900", "8615,90024,20,10900", "-1062395398,20,10900", "90024,5638,20,10900", "90024,20,5589,10900", "90024,20,-1846169804", "-1752145988,20,10900", "90024,10900,null", "90024,,10900", "90024,20,10900", "90024,20,7427,10900", "90024,20,10900", "90024,2¥0,10900", "90024,20,10900", "90024,20.865862,10900", "1916238466,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,null", "90024,20,10900.3125", "90024,20,10900.722", "90024,20,10900", "20,10900,null", ",20,10900", "90024,20,-2112085416", ",20,10900", "90024,20,", "90024,,10900", "900/24,20,10900", "90024,20,-1069745514", "90024,10900,null", ",20,10900", "-1688978241,20,10900", "90024,20,null", "90024,94490979,10900", "20,10900,null", "90024,20,", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,10900", "20,10900,null", "90024,20,534,10900", "90024,20,1426980250", "90024,1450486204,10900", "90024,20,807747523", "90024,,10900", "90024,20,10900", "90024,20,10900", "90024.4,20,10900", "90024,2m0,10900", "243604623,20,10900", "90024,20,10900", "90024,,10900", "90024.63,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "90024,20.876112,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20.784615,10900", "90024,20,10900", "90024.37,20,10900", "9101,90024,20,10900", "90024.8,20,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,1090B0", "1358,90024,20,10900", "90024,,10900", "20,10900,null", ",20,10900", ",20,10900", "90024,10900,null", "90024,20,-1418695809", "90024,20.111279,10900", "90024,20,", "90024,20,", "90024,20,null", "90024,20,10900", "90024,10900,null", "90024,20,"};
+    int fixedMutationResultpointer = 0;
+
+//    protected HashMap<Integer, Integer> mutationMethodCounter = new HashMap();
+//    protected HashMap<Integer, Integer> mutationColumnCounter = new HashMap();
+    LinkedList<Integer> mutationMethodTracker = new LinkedList();
+    LinkedList<Integer> mutationColumnTracker = new LinkedList();
 
     public MultiMutation.MultiMutationMethod multiMutationMethod = MultiMutation.MultiMutationMethod.Disabled;
 
@@ -131,13 +139,23 @@ public class MutationTemplate implements BigFuzzMutation {
         System.out.println("Input before mutation:" + rowString);
         System.out.println("Input after mutation:" + mutatedRowString);
 
+        // HARD CODED MUTATIONS:
+        mutatedRowString = nextMutationResultInList();
+
         rows.set(lineNum, mutatedRowString);
+    }
+
+    private String nextMutationResultInList() {
+        String nextMutation = fixedMutationResultList[fixedMutationResultpointer];
+        fixedMutationResultpointer++;
+        return  nextMutation;
     }
 
     private String[] mutateLine(String[] rowElements) {
         // Randomly select the column which will be mutated
         int rowElementId = r.nextInt(rowElements.length);
         int method = selectMutationMethod();
+        saveMutation(rowElementId, method);
         System.out.println("Mutation: method=" + method + ", column_index= " + rowElementId);
 
         // Mutate the row using the selected mutation method
@@ -148,6 +166,11 @@ public class MutationTemplate implements BigFuzzMutation {
         }
 
         return mutationResult;
+    }
+
+    private void saveMutation(int rowElementId, int method) {
+        mutationColumnTracker.add(rowElementId);
+        mutationMethodTracker.add(method);
     }
 
     private String[] mutate_permute(String[] rows) {
@@ -197,6 +220,14 @@ public class MutationTemplate implements BigFuzzMutation {
      */
     private int selectMutationMethod() {
         return r.nextInt(mutationMethodCount+1);
+        //return nextMutationInList();
+
+    }
+
+    private int nextMutationInList() {
+        int nextMutation = fixedMutationList[fixedMutationpointer];
+        fixedMutationpointer++;
+        return  nextMutation;
     }
 
     /**
@@ -412,8 +443,11 @@ public class MutationTemplate implements BigFuzzMutation {
 
     @Override
     public void deleteFile(String currentFile) throws IOException {
-        File del = new File(delete);
-        del.delete();
+        // Check if delete is not null (which it is when the file is deleted in the first run)
+        if(delete != null) {
+            File del = new File(delete);
+            del.delete();
+        }
     }
 
     @Override
@@ -423,6 +457,9 @@ public class MutationTemplate implements BigFuzzMutation {
 
 
     private String listToString(String[] mutationResult) {
+        if(mutationResult == null) {
+            return "";
+        }
         StringBuilder row = new StringBuilder();
         for (int j = 0; j < mutationResult.length; j++) {
             if (j == 0) {

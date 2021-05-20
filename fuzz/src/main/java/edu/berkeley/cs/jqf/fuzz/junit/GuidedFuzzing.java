@@ -28,18 +28,17 @@
  */
 package edu.berkeley.cs.jqf.fuzz.junit;
 
-import java.io.PrintStream;
-
-import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.JQF;
+import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.instrument.tracing.SingleSnoop;
+import edu.berkeley.cs.jqf.instrument.tracing.ThreadTracer;
+import edu.berkeley.cs.jqf.instrument.tracing.TraceLogger;
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzGuidance;
 import org.junit.internal.TextListener;
 import org.junit.internal.runners.ErrorReportingRunner;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Request;
-import org.junit.runner.Result;
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
+import org.junit.runner.*;
+
+import java.io.PrintStream;
 
 public class GuidedFuzzing {
 
@@ -157,7 +156,10 @@ public class GuidedFuzzing {
 
 
         // Set the static guided instance
+        unsetGuidance();
         setGuidance(guidance);
+
+        TraceLogger.resetSingleton();
 
         // Register callback
         SingleSnoop.setCallbackGenerator(guidance::generateCallBack);
@@ -172,8 +174,13 @@ public class GuidedFuzzing {
             throw new IllegalArgumentException(String.format("Could not instantiate a Junit runner for method %s#%s.", testClass.getName(), testMethod));
         }
 
+        String holder = "";
+        if(guidance instanceof BigFuzzGuidance) {
+            holder = "#" +((BigFuzzGuidance) guidance).testName;
+        }
+
         // Start tracing for the test method
-        SingleSnoop.startSnooping(testClass.getName() + "#" + testMethod);
+        SingleSnoop.startSnooping(testClass.getName() + "#" + testMethod + holder);
 
         // Run the test and make sure to de-register the guidance before returning
         try {
@@ -181,7 +188,7 @@ public class GuidedFuzzing {
             if (out != null) {
                 junit.addListener(new TextListener(out));
             }
-            System.out.println("GuidedFuzz:Test");
+//            System.out.println("GuidedFuzz:Test");
             return junit.run(testRunner);
         } finally {
             unsetGuidance();
