@@ -10,10 +10,12 @@ import java.nio.file.Paths;
 import java.util.*;
 
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONS;
 import static edu.ucla.cs.jqf.bigfuzz.HighOrderMutation.*;
 
 public class MutationTemplate implements BigFuzzMutation {
-    Random r = new Random();
+    private final Random r = new Random();
+    private long randomizationSeed;
     ArrayList<String> fileRows = new ArrayList<>();
     String delete;
     int maxGenerateTimes = 20;
@@ -22,16 +24,21 @@ public class MutationTemplate implements BigFuzzMutation {
     int maxMutationStack = 2;
     char delimiter = ',';
 
+
+    // *********** REPRODUCIBILITY ****************
+    // TODO: extend this section such that runs can be hardcoded.
     int[] fixedMutationList = {0,1,2,3};
-    int fixedMutationpointer = 0;
+    int fixedMutationPointer = 0;
 
-    String[] fixedMutationResultList = {"90024,20,10900", "90024,,10900", "20,10900,null", "90024,10900,null", "20,10900,null", "900Ë24,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,7409,10900", "90024,1822942453,10900", "9002ë4,20,10900", ",20,10900", "8615,90024,20,10900", "-1062395398,20,10900", "90024,5638,20,10900", "90024,20,5589,10900", "90024,20,-1846169804", "-1752145988,20,10900", "90024,10900,null", "90024,,10900", "90024,20,10900", "90024,20,7427,10900", "90024,20,10900", "90024,2¥0,10900", "90024,20,10900", "90024,20.865862,10900", "1916238466,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,null", "90024,20,10900.3125", "90024,20,10900.722", "90024,20,10900", "20,10900,null", ",20,10900", "90024,20,-2112085416", ",20,10900", "90024,20,", "90024,,10900", "900/24,20,10900", "90024,20,-1069745514", "90024,10900,null", ",20,10900", "-1688978241,20,10900", "90024,20,null", "90024,94490979,10900", "20,10900,null", "90024,20,", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,10900", "20,10900,null", "90024,20,534,10900", "90024,20,1426980250", "90024,1450486204,10900", "90024,20,807747523", "90024,,10900", "90024,20,10900", "90024,20,10900", "90024.4,20,10900", "90024,2m0,10900", "243604623,20,10900", "90024,20,10900", "90024,,10900", "90024.63,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "90024,20.876112,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20.784615,10900", "90024,20,10900", "90024.37,20,10900", "9101,90024,20,10900", "90024.8,20,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,1090B0", "1358,90024,20,10900", "90024,,10900", "20,10900,null", ",20,10900", ",20,10900", "90024,10900,null", "90024,20,-1418695809", "90024,20.111279,10900", "90024,20,", "90024,20,", "90024,20,null", "90024,20,10900", "90024,10900,null", "90024,20,"};
-    int fixedMutationResultpointer = 0;
+//    String[] fixedMutationResultList = {"90024,20,10900", "90024,,10900", "20,10900,null", "90024,10900,null", "20,10900,null", "900Ë24,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,7409,10900", "90024,1822942453,10900", "9002ë4,20,10900", ",20,10900", "8615,90024,20,10900", "-1062395398,20,10900", "90024,5638,20,10900", "90024,20,5589,10900", "90024,20,-1846169804", "-1752145988,20,10900", "90024,10900,null", "90024,,10900", "90024,20,10900", "90024,20,7427,10900", "90024,20,10900", "90024,2¥0,10900", "90024,20,10900", "90024,20.865862,10900", "1916238466,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,null", "90024,20,10900.3125", "90024,20,10900.722", "90024,20,10900", "20,10900,null", ",20,10900", "90024,20,-2112085416", ",20,10900", "90024,20,", "90024,,10900", "900/24,20,10900", "90024,20,-1069745514", "90024,10900,null", ",20,10900", "-1688978241,20,10900", "90024,20,null", "90024,94490979,10900", "20,10900,null", "90024,20,", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,10900", "20,10900,null", "90024,20,534,10900", "90024,20,1426980250", "90024,1450486204,10900", "90024,20,807747523", "90024,,10900", "90024,20,10900", "90024,20,10900", "90024.4,20,10900", "90024,2m0,10900", "243604623,20,10900", "90024,20,10900", "90024,,10900", "90024.63,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "90024,20.876112,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20.784615,10900", "90024,20,10900", "90024.37,20,10900", "9101,90024,20,10900", "90024.8,20,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,1090B0", "1358,90024,20,10900", "90024,,10900", "20,10900,null", ",20,10900", ",20,10900", "90024,10900,null", "90024,20,-1418695809", "90024,20.111279,10900", "90024,20,", "90024,20,", "90024,20,null", "90024,20,10900", "90024,10900,null", "90024,20,"};
+//    int fixedMutationResultPointer = 0;
+    // ********************************************
 
-//    protected HashMap<Integer, Integer> mutationMethodCounter = new HashMap();
-//    protected HashMap<Integer, Integer> mutationColumnCounter = new HashMap();
-    LinkedList<Integer> mutationMethodTracker = new LinkedList();
-    LinkedList<Integer> mutationColumnTracker = new LinkedList();
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    ArrayList<HighOrderMutationMethod> mutationMethodTracker = new ArrayList();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    ArrayList<Integer> mutationColumnTracker = new ArrayList();
 
     public MultiMutation.MultiMutationMethod multiMutationMethod = MultiMutation.MultiMutationMethod.Disabled;
 
@@ -149,9 +156,11 @@ public class MutationTemplate implements BigFuzzMutation {
 
         // Append all row elements together and set the mutation result in the original input list.
         String mutatedRowString = listToString(mutatedElements);
-        System.out.println("Input before mutation:" + rowString);
-        System.out.println("Input after mutation:" + mutatedRowString);
 
+        if(PRINT_MUTATIONS) {
+            System.out.println("Input before mutation:" + rowString);
+            System.out.println("Input after mutation:" + mutatedRowString);
+        }
         // HARD CODED MUTATIONS:
         //mutatedRowString = nextMutationResultInList();
 
@@ -285,8 +294,8 @@ public class MutationTemplate implements BigFuzzMutation {
     }
 
     private int nextMutationInList() {
-        int nextMutation = fixedMutationList[fixedMutationpointer];
-        fixedMutationpointer++;
+        int nextMutation = fixedMutationList[fixedMutationPointer];
+        fixedMutationPointer++;
         return  nextMutation;
     }
 
@@ -298,6 +307,7 @@ public class MutationTemplate implements BigFuzzMutation {
      * @param elementId   Element ID of which element needs to be mutated (if applicable by the mutation method)
      * @return mutated element list. If undefined method is provided the original list is returned.
      */
+    //TODO: Fix warning on mutation result
     private String[] applyMutationMethod(HighOrderMutationMethod method, String[] rowElements, int elementId) {
         String[] mutationResult = rowElements;
         switch (method) {
@@ -324,6 +334,8 @@ public class MutationTemplate implements BigFuzzMutation {
                 mutationResult = emptyOneElement(rowElements, elementId);
                 break;
         }
+
+        saveMutation(elementId, method);
 
         return mutationResult;
     }
@@ -531,7 +543,22 @@ public class MutationTemplate implements BigFuzzMutation {
         return row.toString();
     }
 
+    private void saveMutation(int rowElementId, HighOrderMutationMethod method) {
+        mutationColumnTracker.add(rowElementId);
+        mutationMethodTracker.add(method);
+    }
+
+
     public void setMutationStackCount(int intMutationStackCount) {
         maxMutationStack = intMutationStackCount;
+    }
+
+    public void setSeed(long seed) {
+        randomizationSeed = seed;
+        r.setSeed(seed);
+    }
+
+    public long getRandomizationSeed() {
+        return randomizationSeed;
     }
 }

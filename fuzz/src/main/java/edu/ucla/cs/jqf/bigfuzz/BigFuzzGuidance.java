@@ -3,7 +3,6 @@ package edu.ucla.cs.jqf.bigfuzz;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
-import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import org.apache.commons.io.FileUtils;
@@ -11,19 +10,12 @@ import org.apache.commons.io.FileUtils;
 import java.io.*;
 
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
-import static java.lang.Math.ceil;
-import static java.lang.Math.log;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.*;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
@@ -192,7 +184,7 @@ public class BigFuzzGuidance implements Guidance {
         }
         testInputFiles.add(currentInputFile);
 
-        if (PRINT_METHODNAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
+        if (PRINT_METHOD_NAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
         InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
         saveInput(targetStream);
         return targetStream;
@@ -261,7 +253,7 @@ public class BigFuzzGuidance implements Guidance {
 
     /** Writes a line of text to the log file. */
     protected void infoLog(String str, Object... args) {
-        if (verbose && PRINT_MUTATIONDETAILS) {
+        if (verbose && PRINT_MUTATION_DETAILS) {
             String line = String.format(str, args);
             if (logFile != null) {
                 appendLineToFile(logFile, line);
@@ -280,12 +272,12 @@ public class BigFuzzGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-        System.out.println("--Current trial: " + numTrials);
+        System.out.print("\r Trial " + numTrials + " / " + maxTrials );
         // Stop timeout handling
         this.runStart = null;
 
-        if (PRINT_METHODNAMES) { System.out.println("BigFuzz::handleResult"); }
-        System.out.println(result);
+        if (PRINT_METHOD_NAMES) { System.out.println("BigFuzz::handleResult"); }
+        if(PRINT_TEST_RESULTS) {System.out.println(result);}
 
         this.numTrials++;
 
@@ -323,7 +315,7 @@ public class BigFuzzGuidance implements Guidance {
             // Existing branches *may* be included, depending on the heuristics used.
             // A valid input will steal responsibility from invalid inputs
             Set<Object> responsibilities = computeResponsibilities(valid);
-            System.out.println("Responsibilities of this input: "+responsibilities);
+            //System.out.println("Responsibilities of this input: "+responsibilities);
 
             // Update total coverage
             boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
@@ -543,5 +535,15 @@ public class BigFuzzGuidance implements Guidance {
      */
     public void setTestClassName(String testClassName) {
         this.testClassName = testClassName;
+    }
+
+    /**
+     * Set the randomization seed of the mutation class. Only implemented for MutationTemplate
+     * @param seed seed that needs to be assigned to the Random object
+     */
+    public void setRandomizationSeed(long seed) {
+        if(mutation instanceof MutationTemplate) {
+            ((MutationTemplate)mutation).setSeed(seed);
+        }
     }
 }

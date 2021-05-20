@@ -39,7 +39,7 @@ import org.junit.runner.*;
 
 import java.io.PrintStream;
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHOD_NAMES;
 
 public class GuidedFuzzing {
 
@@ -194,7 +194,7 @@ public class GuidedFuzzing {
             if (out != null) {
                 junit.addListener(new TextListener(out));
             }
-            if (PRINT_METHODNAMES) { System.out.println("GuidedFuzz:Test"); }
+            if (PRINT_METHOD_NAMES) { System.out.println("GuidedFuzz:Test"); }
             return junit.run(testRunner);
         } finally {
             unsetGuidance();
