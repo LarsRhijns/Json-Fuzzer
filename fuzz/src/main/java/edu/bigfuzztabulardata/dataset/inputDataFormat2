@@ -1,1 +1,0 @@
-byte regex(.*),short regex(.*),int regex(.*),long regex(.*),boolean regex(.*),char regex(.*),String regex(.*),array(byte) regex(.*)

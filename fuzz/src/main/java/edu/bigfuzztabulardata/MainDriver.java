@@ -1,12 +1,10 @@
 package edu.bigfuzztabulardata;
 
-import com.github.curiousoddman.rgxgen.RgxGen;
-
 import java.io.File;
 
 public class MainDriver {
     public static void main(String[] args) {
-        String dataSpecificationInput = "fuzz/src/main/java/edu/bigfuzztabulardata/dataset/conceptNewInputFormat";
+        String dataSpecificationInput = "fuzz/src/main/java/edu/bigfuzztabulardata/dataset/onlyDatatypes";
         File file = new File(dataSpecificationInput);
 
         InputManager im = new InputManager(file);
@@ -20,7 +18,7 @@ public class MainDriver {
 
         Mutation m = new Mutation(im.getInputs());
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 0; i++) {
             m.mutateFile(fileName);
         }
 

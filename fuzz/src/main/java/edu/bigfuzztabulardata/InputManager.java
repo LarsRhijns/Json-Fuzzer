@@ -34,8 +34,12 @@ public class InputManager {
             while (s.hasNextLine()) {
                 String nl = s.nextLine();
                 if (nl.trim().equals("")) {
-                    DataFormat df = new DataFormat(columnName, datatype, range, specialValues);
-                    dataFormatArrayList.add(df);
+                    if (!datatype.equals("")) {
+                        DataFormat df = new DataFormat(columnName, datatype, range, specialValues);
+                        dataFormatArrayList.add(df);
+                    } else {
+                        System.err.println("Specification without datatype has been ignored. (Could be empty lines)");
+                    }
                     columnName = "";
                     datatype = "";
                     range = "";
@@ -57,6 +61,10 @@ public class InputManager {
                             break;
                     }
                 }
+            }
+            if (!datatype.equals("")) {
+                DataFormat df = new DataFormat(columnName, datatype, range, specialValues);
+                dataFormatArrayList.add(df);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

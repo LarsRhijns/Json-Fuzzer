@@ -1,1 +1,0 @@
-"int [1-9][0-9]{0,14} 1,10,19,35","int [a-zA-Z0-9_]{1,20} apple,orange,banana","String ([0-9]|,){1,32} abc,123","int [a-zA-z]{5}[0-9]{5}",int 5,"String (a|b)* a,b,c"

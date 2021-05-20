@@ -2,6 +2,8 @@ package edu.bigfuzztabulardata;
 
 import com.github.curiousoddman.rgxgen.RgxGen;
 
+import java.util.Random;
+
 public class DataFormat {
     private String columnName;
     private String dataType;
@@ -42,7 +44,16 @@ public class DataFormat {
     public String generateInputInRange() {
         String s = "";
         if (dataType.equals("String") || dataType.equals("char")) {
-            RgxGen generator = new RgxGen(range[0]);
+            RgxGen generator;
+            if (range[0].trim().equals("")) {
+                if (dataType.equals("String")) {
+                    generator = new RgxGen(".*");
+                } else {
+                    generator = new RgxGen(".");
+                }
+            } else {
+                generator = new RgxGen(range[0]);
+            }
             s = generator.generate();
         } else if (dataType.equals("boolean")) {
             int boolSelection = (int) (Math.random() * 2);
@@ -91,7 +102,8 @@ public class DataFormat {
 
     private String generateByteValue(String interval) {
         if (interval.equals("")) {
-            return Byte.MIN_VALUE + (byte) (Math.random() * (Byte.MAX_VALUE - Byte.MIN_VALUE)) + "";
+            Random r = new Random();
+            return r.nextInt(Byte.MAX_VALUE + 1) + "";
         }
         byte low;
         byte high;
@@ -111,7 +123,8 @@ public class DataFormat {
 
     private String generateShortValue(String interval) {
         if (interval.equals("")) {
-            return Short.MIN_VALUE + (short) (Math.random() * (Short.MAX_VALUE - Short.MIN_VALUE)) + "";
+            Random r = new Random();
+            return r.nextInt(Short.MAX_VALUE + 1) + "";
         }
         short low;
         short high;
@@ -131,7 +144,8 @@ public class DataFormat {
 
     private String generateIntValue(String interval) {
         if (interval.equals("")) {
-            return Integer.MIN_VALUE + (int) (Math.random() * (Integer.MAX_VALUE - Integer.MIN_VALUE)) + "";
+            Random r = new Random();
+            return r.nextInt() + "";
         }
         int low;
         int high;
@@ -151,7 +165,8 @@ public class DataFormat {
 
     private String generateLongValue(String interval) {
         if (interval.equals("")) {
-            return Long.MIN_VALUE + (long) (Math.random() * (Long.MAX_VALUE - Long.MIN_VALUE)) + "";
+            Random r = new Random();
+            return r.nextLong() + "";
         }
         long low;
         long high;
@@ -169,9 +184,14 @@ public class DataFormat {
         return low + (long) (Math.random() * (high - low)) + "";
     }
 
-    private String generateFloatValue(String interval) {
+    private String generateFloatValue(String interval) { //TODO: Check what the string representation should be
         if (interval.equals("")) {
-            return Float.MIN_VALUE + (Math.random() * (Float.MAX_VALUE - Float.MIN_VALUE)) + "";
+            Random r = new Random();
+            int signSelection = (int) (Math.random() * 2);
+            if (signSelection == 0) {
+                return r.nextFloat() * Float.MAX_VALUE + "";
+            }
+            return "-" + r.nextFloat() * Float.MAX_VALUE + "";
         }
         float low;
         float high;
@@ -189,9 +209,14 @@ public class DataFormat {
         return low + (Math.random() * (high - low)) + "";
     }
 
-    private String generateDoubleValue(String interval) {
+    private String generateDoubleValue(String interval) { //TODO: Check what the string representation should be
         if (interval.equals("")) {
-            return Double.MIN_VALUE + (double) (Math.random() * (Double.MAX_VALUE - Double.MIN_VALUE)) + "";
+            Random r = new Random();
+            int signSelection = (int) (Math.random() * 2);
+            if (signSelection == 0) {
+                return r.nextDouble() * Double.MAX_VALUE + "";
+            }
+            return "-" + r.nextDouble() * Double.MAX_VALUE + "";
         }
         double low;
         double high;

@@ -11,7 +11,7 @@ public class InputGenerator {
 
     DataFormat[] inputSpecification;
     String generatedInputFilesFolder = "fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/";
-    private static final int INPUT_FILE_AMOUNT_OF_LINES = 5;
+    private static final int INPUT_FILE_AMOUNT_OF_LINES = 20;
     private static final int ARRAY_SIZE = 5;
 
     public InputGenerator(DataFormat[] inputSpecification) {

@@ -104,7 +104,7 @@ public class Mutation {
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());
         int randomColumn = (int) (Math.random() * (newData.get(randomRow).length + 1));
-        RgxGen generator = new RgxGen(".*");
+        RgxGen generator = new RgxGen(".{1,5}");
         String[] updatedColumn = newData.get(randomRow);
         updatedColumn = (String[]) ArrayUtils.add(updatedColumn, randomColumn, generator.generate());
         newData.set(randomRow, updatedColumn);
