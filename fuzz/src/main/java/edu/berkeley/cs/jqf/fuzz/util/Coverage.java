@@ -148,6 +148,7 @@ public class Coverage implements TraceEventVisitor {
     /** Returns a set of edges in this coverage that don't exist in baseline */
     public Collection<?> computeNewCoverage(Coverage baseline) {
         Collection<Integer> newCoverage = new ArrayList<>();
+//        System.out.println("nonzero: " + counter.getNonZeroIndices());
         for (int idx : this.counter.getNonZeroIndices()) {
             if (baseline.counter.getAtIndex(idx) == 0) {
                 newCoverage.add(idx);
@@ -229,4 +230,7 @@ public class Coverage implements TraceEventVisitor {
         return counter.getNonZeroIndices().hashCode();
     }
 
+    public Counter getCounter() {
+        return counter;
+    }
 }

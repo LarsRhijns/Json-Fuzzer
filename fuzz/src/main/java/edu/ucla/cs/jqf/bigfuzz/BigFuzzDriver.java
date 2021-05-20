@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class BigFuzzDriver {
     // These booleans are for debugging purposes only, toggle them if you want to see the information
@@ -20,6 +21,7 @@ public class BigFuzzDriver {
             System.exit(1);
         }
 
+        // Read provided arguments, maxTrials is inf by default.
         String testClassName = args[0];
         String testMethodName = args[1];
         Long maxTrials = args.length > 2 ? Long.parseLong(args[2]) : Long.MAX_VALUE;
@@ -34,8 +36,6 @@ public class BigFuzzDriver {
               Duration duration = Duration.of(100, ChronoUnit.SECONDS);
              //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
              BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, startTime, duration, System.err, "output");
-
-             // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
             long endTime = System.currentTimeMillis();
 
@@ -99,5 +99,6 @@ public class BigFuzzDriver {
         System.out.println("Total coverage: " + totalCov);
         System.out.println("Valid coverage: " + validCov);
         System.out.println("Percent valid coverage: " + (float) validCov / totalCov * 100 + "%");
+        System.out.println("Branches hit count: " + guidance.branchesHitCount);
     }
 }

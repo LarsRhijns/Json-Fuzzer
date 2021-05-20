@@ -69,6 +69,9 @@ public class BigFuzzGuidance implements Guidance {
     /** Cumulative coverage for valid inputs. */
     protected Coverage validCoverage = new Coverage();
 
+    /** Map which tracks the amount of times each known branch is covered */
+    protected Map<Collection<Integer>, Integer> branchesHitCount = new HashMap<>();
+
     /** The maximum number of keys covered by any single input found so far. */
     protected int maxCoverage = 0;
 
@@ -271,7 +274,9 @@ public class BigFuzzGuidance implements Guidance {
             // Existing branches *may* be included, depending on the heuristics used.
             // A valid input will steal responsibility from invalid inputs
             Set<Object> responsibilities = computeResponsibilities(valid);
-            System.out.println("Responsibilities of this input: "+responsibilities);
+            if (responsibilities.size() > 0) {
+                System.out.println("New responsibilities found: " + responsibilities);
+            }
 
             // Update total coverage
             boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
@@ -397,9 +402,16 @@ public class BigFuzzGuidance implements Guidance {
     private Set<Object> computeResponsibilities(boolean valid) {
         Set<Object> result = new HashSet<>();
 
+        // add hit branches to counter
+        Collection<Integer> hitBranches = runCoverage.getCounter().getNonZeroIndices();
+        int hits = branchesHitCount.getOrDefault(hitBranches, 0);
+        branchesHitCount.put(hitBranches, hits + 1);
+        System.out.println("branches hit: " + hitBranches);
+
         // This input is responsible for all new coverage
         Collection<?> newCoverage = runCoverage.computeNewCoverage(totalCoverage);
         if (newCoverage.size() > 0) {
+            System.out.println("coverage increased");
             result.addAll(newCoverage);
         }
 
