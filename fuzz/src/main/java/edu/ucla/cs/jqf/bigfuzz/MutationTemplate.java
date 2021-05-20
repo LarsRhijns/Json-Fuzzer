@@ -482,8 +482,11 @@ public class MutationTemplate implements BigFuzzMutation {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void deleteFile(String currentFile) throws IOException {
-        File del = new File(delete);
-        del.delete();
+        // Check if delete is not null (which it is when the file is deleted in the first run)
+        if(delete != null) {
+            File del = new File(delete);
+            del.delete();
+        }
     }
 
     @Override

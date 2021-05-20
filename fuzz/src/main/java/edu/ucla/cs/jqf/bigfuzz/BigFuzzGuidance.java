@@ -31,8 +31,11 @@ import static java.lang.Math.log;
 public class BigFuzzGuidance implements Guidance {
 
     /** The name of the test for display purposes. */
-    protected final String testName;
+    public final String testName;
     private final String outputDirName;
+
+    /** testClassName for error tracking purposes*/
+    private String testClassName;
 
     private boolean keepGoing = true;
     private static boolean KEEP_GOING_ON_ERROR = true;
@@ -146,7 +149,7 @@ public class BigFuzzGuidance implements Guidance {
     public InputStream getInput()
     {
         // Clear coverage stats for this run
-        runCoverage.clear();
+        runCoverage = new Coverage();
 
         ///copy the configuration/input file
         if(testInputFiles.isEmpty())
@@ -324,16 +327,7 @@ public class BigFuzzGuidance implements Guidance {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                try {
-//                    List<String> deleteList = Files.readAllLines(Paths.get(currentInputFile));
-//                    for(int i = 0; i < deleteList.size(); i++)
-//                    {
-//                        File del = new File(deleteList.get(i));
-//                        del.delete();
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+
                 File src2 = new File(currentInputFile);
                 src2.delete();
             }
@@ -353,8 +347,26 @@ public class BigFuzzGuidance implements Guidance {
             this.totalFailures++;
 
 
-            //   Attempt to add this to the set of unique failures
-            if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
+            // Only check the Stack trace elements until the program driver that is being tested
+            ArrayList<StackTraceElement> testProgramTraceElements = new ArrayList<>();
+            boolean testClassFound = false;
+            for (int i = 0; i < rootCause.getStackTrace().length; i++) {
+                // If the test class has been found in the stacktrace, but this element is no longer said test class then the stacktrace will only contain the test framework, not the test program.
+                if(testClassFound && !rootCause.getStackTrace()[i].getClassName().equals(testClassName) ) {
+                    break;
+                }
+
+                testProgramTraceElements.add(rootCause.getStackTrace()[i]);
+
+                // Check the currect element of the stacktrace if it originated from the test class.
+                if(rootCause.getStackTrace()[i].getClassName().equals(testClassName)) {
+                    testClassFound = true;
+                }
+            }
+
+
+//            if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
+            if (uniqueFailures.add(testProgramTraceElements)) {
                 int crashIdx = uniqueFailures.size() - 1;
                 uniqueFailureRuns.add(numTrials);
 
@@ -464,13 +476,30 @@ public class BigFuzzGuidance implements Guidance {
         return coverage;
     }
 
+    /**
+     * Field setter for the mutation class.
+     * @param multiMutationMethod multi mutation method the guidance should follow.
+     */
     public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
         mutation.setMultiMutationMethod(multiMutationMethod);
     }
+
+    /**
+     * Field setter for the mutation class. Is only applied if the mutation class is MutationTemplate
+     * @param intMutationStackCount The max amount of mutations that should be applied to the input seed.
+     */
 
     public void setMutationStackCount(int intMutationStackCount) {
         if(mutation instanceof MutationTemplate) {
             ((MutationTemplate)mutation).setMutationStackCount(intMutationStackCount);
         }
+    }
+
+    /**
+     * Field setter
+     * @param testClassName Driver class name of the class that is tested.
+     */
+    public void setTestClassName(String testClassName) {
+        this.testClassName = testClassName;
     }
 }
