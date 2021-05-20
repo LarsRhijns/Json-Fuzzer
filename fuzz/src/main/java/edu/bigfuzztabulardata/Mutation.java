@@ -36,7 +36,7 @@ public class Mutation {
     }
 
     public void mutateFile(String fileName) {
-        String currentFile = constructFilePath(fileName); //TODO: Make it possible to mutate a file multiple times without overwriting it
+        String currentFile = constructFilePath(fileName);
         List<String[]> data;
         try {
             CSVReader reader = new CSVReader(new FileReader(currentFile));
@@ -78,7 +78,7 @@ public class Mutation {
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());
         int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
-        newData.get(randomRow)[randomColumn] = dataSpecification[randomColumn].generateInputOutsideRange();
+        newData.get(randomRow)[randomColumn] = "";//dataSpecification[randomColumn].generateInputOutsideRange();
         return newData;
     }
 

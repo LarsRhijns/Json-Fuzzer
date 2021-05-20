@@ -1,0 +1,21 @@
+Column: Zipcode
+Datatype: String
+Range: 900[0-9]{2}
+Special: 90042
+
+Column: Column0
+Datatype: float
+
+Column: Just some numbers
+Datatype: int
+Range: 1-120, 900-1200, >1300, <-5
+Special: 5, 8, 120
+
+Column: column2
+Datatype: char
+Range: .
+
+Column: column2
+Datatype: String
+Range: [0-9]{2}: 9
+

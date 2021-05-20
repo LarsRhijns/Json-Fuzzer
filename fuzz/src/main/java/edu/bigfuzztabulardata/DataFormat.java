@@ -2,90 +2,248 @@ package edu.bigfuzztabulardata;
 
 import com.github.curiousoddman.rgxgen.RgxGen;
 
-import java.util.Random;
-
 public class DataFormat {
+    private String columnName;
     private String dataType;
-    private String range;
-    private String rangeType;
+    private String[] range;
     private String[] specialValues;
-    private final boolean defaultRange;
 
-    public DataFormat(String dataType, String range, String rangeType, String[] specialValues, boolean defaultRange) {
+    public DataFormat(String columnName, String dataType, String range, String specialValues) {
+        this.columnName = columnName;
         this.dataType = dataType;
-        this.range = range;
-        this.rangeType = rangeType;
-        this.specialValues = specialValues;
-        this.defaultRange = defaultRange;
+        this.range = processRange(dataType, range);
+        this.specialValues = processSpecialValues(specialValues);
     }
 
+    private String[] processRange(String dataType, String range) {
+        if (dataType.equals("String") || dataType.equals("char")) {
+            String[] result = new String[1];
+            result[0] = range;
+            return result;
+        }
+        String[] result = range.split(",");
+        for (int i = 0; i < result.length; i++) {
+            result[i] = result[i].trim();
+        }
+        return result;
+    }
+
+    private String[] processSpecialValues(String specialValues) {
+        String[] result = specialValues.split(",");
+        for (int i = 0; i < result.length; i++) {
+            result[i] = result[i].trim();
+        }
+        return result;
+    }
     /**
      * Uses the RgxGen library to generate a random input that lies within a range defined by a regular expression.
      * @return Random input within a range.
      */
     public String generateInputInRange() {
         String s = "";
-        if (rangeType.equals("regex")) {
-            s = generateRegexValue();
-        } else {
+        if (dataType.equals("String") || dataType.equals("char")) {
+            RgxGen generator = new RgxGen(range[0]);
+            s = generator.generate();
+        } else if (dataType.equals("boolean")) {
+            int boolSelection = (int) (Math.random() * 2);
+            if (boolSelection == 0) {
+                return "True";
+            }
+            return "False";
+        } else if (dataType.contains("array(")) {
+            generateArrayInputInRange(5); //TODO: What should array size be?
+        }
+        else {
             s = generateIntervalValue();
         }
         return s;
     }
 
-    private String generateRegexValue() {
-        RgxGen generator = new RgxGen(range);
-        String s = generator.generate();
-        if (defaultRange) {
-            if(dataType.contains("byte") || dataType.contains("short") || dataType.contains("int") || dataType.contains("long")) {
-                long decimal = Long.parseLong(s, 2);
-                s = decimal + "";
-            }
+    private String generateIntervalValue() {
+        String interval = "";
+        if (range.length != 0) {
+            int rangeSelection = (int) (Math.random() * range.length);
+            interval = range[rangeSelection];
+        }
+        String s  = "";
+        switch(dataType) {
+            case "byte":
+                s = generateByteValue(interval);
+                break;
+            case "short":
+                s = generateShortValue(interval);
+                break;
+            case "int":
+                s = generateIntValue(interval);
+                break;
+            case "long":
+                s = generateLongValue(interval);
+                break;
+            case "float":
+                s = generateFloatValue(interval);
+                break;
+            case "double":
+                s = generateDoubleValue(interval);
+                break;
         }
         return s;
     }
 
-    private String generateIntervalValue() {
-        String[] bounds = range.split("-");
-        long low = Long.parseLong(bounds[0]);
-        long high = Long.parseLong(bounds[1]);
+    private String generateByteValue(String interval) {
+        if (interval.equals("")) {
+            return Byte.MIN_VALUE + (byte) (Math.random() * (Byte.MAX_VALUE - Byte.MIN_VALUE)) + "";
+        }
+        byte low;
+        byte high;
+        if (interval.contains(">")) {
+            low = Byte.parseByte(interval.substring(1));
+            high = Byte.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Byte.MIN_VALUE;
+            high = Byte.parseByte(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("-");
+            low = Byte.parseByte(bounds[0]);
+            high = Byte.parseByte(bounds[1]);
+        }
+        return low + (byte) (Math.random() * (high - low)) + "";
+    }
+
+    private String generateShortValue(String interval) {
+        if (interval.equals("")) {
+            return Short.MIN_VALUE + (short) (Math.random() * (Short.MAX_VALUE - Short.MIN_VALUE)) + "";
+        }
+        short low;
+        short high;
+        if (interval.contains(">")) {
+            low = Short.parseShort(interval.substring(1));
+            high = Short.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Short.MIN_VALUE;
+            high = Short.parseShort(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("-");
+            low = Short.parseShort(bounds[0]);
+            high = Short.parseShort(bounds[1]);
+        }
+        return low + (short) (Math.random() * (high - low)) + "";
+    }
+
+    private String generateIntValue(String interval) {
+        if (interval.equals("")) {
+            return Integer.MIN_VALUE + (int) (Math.random() * (Integer.MAX_VALUE - Integer.MIN_VALUE)) + "";
+        }
+        int low;
+        int high;
+        if (interval.contains(">")) {
+            low = Integer.parseInt(interval.substring(1));
+            high = Integer.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Integer.MIN_VALUE;
+            high = Integer.parseInt(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("-");
+            low = Integer.parseInt(bounds[0]);
+            high = Integer.parseInt(bounds[1]);
+        }
+        return low + (int) (Math.random() * (high - low)) + "";
+    }
+
+    private String generateLongValue(String interval) {
+        if (interval.equals("")) {
+            return Long.MIN_VALUE + (long) (Math.random() * (Long.MAX_VALUE - Long.MIN_VALUE)) + "";
+        }
+        long low;
+        long high;
+        if (interval.contains(">")) {
+            low = Long.parseLong(interval.substring(1));
+            high = Long.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Long.MIN_VALUE;
+            high = Long.parseLong(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("-");
+            low = Long.parseLong(bounds[0]);
+            high = Long.parseLong(bounds[1]);
+        }
         return low + (long) (Math.random() * (high - low)) + "";
     }
 
-    public String generateInputOutsideRange() { //TODO: still a lot of trouble with this
-        String s = "";
-        if (rangeType.equals("regex")) {
-            s = generateRegexValueOutsideRange();
+    private String generateFloatValue(String interval) {
+        if (interval.equals("")) {
+            return Float.MIN_VALUE + (Math.random() * (Float.MAX_VALUE - Float.MIN_VALUE)) + "";
+        }
+        float low;
+        float high;
+        if (interval.contains(">")) {
+            low = Float.parseFloat(interval.substring(1));
+            high = Float.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Float.MIN_VALUE;
+            high = Float.parseFloat(interval.substring(1));
         } else {
-            s = generateIntervalValueOutsideRange();
+            String[] bounds = interval.split("-");
+            low = Float.parseFloat(bounds[0]);
+            high = Float.parseFloat(bounds[1]);
         }
-        return s;
+        return low + (Math.random() * (high - low)) + "";
     }
 
-    private String generateRegexValueOutsideRange() {
-        RgxGen generator = new RgxGen(range);
-        String s = generator.generateNotMatching(); //TODO: it now generates just any string
-//        if (dataType.contains("int")) { //TODO: Doesnt work properly; Library's fault?; Look into the concept again later
-//            RgxGen generator = new RgxGen("[^0-9]*|" + range);
-//            s = generator.generateNotMatching();
+    private String generateDoubleValue(String interval) {
+        if (interval.equals("")) {
+            return Double.MIN_VALUE + (double) (Math.random() * (Double.MAX_VALUE - Double.MIN_VALUE)) + "";
+        }
+        double low;
+        double high;
+        if (interval.contains(">")) {
+            low = Double.parseDouble(interval.substring(1));
+            high = Double.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Double.MIN_VALUE;
+            high = Double.parseDouble(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("-");
+            low = Double.parseDouble(bounds[0]);
+            high = Double.parseDouble(bounds[1]);
+        }
+        return low + (Math.random() * (high - low)) + "";
+    }
+
+//    public String generateInputOutsideRange() { //TODO: still a lot of trouble with this
+//        String s = "";
+//        if (rangeType.equals("regex")) {
+//            s = generateRegexValueOutsideRange();
+//        } else {
+//            s = generateIntervalValueOutsideRange();
 //        }
-        if (defaultRange) {
-            return "TODO:DefaultRange";
-        }
-        return s;
-    }
+//        return s;
+//    }
 
-    private String generateIntervalValueOutsideRange() { //TODO: generate values close to the interval boundaries
-        String[] bounds = range.split("-");
-        long low = Long.parseLong(bounds[0]);
-        long high = Long.parseLong(bounds[1]);
+//    private String generateRegexValueOutsideRange() {
+//        RgxGen generator = new RgxGen(range);
+//        String s = generator.generateNotMatching(); //TODO: it now generates just any string -> type errors instead of range errors
+////        if (dataType.contains("int")) {
+////            RgxGen generator = new RgxGen("[^0-9]*|" + range);
+////            s = generator.generateNotMatching();
+////        }
+//        //TODO: Doesnt work properly; Library's fault?; Look into the concept again later
+//        if (defaultRange) {
+//            return "TODO:DefaultRange";
+//        }
+//        return s;
+//    }
 
-        if ((int) (Math.random() * 2) == 0) {
-            return Integer.MIN_VALUE + (long) (Math.random() * (low - Integer.MIN_VALUE)) + "";
-        }
-
-        return high + (long) (Math.random() * (Integer.MAX_VALUE - high)) + "";
-    }
+//    private String generateIntervalValueOutsideRange() { //TODO: generate values close to the interval boundaries
+//        String[] bounds = range.split("-");
+//        long low = Long.parseLong(bounds[0]);
+//        long high = Long.parseLong(bounds[1]);
+//
+//        if ((int) (Math.random() * 2) == 0) {
+//            return Integer.MIN_VALUE + (long) (Math.random() * (low - Integer.MIN_VALUE)) + "";
+//        }
+//
+//        return high + (long) (Math.random() * (Integer.MAX_VALUE - high)) + "";
+//    }
 
     public String changeDataType(String element) {
         //TODO: There could be more variation in the way the data type is changed
@@ -239,8 +397,6 @@ public class DataFormat {
         return element;
     }
 
-
-
     /**
      * Generates a String representation of an array of the corresponding dataType.
      * @param arraySize size of the array.
@@ -262,32 +418,30 @@ public class DataFormat {
      * @return string representation of a datatype.
      */
     public String toString() {
-        if (getSpecialValues() == null) {
-            return "DataType: " + getDataType() + " | Range (" + rangeType + "): " + getRange();
-        }
-        String s = "";
-        s += "DataType: " + getDataType() + " | Range (" + rangeType + "): " + getRange() + " | Special Values: " + "[";
-        for (int i = 0; i < getSpecialValues().length; i++) {
-            s+= getSpecialValues()[i] + ", ";
-        }
-        s = s.substring(0, s.length()-2);
-        s += "]";
 
-        return s;
+        String rangeString = "[";
+        for (int i = 0; i < range.length; i++) {
+            rangeString += range[i] + ", ";
+        }
+        rangeString = rangeString.substring(0, rangeString.length()-2);
+        rangeString += "]";
+
+        String specialValuesString = "[";
+        for (int i = 0; i < specialValues.length; i++) {
+            specialValuesString += specialValues[i] + ", ";
+        }
+        specialValuesString = specialValuesString.substring(0, specialValuesString.length()-2);
+        specialValuesString += "]";
+
+        if (getSpecialValues() == null) {
+            return "DataType: " + getDataType() + " | Range: " + getRange();
+        }
+
+        return "ColumnName: " + columnName + " | DataType: " + dataType + " | Range: " + rangeString + " | Special Values: " + specialValuesString;
     }
 
     public static String getArrayType(String dataType) {
         return dataType.substring(6, dataType.length() - 1);
-    }
-
-    public static String trimRangeString(String range) {
-        String trimmedString = "";
-        if (range.substring(0, 6).equals("regex(")) {
-            trimmedString = range.substring(6, range.length() - 1);
-        } else {
-            trimmedString = range.substring(9, range.length() - 1);
-        }
-        return trimmedString;
     }
 
     public String getDataType() {
@@ -298,11 +452,11 @@ public class DataFormat {
         this.dataType = dataType;
     }
 
-    public String getRange() {
+    public String[] getRange() {
         return range;
     }
 
-    public void setRange(String range) {
+    public void setRange(String[] range) {
         this.range = range;
     }
 
@@ -314,11 +468,4 @@ public class DataFormat {
         this.specialValues = specialValues;
     }
 
-    public String getRangeType() {
-        return rangeType;
-    }
-
-    public boolean isDefaultRange() {
-        return defaultRange;
-    }
 }

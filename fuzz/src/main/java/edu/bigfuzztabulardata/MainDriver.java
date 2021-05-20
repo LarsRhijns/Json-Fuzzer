@@ -6,7 +6,7 @@ import java.io.File;
 
 public class MainDriver {
     public static void main(String[] args) {
-        String dataSpecificationInput = "fuzz/src/main/java/edu/bigfuzztabulardata/dataset/salaryAnalysisFileFormat";
+        String dataSpecificationInput = "fuzz/src/main/java/edu/bigfuzztabulardata/dataset/conceptNewInputFormat";
         File file = new File(dataSpecificationInput);
 
         InputManager im = new InputManager(file);
