@@ -88,6 +88,11 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         }
     }
 
+    @Override
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+
+    }
+
     public void randomDuplacteOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
     {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
@@ -146,6 +151,11 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
     public void deleteFile(String currentInputFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+
     }
 
     public void mutate(String inputFile, String nextInputFile) throws IOException

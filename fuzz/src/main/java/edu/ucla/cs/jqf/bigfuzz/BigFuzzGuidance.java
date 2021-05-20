@@ -454,19 +454,7 @@ public class BigFuzzGuidance implements Guidance {
 
     /** Handles a trace event generated during test execution */
     protected void handleEvent(TraceEvent e) {
-        // Collect totalCoverage
         runCoverage.handleEvent(e);
-//        System.out.println(runCoverage.getNonZeroCount());
-//        System.out.println(runCoverage.getCovered());
-
-        // Check for possible timeouts every so often
-//        if (this.singleRunTimeoutMillis > 0 &&
-//                this.runStart != null && (++this.branchCount) % 10_000 == 0) {
-//            long elapsed = new Date().getTime() - runStart.getTime();
-//            if (elapsed > this.singleRunTimeoutMillis) {
-//                throw new TimeoutException(elapsed, this.singleRunTimeoutMillis);
-//            }
-//        }
     }
 
 

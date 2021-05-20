@@ -36,29 +36,42 @@ public class BigFuzzDriver {
         int intMutationStackCount = args.length > 4 ? Integer.parseInt(args[4]) : multiMutationMethod == MultiMutation.MultiMutationMethod.Smart_mutate ? 2 : 0 ;
         System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
 
-        String file = "dataset/conf";
-        try {
-            long startTime = System.currentTimeMillis();
 
-            String title = testClassName + "#" + testMethodName;
-            Duration duration = Duration.of(100, ChronoUnit.SECONDS);
-            //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-            BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err, "output");
-
-            // Set the provided input argument multiMutationMethod in the guidance mutation
-            guidance.setMultiMutationMethod(multiMutationMethod);
-            guidance.setMutationStackCount(intMutationStackCount);
-
-            // Run the Junit test
-            GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
-            long endTime = System.currentTimeMillis();
-
-            // Evaluate the results
-            evaluation(testClassName, testMethodName, file, maxTrials, duration, startTime, endTime, guidance);
+        ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList();
+        ArrayList<ArrayList<String>> inputs = new ArrayList();
+        ArrayList<ArrayList<String>> methods = new ArrayList();
+        ArrayList<ArrayList<String>> columns = new ArrayList();
+        for (int i = 0; i < 1; i++) {
+            System.out.println("******** START OF PROGRAM ITERATION: " + i + "**********************");
 
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            String file = "dataset/conf";
+            try {
+                long startTime = System.currentTimeMillis();
+
+                String title = testClassName + "#" + testMethodName;
+                Duration duration = Duration.of(100, ChronoUnit.SECONDS);
+                //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
+                BigFuzzGuidance guidance = new BigFuzzGuidance("Test" + i, file, maxTrials, startTime, duration, System.err, "output");
+
+                // Set the provided input argument multiMutationMethod in the guidance mutation
+                guidance.setMultiMutationMethod(multiMutationMethod);
+                guidance.setMutationStackCount(intMutationStackCount);
+
+                // Set the test class name in the guidance for the failure tracking
+                guidance.setTestClassName(testClassName);
+
+                // Run the Junit test
+                GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
+                long endTime = System.currentTimeMillis();
+
+                // Evaluate the results
+                evaluation(testClassName, testMethodName, file, maxTrials, duration, startTime, endTime, guidance);
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -108,59 +121,6 @@ public class BigFuzzDriver {
         long totalDuration = endTime - startTime;
         if (guidance.numTrials != maxTrials) {
             System.out.println("Could not complete all trials in the given duration.");
-        }
-        System.out.println("Total run time：" + totalDuration + "ms");
-        System.out.println("Tests run: " + guidance.numTrials);
-        System.out.println("Average test run time: " + (float) totalDuration / guidance.numTrials + "ms");
-
-        // Coverage
-        int totalCov = guidance.totalCoverage.getNonZeroCount();
-        int validCov = guidance.validCoverage.getNonZeroCount();
-        System.out.println("Total coverage: " + totalCov);
-        System.out.println("Valid coverage: " + validCov);
-        System.out.println("Percent valid coverage: " + (float) validCov / totalCov * 100 + "%");
-    }
-
-    /**
-     * Prints the configuration and the results from the run to the Terminal.
-     *
-     * @param testClassName Class name which is being tested
-     * @param testMethodName Test method name which is used to perform the test
-     * @param file  Input file for the testing
-     * @param maxTrials maximal amount of trials configuration
-     * @param duration maximal duration of the trials configuration
-     * @param startTime start time of the program
-     * @param endTime end time of the program
-     * @param guidance guidance class which is used to perform the BigFuzz testing
-     */
-    private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzGuidance guidance) {
-        // Print configuration
-        System.out.println("---CONFIGURATION---");
-        System.out.println("Files used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
-        System.out.println("Max trials: " + maxTrials);
-        System.out.println("Max duration: " + duration.toMillis() + "ms");
-
-        // Print results
-        System.out.println("\n---RESULTS---");
-        if (Boolean.getBoolean("jqf.logCoverage")) {
-            System.out.printf("Covered %d edges.%n",
-                    guidance.getCoverage().getNonZeroCount());
-        }
-
-        // Failures
-        System.out.println("Total Failures: " + guidance.totalFailures);
-        System.out.println("Unique Failures: " + guidance.uniqueFailures.size());
-        System.out.println("Unique Failures found at: " + guidance.uniqueFailureRuns);
-//        List<Boolean> runFoundUniqueFailure = new ArrayList<>();
-//        for (long i = 0; i < maxTrials; i++) {
-//            runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
-//        }
-//        System.out.println("Unique Failure found per run: " + runFoundUniqueFailure);
-
-        // Run time
-        long totalDuration = endTime - startTime;
-        if (guidance.numTrials != maxTrials) {
-            System.out.println("!! Could not complete all trials in the given duration.");
         }
         System.out.println("Total run time：" + totalDuration + "ms");
         System.out.println("Tests run: " + guidance.numTrials);
