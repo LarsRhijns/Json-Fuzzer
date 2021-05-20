@@ -2,7 +2,6 @@ package edu.ucla.cs.jqf.bigfuzz;
 
 //import org.apache.commons.lang.ArrayUtils;
 
-import com.sun.tools.javac.util.Pair;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -12,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+
 
 import static edu.ucla.cs.jqf.bigfuzz.HighOrderMutation.*;
 
@@ -149,7 +149,7 @@ public class MutationTemplate implements BigFuzzMutation {
         }
 
         // Create a mutation list containing the mutation and element ID
-        LinkedList<Pair<Integer, HighOrderMutationMethod>> mutations = new LinkedList<>();
+        LinkedList<MutationPair> mutations = new LinkedList<>();
 
         // If the mutation will delete an element, the next mutation should not apply a mutation to that column. Keep a counter of the amount of columns removed
         // ASSUMPTION: remove element will always remove the LAST element
@@ -177,14 +177,14 @@ public class MutationTemplate implements BigFuzzMutation {
                 elementDeletionCount++;
             }
 
-            mutations.add(new Pair<>(rowElementId, mutationMethod));
+            mutations.add(new MutationPair(rowElementId, mutationMethod));
             appliedMutationperColumn.get(rowElementId).add(mutationMethod);
         }
 
         // Apply all mutations in sequential order
-        for (Pair<Integer, HighOrderMutationMethod> pair :
+        for (MutationPair pair :
                 mutations) {
-            rowElements = applyMutationMethod(pair.snd, rowElements, pair.fst);
+            rowElements = applyMutationMethod(pair.getMutation(), rowElements, pair.getElementId());
         }
         return rowElements;
     }

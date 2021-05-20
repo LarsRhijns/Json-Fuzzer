@@ -1,7 +1,5 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
-import org.graalvm.compiler.core.common.type.ArithmeticOpTable;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -109,43 +107,48 @@ public class HighOrderMutation {
     }
 
     public static HighOrderMutationMethod[] getActiveHighOrderMutationMethodList() {
-        ArrayList<HighOrderMutationMethod> res = new ArrayList<>();
+        ArrayList<HighOrderMutationMethod> holder = new ArrayList<>();
         for (HighOrderMutationMethod h :
                 HighOrderMutationMethod.values()) {
             switch (h) {
                 case ChangeValue:
                     if (ChangeValueActive) {
-                        res.add(ChangeValue);
+                        holder.add(ChangeValue);
                     }
                     break;
                 case ChangeType:
                     if (ChangeTypeActive) {
-                        res.add(ChangeType);
+                        holder.add(ChangeType);
                     }
                     break;
                 case RemoveElement:
                     if (RemoveElementActive) {
-                        res.add(RemoveElement);
+                        holder.add(RemoveElement);
                     }
                     break;
                 case AddElement:
                     if (AddElementActive) {
-                        res.add(AddElement);
+                        holder.add(AddElement);
                     }
                     break;
                 case EmptyColumn:
                     if (EmptyColumnActive) {
-                        res.add(EmptyColumn);
+                        holder.add(EmptyColumn);
                     }
                     break;
                 case ChangeDelimiter:
                     if (ChangeDelimiterActive) {
-                        res.add(ChangeDelimiter);
+                        holder.add(ChangeDelimiter);
                     }
                     break;
             }
         }
-        return (HighOrderMutationMethod[]) res.toArray();
+        HighOrderMutationMethod[] res = new HighOrderMutationMethod[holder.size()];
+        for (int i = 0; i < holder.size(); i++) {
+            res[i] = holder.get(i);
+        }
+
+        return res;
     }
 
 

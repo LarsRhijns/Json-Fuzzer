@@ -30,7 +30,7 @@ public class BigFuzzDriver {
         // This variable is used for the multiMutationMethod: Smart_mutate
         // If the selected multiMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
         int intMutationStackCount = args.length > 4 ? Integer.parseInt(args[4]) : multiMutationMethod == MultiMutation.MultiMutationMethod.Smart_mutate ? 2 : 0 ;
-        System.out.println("mutationMethod: " + multiMutationMethod);
+        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
 
         String file = "dataset/conf";
         try {
