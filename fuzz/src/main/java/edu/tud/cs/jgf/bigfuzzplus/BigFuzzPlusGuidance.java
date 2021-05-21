@@ -24,7 +24,6 @@ import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.*;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
- * Mutations: 1. randomly mutation
  * code coverage guidance: control flow coverage, dataflow operators's coverage
  */
 public class BigFuzzPlusGuidance implements Guidance {
@@ -33,7 +32,6 @@ public class BigFuzzPlusGuidance implements Guidance {
      * The name of the test for display purposes.
      */
     public final String testName;
-    private final String outputDirName;
 
     /**
      * testClassName for error tracking purposes
@@ -41,7 +39,6 @@ public class BigFuzzPlusGuidance implements Guidance {
     private String testClassName;
 
     private boolean keepGoing = true;
-    private static boolean KEEP_GOING_ON_ERROR = true;
     private Coverage coverage;
 
     /**
@@ -67,6 +64,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     protected final long maxTrials;
     private final PrintStream out;
     private long numDiscards = 0;
+    // Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
     private final float maxDiscardRatio = 0.9f;
 
     /**
@@ -123,6 +121,12 @@ public class BigFuzzPlusGuidance implements Guidance {
      */
     protected File logFile;
 
+    /**
+     * OutputDirectory where files should be written to.
+     */
+    private final String outputDirName;
+
+
     // ------------- TIMEOUT HANDLING ------------
 
     /**
@@ -130,28 +134,14 @@ public class BigFuzzPlusGuidance implements Guidance {
      */
     protected Date runStart;
 
-
-    // ------------- FUZZING HEURISTICS ------------
-
-    /**
-     * Whether to save inputs that only add new coverage bits (but no new responsibilities).
-     */
-    static final boolean SAVE_NEW_COUNTS = true;
-
-    /**
-     * Whether to steal responsibility from old inputs (this increases computation cost).
-     */
-    static final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
-
     protected final String initialInputFile;
     BigFuzzMutation mutation;
     private String currentInputFile;
 
-    ArrayList<String> testInputFiles = new ArrayList<String>();
+    ArrayList<String> testInputFiles = new ArrayList();
 
 
     public BigFuzzPlusGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName, String mutationMethodClassName) throws IOException {
-
         this.testName = testName;
         this.startTime = startTime;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
@@ -160,10 +150,13 @@ public class BigFuzzPlusGuidance implements Guidance {
         this.outputDirName = outputDirName;
         File outputDir = new File(outputDirName);
         boolean newOutputDirCreated = outputDir.mkdir();
+
+        // Clear the output directory if it already existed to prevent write errors or scrambled results.
         if (!newOutputDirCreated) {
             FileUtils.cleanDirectory(FileUtils.getFile(outputDirName));
         }
 
+        // Max trials needs to be larger than 0, otherwise testing will be stopped instantly
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
         }
@@ -175,6 +168,10 @@ public class BigFuzzPlusGuidance implements Guidance {
         setMutation(mutationMethodClassName);
     }
 
+    /**
+     * Set the mutation class to the passed mutationMethodClassName. If the class name is not implemented in this function the program will terminate
+     * @param mutationMethodClassName String of mutation method class name.
+     */
     private void setMutation(String mutationMethodClassName) {
         switch (mutationMethodClassName) {
             case "MultiMutation":
@@ -220,16 +217,15 @@ public class BigFuzzPlusGuidance implements Guidance {
         }
     }
 
+    /**
+     * Copy file.
+     * @param source File source that should be copied
+     * @param dest File destination where the copy should be placed in
+     * @throws IOException Throws IO exception of copy fails.
+     */
     private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
-        FileChannel inputChannel = null;
-        FileChannel outputChannel = null;
-        try {
-            inputChannel = new FileInputStream(source).getChannel();
-            outputChannel = new FileOutputStream(dest).getChannel();
+        try (FileChannel inputChannel = new FileInputStream(source).getChannel(); FileChannel outputChannel = new FileOutputStream(dest).getChannel()) {
             outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-        } finally {
-            inputChannel.close();
-            outputChannel.close();
         }
     }
 
@@ -247,7 +243,7 @@ public class BigFuzzPlusGuidance implements Guidance {
             try {
                 copyFileUsingFileChannels(src, dst);
             } catch (IOException e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
             currentInputFile = fileName;
         } else {
@@ -259,7 +255,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 currentInputFile = nextInputFile;
 
             } catch (IOException e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
         }
         testInputFiles.add(currentInputFile);
@@ -268,12 +264,15 @@ public class BigFuzzPlusGuidance implements Guidance {
             System.out.println("BigFuzzGuidance::getInput: " + numTrials + ": " + currentInputFile);
         }
         InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
-        saveInput(targetStream);
+        saveInput();
         return targetStream;
     }
 
-    private void saveInput(InputStream targetStream) {
-        String inputFileName = loadInput(currentInputFile);
+    /**
+     * Save input that is in currentInputFile.
+     */
+    private void saveInput() {
+        String inputFileName = loadInputLocation(currentInputFile);
         StringBuilder contentBuilder = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new FileReader(inputFileName))) {
 
@@ -287,23 +286,15 @@ public class BigFuzzPlusGuidance implements Guidance {
         inputs.add(contentBuilder.toString());
     }
 
-    private String loadInput(String inputFileName) {
+    /**
+     * Load the contents of the file which points to the location of the input for the program
+     * @param inputLocationPointerFileName File which contains the location of the input
+     * @return File location of the input
+     */
+    private String loadInputLocation(String inputLocationPointerFileName) {
         StringBuilder stringBuilder = new StringBuilder();
         String line;
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFileName)))) {
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return stringBuilder.toString();
-    }
-
-    private String loadInput(InputStream targetStream) {
-        StringBuilder stringBuilder = new StringBuilder();
-        String line;
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(targetStream))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(inputLocationPointerFileName)))) {
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
@@ -460,12 +451,8 @@ public class BigFuzzPlusGuidance implements Guidance {
                 src2.delete();
             }
         } else if (result == Result.FAILURE || result == Result.TIMEOUT) {
-//            if (out != null) {
-//                error.printStackTrace(out);
-//            }
-//            this.keepGoing = KEEP_GOING_ON_ERROR;
+
             String msg = error.getMessage();
-//            System.out.println("msg:" + msg);
 
             //get the root cause
             Throwable rootCause = error;
@@ -492,17 +479,13 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
 
-
-//            if (uniqueFailures.add(Arrays.asList(rootCause.getStackTrace()))) {
             if (uniqueFailures.add(testProgramTraceElements)) {
                 int crashIdx = uniqueFailures.size() - 1;
                 uniqueFailureRuns.add(numTrials);
 
                 infoLog("%s", "Found crash: " + error.getClass() + " - " + (msg != null ? msg : ""));
 
-//                String how = currentInput.desc;
                 String why = result == Result.FAILURE ? "+crash" : "+hang";
-//                infoLog("Saved - %s %s %s", saveFile.getPath(), how, why);
 
                 File src = new File(currentInputFile);
                 currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + rootCause;
@@ -514,16 +497,6 @@ public class BigFuzzPlusGuidance implements Guidance {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                try {
-//                    List<String> deleteList = Files.readAllLines(Paths.get(currentInputFile));
-//                    for(int i = 0; i < deleteList.size(); i++)
-//                    {
-//                        File del = new File(deleteList.get(i));
-//                        del.delete();
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
                 File src2 = new File(currentInputFile);
                 src2.delete();
             }
@@ -549,31 +522,12 @@ public class BigFuzzPlusGuidance implements Guidance {
             }
         }
 
-        // Perhaps it can also steal responsibility from other inputs
-        if (STEAL_RESPONSIBILITY) {
-
-        }
-//        System.out.println("Result:" + result);
-
         return result;
     }
 
     @Override
     public Consumer<TraceEvent> generateCallBack(Thread thread) {
-
-//        if (appThread != null) {
-//            throw new IllegalStateException(ZestGuidance.class +
-//                    " only supports single-threaded apps at the moment");
-//        }
-//        appThread = thread;
-
         return this::handleEvent;
-
-////        print out the trace events generated during test execution
-//        return (event) -> {
-//            System.out.println(String.format("Thread %s produced event %s",
-//                    thread.getName(), event));
-//        };
     }
 
     /**

@@ -6,13 +6,13 @@ import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+@SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusDriver {
     // These booleans are for debugging purposes only, toggle them if you want to see the information
     public static boolean PRINT_METHOD_NAMES = false;
@@ -20,7 +20,7 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_ERRORS = false;
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
-    public static StringBuilder log = new StringBuilder();
+    public static StringBuilder program_configuration = new StringBuilder();
     public static StringBuilder iteration_results = new StringBuilder();
     public static StringBuilder summarized_results = new StringBuilder();
 
@@ -64,16 +64,15 @@ public class BigFuzzPlusDriver {
         long programStartTime = System.currentTimeMillis();
         File outputDir = new File("output/" + programStartTime);
 
+        program_configuration.append("Program started with the following parameters: ");
+        program_configuration.append("\n\tTest class: " + testClassName);
+        program_configuration.append("\n\tTest method: " + testMethodName);
+        program_configuration.append("\n\tTest method: " + mutationMethodClassName);
+        program_configuration.append("\n\tTest multiMutation method: " + multiMutationMethod);
+        program_configuration.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
 
-        log.append("Program started with the following parameters: ");
-        log.append("\n\tTest class: " + testClassName);
-        log.append("\n\tTest method: " + testMethodName);
-        log.append("\n\tTest method: " + mutationMethodClassName);
-        log.append("\n\tTest multiMutation method: " + multiMutationMethod);
-        log.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
-
-        log.append("\nOutput directory is set to: " + outputDir);
-        log.append("\nProgram is started at: " + programStartTime);
+        program_configuration.append("\nOutput directory is set to: " + outputDir);
+        program_configuration.append("\nProgram is started at: " + programStartTime);
 
         boolean newOutputDirCreated = outputDir.mkdir();
         if (!newOutputDirCreated) {
@@ -123,20 +122,25 @@ public class BigFuzzPlusDriver {
             }
         }
         summarizeProgramIterations(uniqueFailureResults, inputs, methods, columns, durations);
-        writeToLog(outputDir);
+        writeLogToFile(outputDir);
     }
 
-    private static void writeToLog(File outputDir) {
+    /**
+     * Write collected log in the variables log, summarized results and iteration results to a file in the output folder named log.txt.
+     * @param outputDir Directory where the log file should be written to
+     */
+    private static void writeLogToFile(File outputDir) {
         File f_out = new File(outputDir + "/log.txt");
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(f_out);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            System.exit(0);
         }
 
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-        String output = log.append("\n\n").append(summarized_results).append("\n\n").append(iteration_results).toString();
+        String output = program_configuration.append("\n\n").append(summarized_results).append("\n\n").append(iteration_results).toString();
 
         try {
             bw.write(output);
@@ -147,6 +151,14 @@ public class BigFuzzPlusDriver {
         }
     }
 
+    /**
+     * Convert collected data lists to a readable string in summarized_results
+     * @param uniqueFailureResults List of unique failures per program iteration
+     * @param inputs    List of sequential mutated inputs per program iteration
+     * @param methods   List of summed HighOrderMutation methods applied per iteration
+     * @param columns   List of count per column how many times mutation was applied to said column
+     * @param durations List of iteration durations
+     */
     private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations) {
         summarized_results.append("********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
@@ -203,7 +215,17 @@ public class BigFuzzPlusDriver {
         System.out.println(summarized_results);
     }
 
+    /**
+     * Transforms data in guidance to required lists.
+     * @param guidance  guidance class which contains all data
+     * @param maxTrials maximal amount of trials (configuration)
+     * @param inputs list of inputs passed to the program that is being tested
+     * @param uniqueFailureResults list of unique failures
+     * @param methods list of methods applied
+     * @param columns list of count how many times mutation was applied per column
+     */
     private static void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns) {
+        // Unique failure results
         int cumulative = 0;
         ArrayList<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
         for (long j = 0; j < maxTrials; j++) {
@@ -211,6 +233,7 @@ public class BigFuzzPlusDriver {
                 cumulative++;
             runFoundUniqueFailureCumulative.add(cumulative);
         }
+        // Methods and columns
         ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((MultiMutation) guidance.mutation).getMutationMethodTracker();
         ArrayList<Integer> columnTracker = ((MultiMutation) guidance.mutation).getMutationColumnTracker();
         HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
@@ -261,7 +284,7 @@ public class BigFuzzPlusDriver {
      * @param startTime      start time of the program
      * @param endTime        end time of the program
      * @param guidance       guidance class which is used to perform the BigFuzz testing
-     * @param atIteration
+     * @param atIteration    Counter indicating for which iteration this evaluation is.
      */
     private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzPlusGuidance guidance, int atIteration) {
         StringBuilder e_log = new StringBuilder();
