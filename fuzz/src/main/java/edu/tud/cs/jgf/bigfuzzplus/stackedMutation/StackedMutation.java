@@ -40,9 +40,9 @@ public class StackedMutation implements BigFuzzMutation {
     // ********************************************
 
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"rawtypes"})
     ArrayList<HighOrderMutationMethod> mutationMethodTracker = new ArrayList();
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"rawtypes"})
     ArrayList<Integer> mutationColumnTracker = new ArrayList();
 
     public StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
@@ -361,21 +361,51 @@ public class StackedMutation implements BigFuzzMutation {
     }
 
     /**
-     * Change the value on the specified elementId index from an Integer to a Float. Also add a random Float to that value.
+     * Change the value on the specified elementId index from an Integer to a Float. If the element is a float, change it to a string
      *
      * @param rowElements list of elements
      * @param elementId   element ID of the element that needs to be mutated
      * @return list of elements where the element on the elementId is mutated from an integer to a float + a random value.
      */
     private String[] changeType(String[] rowElements, int elementId) {
-        int value;
-        try {
-            value = Integer.parseInt(rowElements[elementId]);
-        } catch (Exception e) {
-            return rowElements;
+        if(isFloat(rowElements[elementId])) {
+            rowElements[elementId] = rowElements[elementId] + "a";
+        } else {
+            int value;
+            try {
+                value = Integer.parseInt(rowElements[elementId]);
+            } catch (Exception e) {
+                return rowElements;
+            }
+            rowElements[elementId] = Float.toString((float) value);
         }
-        rowElements[elementId] = Float.toString((float) value);
         return rowElements;
+    }
+
+    /**
+     * Checks if string is a float by checking if there is a '.' and the left and right sides can be parsed to integers
+     * @param rowElement elements which is checked to be a float
+     * @return true if the string can be parsed to a float
+     */
+    private boolean isFloat(String rowElement) {
+        // If there is a . in the element and the last and first index are the same, we know there is exactly 1 '.'
+        if(rowElement.indexOf('.') >= 0 && rowElement.indexOf('.') == rowElement.indexOf('.')) {
+            String[] splitted = rowElement.split(".");
+            // To allow for .xxxx floats instead of xxx.xxx
+            for (int i = 0; i < splitted.length; i++) {
+                //To allow for -.xxx values
+                if(splitted[i] .equals( "-")) {
+                    continue;
+                }
+                try {
+                    Integer.parseInt(splitted[i]);
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
