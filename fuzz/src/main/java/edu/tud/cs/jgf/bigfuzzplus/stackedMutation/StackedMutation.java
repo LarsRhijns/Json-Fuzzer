@@ -321,7 +321,7 @@ public class StackedMutation implements BigFuzzMutation {
                     mutationResult = changeToRandomValue(rowElements, elementId);
                 break;
             case ChangeType:
-                mutationResult = changeToFloat(rowElements, elementId);
+                mutationResult = changeType(rowElements, elementId);
                 break;
             case RandomCharacter:
                 if(rowElements[elementId] != null && !rowElements[elementId].equals(""))
@@ -367,15 +367,14 @@ public class StackedMutation implements BigFuzzMutation {
      * @param elementId   element ID of the element that needs to be mutated
      * @return list of elements where the element on the elementId is mutated from an integer to a float + a random value.
      */
-    private String[] changeToFloat(String[] rowElements, int elementId) {
+    private String[] changeType(String[] rowElements, int elementId) {
         int value;
         try {
             value = Integer.parseInt(rowElements[elementId]);
         } catch (Exception e) {
             return rowElements;
         }
-        float v = (float) value + r.nextFloat();
-        rowElements[elementId] = Float.toString(v);
+        rowElements[elementId] = Float.toString((float) value);
         return rowElements;
     }
 
