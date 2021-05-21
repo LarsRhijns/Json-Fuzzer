@@ -85,7 +85,7 @@ public class BigFuzzPlusDriver {
         ArrayList<ArrayList<String>> methods = new ArrayList();
         ArrayList<ArrayList<String>> columns = new ArrayList();
         ArrayList<Long> durations = new ArrayList();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 1; i++) {
             int atIteration = i + 1;
             System.out.println("******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
@@ -234,8 +234,13 @@ public class BigFuzzPlusDriver {
             runFoundUniqueFailureCumulative.add(cumulative);
         }
         // Methods and columns
-        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
-        ArrayList<Integer> columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
+        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = new ArrayList<>();
+        ArrayList<Integer> columnTracker =new ArrayList<>();
+        if(guidance.mutation instanceof StackedMutation) {
+             methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
+            columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
+        }
+
         HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
         HashMap<Integer, Integer> columnMap = new HashMap();
         for (int i = 0; i < methodTracker.size(); i++) {

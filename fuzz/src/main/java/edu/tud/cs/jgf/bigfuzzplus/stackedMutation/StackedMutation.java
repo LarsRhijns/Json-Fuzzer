@@ -390,7 +390,7 @@ public class StackedMutation implements BigFuzzMutation {
     private boolean isFloat(String rowElement) {
         // If there is a . in the element and the last and first index are the same, we know there is exactly 1 '.'
         if(rowElement.indexOf('.') >= 0 && rowElement.indexOf('.') == rowElement.indexOf('.')) {
-            String[] splitted = rowElement.split(".");
+            String[] splitted = rowElement.split("\\.");
             // To allow for .xxxx floats instead of xxx.xxx
             for (int i = 0; i < splitted.length; i++) {
                 //To allow for -.xxx values

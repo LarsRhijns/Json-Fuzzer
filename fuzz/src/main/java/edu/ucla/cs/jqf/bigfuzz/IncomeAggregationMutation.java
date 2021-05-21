@@ -220,7 +220,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         if(method == 0){
             ArrayList<String> tempRows = new ArrayList<String>();
             randomGenerateRows(tempRows);
-            System.out.println("rows: " + tempRows);
+//            System.out.println("rows: " + tempRows);
             rows = tempRows;
 
             int next =(int)(Math.random() * 2);
@@ -265,9 +265,9 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println(list.size());
+//        System.out.println(list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println(list.get(lineNum));
+//        System.out.println(list.get(lineNum));
 //        // 0: random change value
         // 1: random change into string
 //        // 2: random insert
@@ -277,7 +277,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
 
         int method = (int)(Math.random() * 2);
         int columnID = (int)(Math.random() * 2)+1;
-        System.out.println("********"+method+" "+lineNum+" "+columnID);
+//        System.out.println("********"+method+" "+lineNum+" "+columnID);
 //        if(method == 0){
 //            columns[columnID] = Integer.toString(r.nextInt());
 //        }
