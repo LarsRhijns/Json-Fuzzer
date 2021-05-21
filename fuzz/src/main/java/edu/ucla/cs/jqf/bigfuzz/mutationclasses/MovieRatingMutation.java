@@ -3,7 +3,7 @@ package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 //import org.apache.commons.lang.ArrayUtils;
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -275,7 +275,7 @@ public class MovieRatingMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
 
     }
 

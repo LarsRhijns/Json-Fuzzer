@@ -1,6 +1,6 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,5 +56,5 @@ public interface BigFuzzMutation {
     public void writeFile(String outputFile) throws IOException;
     public void deleteFile(String currentFile) throws IOException;
 
-    void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod);
+    void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod);
 }

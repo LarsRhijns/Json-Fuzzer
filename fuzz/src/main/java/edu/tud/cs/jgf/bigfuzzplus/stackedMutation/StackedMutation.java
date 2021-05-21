@@ -2,7 +2,7 @@
  * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
  */
 
-package edu.tud.cs.jgf.bigfuzzplus.multiMutation;
+package edu.tud.cs.jgf.bigfuzzplus.stackedMutation;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -16,9 +16,9 @@ import java.util.*;
 
 
 import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
-import static edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation.*;
+import static edu.tud.cs.jgf.bigfuzzplus.stackedMutation.HighOrderMutation.*;
 
-public class MultiMutation implements BigFuzzMutation {
+public class StackedMutation implements BigFuzzMutation {
     private final Random r = new Random();
     private long randomizationSeed;
     ArrayList<String> fileRows = new ArrayList<>();
@@ -45,7 +45,7 @@ public class MultiMutation implements BigFuzzMutation {
     @SuppressWarnings({"unchecked", "rawtypes"})
     ArrayList<Integer> mutationColumnTracker = new ArrayList();
 
-    public MultiMutationReference.MultiMutationMethod multiMutationMethod = MultiMutationReference.MultiMutationMethod.Disabled;
+    public StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
 
     /**
      * Read a random line from the input file which contains references to other input file. Use selected file to perform the mutation
@@ -139,9 +139,9 @@ public class MultiMutation implements BigFuzzMutation {
         String[] rowElements = rows.get(lineNum).split(",");
         String rowString = rows.get(lineNum);
 
-        // Depending on the multi Mutation method used to start this program, correct mutation method will be applied. Default is a single mutation
+        // Depending on the stacked Mutation method used to start this program, correct mutation method will be applied. Default is a single mutation
         String[] mutatedElements;
-        switch (multiMutationMethod) {
+        switch (stackedMutationMethod) {
             case Permute_random:
             case Permute_2:
             case Permute_3:
@@ -149,7 +149,7 @@ public class MultiMutation implements BigFuzzMutation {
             case Permute_5:
                 mutatedElements = mutate_permute(rowElements);
                 break;
-            case Smart_mutate:
+            case Smart_stack:
                 mutatedElements = smart_mutate(rowElements);
                 break;
             default:
@@ -256,7 +256,7 @@ public class MultiMutation implements BigFuzzMutation {
      */
     private String[] mutate_permute(String[] rows) {
         int mutationCount = 1;
-        switch (multiMutationMethod) {
+        switch (stackedMutationMethod) {
             case Permute_random:
                 mutationCount = r.nextInt(mutationMethodCount);
                 break;
@@ -524,8 +524,8 @@ public class MultiMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
-        this.multiMutationMethod = multiMutationMethod;
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+        this.stackedMutationMethod = stackedMutationMethod;
     }
 
     /**

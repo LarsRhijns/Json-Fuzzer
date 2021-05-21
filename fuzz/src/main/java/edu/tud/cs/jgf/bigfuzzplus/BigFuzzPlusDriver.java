@@ -3,9 +3,9 @@ package edu.tud.cs.jgf.bigfuzzplus;
 //import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation;
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.HighOrderMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
 import java.io.*;
 import java.time.Duration;
@@ -30,7 +30,7 @@ public class BigFuzzPlusDriver {
      * [1] - test method
      * [2] - mutation method
      * [3] - max Trials                (default = Long.MAXVALUE)
-     * [4] - multi mutation method     (default = disabled)
+     * [4] - stacked mutation method   (default = disabled)
      * [5] - max mutation stack        (default = 2)
      *
      * @param args program arguments
@@ -50,13 +50,13 @@ public class BigFuzzPlusDriver {
         Long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
         System.out.println("maxTrials: " + maxTrials);
 
-        int intMultiMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
-        MultiMutationReference.MultiMutationMethod multiMutationMethod = MultiMutationReference.intToMultiMutationMethod(intMultiMutationMethod);
-        System.out.println("mutationMethod: " + multiMutationMethod);
+        int intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
+        StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
+        System.out.println("stackedMutationMethod: " + stackedMutationMethod);
 
-        // This variable is used for the multiMutationMethod: Smart_mutate
-        // If the selected multiMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
-        int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : multiMutationMethod == MultiMutationReference.MultiMutationMethod.Smart_mutate ? 2 : 0;
+        // This variable is used for the stackedMutationMethod: Smart_mutate
+        // If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
+        int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
         System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
 
         // **************
@@ -68,7 +68,7 @@ public class BigFuzzPlusDriver {
         program_configuration.append("\n\tTest class: " + testClassName);
         program_configuration.append("\n\tTest method: " + testMethodName);
         program_configuration.append("\n\tTest method: " + mutationMethodClassName);
-        program_configuration.append("\n\tTest multiMutation method: " + multiMutationMethod);
+        program_configuration.append("\n\tTest stackedMutation method: " + stackedMutationMethod);
         program_configuration.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
 
         program_configuration.append("\nOutput directory is set to: " + outputDir);
@@ -98,8 +98,8 @@ public class BigFuzzPlusDriver {
                 String iterationOutputDir = outputDir + "/Test" + atIteration;
                 BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, iterationOutputDir, mutationMethodClassName);
 
-                // Set the provided input argument multiMutationMethod in the guidance mutation
-                guidance.setMultiMutationMethod(multiMutationMethod);
+                // Set the provided input argument stackedMutationMethod in the guidance mutation
+                guidance.setStackedMutationMethod(stackedMutationMethod);
                 guidance.setMutationStackCount(intMutationStackCount);
 
                 // Set the randomization seed to the program start time. Seed is passed to allow for custom seeds, independent of the program start time
@@ -234,8 +234,8 @@ public class BigFuzzPlusDriver {
             runFoundUniqueFailureCumulative.add(cumulative);
         }
         // Methods and columns
-        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((MultiMutation) guidance.mutation).getMutationMethodTracker();
-        ArrayList<Integer> columnTracker = ((MultiMutation) guidance.mutation).getMutationColumnTracker();
+        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
+        ArrayList<Integer> columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
         HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
         HashMap<Integer, Integer> columnMap = new HashMap();
         for (int i = 0; i < methodTracker.size(); i++) {
@@ -296,8 +296,8 @@ public class BigFuzzPlusDriver {
         e_log.append("Max duration: " + duration.toMillis() + "ms");
 
         e_log.append("\n---REPRODUCIBILITY---");
-        if (guidance.mutation instanceof MultiMutation) {
-            e_log.append("\n\tRandomization seed: " + ((MultiMutation) guidance.mutation).getRandomizationSeed());
+        if (guidance.mutation instanceof StackedMutation) {
+            e_log.append("\n\tRandomization seed: " + ((StackedMutation) guidance.mutation).getRandomizationSeed());
         }
         e_log.append("\n\tMutated inputs: [");
         for (int i = 0; i < guidance.inputs.size(); i++) {

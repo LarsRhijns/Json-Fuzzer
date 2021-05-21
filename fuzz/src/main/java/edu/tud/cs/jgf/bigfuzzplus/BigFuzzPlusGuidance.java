@@ -5,8 +5,8 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import edu.ucla.cs.jqf.bigfuzz.IncomeAggregationMutation;
 import edu.ucla.cs.jqf.bigfuzz.mutationclasses.*;
@@ -174,8 +174,8 @@ public class BigFuzzPlusGuidance implements Guidance {
      */
     private void setMutation(String mutationMethodClassName) {
         switch (mutationMethodClassName) {
-            case "MultiMutation":
-                mutation = new MultiMutation();
+            case "StackedMutation":
+                mutation = new StackedMutation();
                 break;
             case "IncomeAggregationMutation":
                 mutation = new IncomeAggregationMutation();
@@ -553,10 +553,10 @@ public class BigFuzzPlusGuidance implements Guidance {
     /**
      * Field setter for the mutation class.
      *
-     * @param multiMutationMethod multi mutation method the guidance should follow.
+     * @param stackedMutationMethod stacked mutation method the guidance should follow.
      */
-    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
-        mutation.setMultiMutationMethod(multiMutationMethod);
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+        mutation.setStackedMutationMethod(stackedMutationMethod);
     }
 
     /**
@@ -566,8 +566,8 @@ public class BigFuzzPlusGuidance implements Guidance {
      */
 
     public void setMutationStackCount(int intMutationStackCount) {
-        if (mutation instanceof MultiMutation) {
-            ((MultiMutation) mutation).setMutationStackCount(intMutationStackCount);
+        if (mutation instanceof StackedMutation) {
+            ((StackedMutation) mutation).setMutationStackCount(intMutationStackCount);
         }
     }
 
@@ -586,8 +586,8 @@ public class BigFuzzPlusGuidance implements Guidance {
      * @param seed seed that needs to be assigned to the Random object
      */
     public void setRandomizationSeed(long seed) {
-        if (mutation instanceof MultiMutation) {
-            ((MultiMutation) mutation).setSeed(seed);
+        if (mutation instanceof StackedMutation) {
+            ((StackedMutation) mutation).setSeed(seed);
         }
     }
 }

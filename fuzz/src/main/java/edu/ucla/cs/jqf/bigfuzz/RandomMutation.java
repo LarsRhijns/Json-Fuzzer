@@ -6,7 +6,7 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation: randomByteMutation.
  */
 
-import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -194,7 +194,7 @@ public class RandomMutation implements BigFuzzMutation{
     }
 
     @Override
-    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
 
     }
 
