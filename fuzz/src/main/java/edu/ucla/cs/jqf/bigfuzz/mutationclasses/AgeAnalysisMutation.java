@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,6 +6,8 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation for I4: two JDU tree
  */
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -17,7 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class AgeAnalysisMutation implements BigFuzzMutation{
+public class AgeAnalysisMutation implements BigFuzzMutation {
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;
@@ -88,7 +90,7 @@ public class AgeAnalysisMutation implements BigFuzzMutation{
         }
     }
 
-    public void randomDuplacteOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
+    public void randomDuplicateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
     {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         ArrayList<String> tempRows = new ArrayList<String>(rows);
@@ -146,6 +148,11 @@ public class AgeAnalysisMutation implements BigFuzzMutation{
     public void deleteFile(String currentInputFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+
     }
 
     public void mutate(String inputFile, String nextInputFile) throws IOException

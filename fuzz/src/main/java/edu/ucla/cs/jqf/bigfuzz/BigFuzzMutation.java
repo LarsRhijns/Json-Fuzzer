@@ -1,9 +1,12 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
 public interface BigFuzzMutation {
+
 
     /**
      * mutate on an csv file
@@ -41,7 +44,7 @@ public interface BigFuzzMutation {
 
     public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows);
 
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows);
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows);
 
     public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows);
 
@@ -52,4 +55,6 @@ public interface BigFuzzMutation {
      */
     public void writeFile(String outputFile) throws IOException;
     public void deleteFile(String currentFile) throws IOException;
+
+    void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod);
 }

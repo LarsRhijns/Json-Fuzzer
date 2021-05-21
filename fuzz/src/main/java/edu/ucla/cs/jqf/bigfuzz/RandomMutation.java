@@ -6,10 +6,11 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation: randomByteMutation.
  */
 
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -158,7 +159,7 @@ public class RandomMutation implements BigFuzzMutation{
     }
 
     @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 
@@ -190,6 +191,11 @@ public class RandomMutation implements BigFuzzMutation{
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+
     }
 
 }
