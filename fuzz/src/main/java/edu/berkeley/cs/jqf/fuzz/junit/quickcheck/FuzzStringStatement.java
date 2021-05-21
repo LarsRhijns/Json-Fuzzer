@@ -58,8 +58,8 @@ import org.junit.runners.model.TestClass;
 import ru.vyarus.java.generics.resolver.GenericsResolver;
 
 import static edu.berkeley.cs.jqf.fuzz.guidance.Result.*;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHOD_NAMES;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_ERRORS;
+import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_ERRORS;
 
 
 /**

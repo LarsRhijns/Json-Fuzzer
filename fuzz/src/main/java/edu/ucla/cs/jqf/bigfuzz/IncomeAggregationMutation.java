@@ -6,6 +6,7 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation for I5: unsupported DF operator
  */
 
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -154,7 +155,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
     }
 
     @Override
-    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
 
     }
 

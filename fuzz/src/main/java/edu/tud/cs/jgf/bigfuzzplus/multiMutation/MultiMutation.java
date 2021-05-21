@@ -1,7 +1,12 @@
-package edu.ucla.cs.jqf.bigfuzz;
+/*
+ * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
+ */
+
+package edu.tud.cs.jgf.bigfuzzplus.multiMutation;
 
 //import org.apache.commons.lang.ArrayUtils;
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -10,10 +15,10 @@ import java.nio.file.Paths;
 import java.util.*;
 
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONS;
-import static edu.ucla.cs.jqf.bigfuzz.HighOrderMutation.*;
+import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
+import static edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation.*;
 
-public class MutationTemplate implements BigFuzzMutation {
+public class MultiMutation implements BigFuzzMutation {
     private final Random r = new Random();
     private long randomizationSeed;
     ArrayList<String> fileRows = new ArrayList<>();
@@ -29,7 +34,7 @@ public class MutationTemplate implements BigFuzzMutation {
     // TODO: extend this section such that runs can be hardcoded.
     int[] fixedMutationList = {0,1,2,3};
     int fixedMutationPointer = 0;
-
+//        boolean useFixedMutationResult = true;
 //    String[] fixedMutationResultList = {"90024,20,10900", "90024,,10900", "20,10900,null", "90024,10900,null", "20,10900,null", "900Ë24,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,7409,10900", "90024,1822942453,10900", "9002ë4,20,10900", ",20,10900", "8615,90024,20,10900", "-1062395398,20,10900", "90024,5638,20,10900", "90024,20,5589,10900", "90024,20,-1846169804", "-1752145988,20,10900", "90024,10900,null", "90024,,10900", "90024,20,10900", "90024,20,7427,10900", "90024,20,10900", "90024,2¥0,10900", "90024,20,10900", "90024,20.865862,10900", "1916238466,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,null", "90024,20,10900.3125", "90024,20,10900.722", "90024,20,10900", "20,10900,null", ",20,10900", "90024,20,-2112085416", ",20,10900", "90024,20,", "90024,,10900", "900/24,20,10900", "90024,20,-1069745514", "90024,10900,null", ",20,10900", "-1688978241,20,10900", "90024,20,null", "90024,94490979,10900", "20,10900,null", "90024,20,", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,10900", "20,10900,null", "90024,20,534,10900", "90024,20,1426980250", "90024,1450486204,10900", "90024,20,807747523", "90024,,10900", "90024,20,10900", "90024,20,10900", "90024.4,20,10900", "90024,2m0,10900", "243604623,20,10900", "90024,20,10900", "90024,,10900", "90024.63,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "90024,20.876112,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20.784615,10900", "90024,20,10900", "90024.37,20,10900", "9101,90024,20,10900", "90024.8,20,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,1090B0", "1358,90024,20,10900", "90024,,10900", "20,10900,null", ",20,10900", ",20,10900", "90024,10900,null", "90024,20,-1418695809", "90024,20.111279,10900", "90024,20,", "90024,20,", "90024,20,null", "90024,20,10900", "90024,10900,null", "90024,20,"};
 //    int fixedMutationResultPointer = 0;
     // ********************************************
@@ -40,7 +45,7 @@ public class MutationTemplate implements BigFuzzMutation {
     @SuppressWarnings({"unchecked", "rawtypes"})
     ArrayList<Integer> mutationColumnTracker = new ArrayList();
 
-    public MultiMutation.MultiMutationMethod multiMutationMethod = MultiMutation.MultiMutationMethod.Disabled;
+    public MultiMutationReference.MultiMutationMethod multiMutationMethod = MultiMutationReference.MultiMutationMethod.Disabled;
 
     /**
      * Read a random line from the input file which contains references to other input file. Use selected file to perform the mutation
@@ -519,7 +524,7 @@ public class MutationTemplate implements BigFuzzMutation {
     }
 
     @Override
-    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
         this.multiMutationMethod = multiMutationMethod;
     }
 
@@ -560,5 +565,15 @@ public class MutationTemplate implements BigFuzzMutation {
 
     public long getRandomizationSeed() {
         return randomizationSeed;
+    }
+
+
+
+    public ArrayList<HighOrderMutationMethod> getMutationMethodTracker() {
+        return mutationMethodTracker;
+    }
+
+    public ArrayList<Integer> getMutationColumnTracker() {
+        return mutationColumnTracker;
     }
 }

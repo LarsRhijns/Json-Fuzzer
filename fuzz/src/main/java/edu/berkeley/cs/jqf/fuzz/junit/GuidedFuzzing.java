@@ -32,14 +32,14 @@ import edu.berkeley.cs.jqf.fuzz.JQF;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.instrument.tracing.SingleSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.TraceLogger;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzGuidance;
+import edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusGuidance;
 import org.junit.internal.TextListener;
 import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.*;
 
 import java.io.PrintStream;
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
 
 public class GuidedFuzzing {
 
@@ -181,8 +181,8 @@ public class GuidedFuzzing {
         // If the guidance method is of type BigFuzzGuidance, the test entryMethod can be specified more specifically using the testName.
         // This allows for multiple times running the program
         String holder = "";
-        if(guidance instanceof BigFuzzGuidance) {
-            holder = "#" +((BigFuzzGuidance) guidance).testName;
+        if(guidance instanceof BigFuzzPlusGuidance) {
+            holder = "#" +((BigFuzzPlusGuidance) guidance).testName;
         }
 
         // Start tracing for the test method

@@ -1,14 +1,18 @@
-package edu.ucla.cs.jqf.bigfuzz;
+/*
+ * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
+ */
+
+package edu.tud.cs.jgf.bigfuzzplus.multiMutation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-import static edu.ucla.cs.jqf.bigfuzz.HighOrderMutation.HighOrderMutationMethod.*;
+import static edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation.HighOrderMutationMethod.*;
+
 
 public class HighOrderMutation {
     // For each HighOrderMutationMethod enum, a set of other enums is provided to indicate which mutations can NOT be applied after the mutation of the list is applied.
-    private static final HighOrderMutation.HighOrderMutationMethod[] noMutationStackExcludeRule = {}; // TODO Is this needed?
     private static final HighOrderMutation.HighOrderMutationMethod[] changeValueStackExcludeRule = {RemoveElement, EmptyColumn, ChangeValue};
     private static final HighOrderMutation.HighOrderMutationMethod[] changeTypeStackExcludeRule = {RemoveElement, EmptyColumn, ChangeType};
     private static final HighOrderMutation.HighOrderMutationMethod[] removeElementStackExcludeRule = {ChangeValue, ChangeType, AddElement};

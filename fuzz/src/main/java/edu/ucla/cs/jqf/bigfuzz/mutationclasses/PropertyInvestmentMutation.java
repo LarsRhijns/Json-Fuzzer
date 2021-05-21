@@ -7,13 +7,12 @@ package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
  */
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.ucla.cs.jqf.bigfuzz.MultiMutation;
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.*;
 
 public class PropertyInvestmentMutation implements BigFuzzMutation {
@@ -259,7 +258,7 @@ public class PropertyInvestmentMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
 
     }
 

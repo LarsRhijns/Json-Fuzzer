@@ -1,10 +1,13 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.tud.cs.jgf.bigfuzzplus;
 
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -15,14 +18,14 @@ import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.*;
+import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.*;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
  * Mutations: 1. randomly mutation
  * code coverage guidance: control flow coverage, dataflow operators's coverage
  */
-public class BigFuzzGuidance implements Guidance {
+public class BigFuzzPlusGuidance implements Guidance {
 
     /** The name of the test for display purposes. */
     public final String testName;
@@ -101,13 +104,13 @@ public class BigFuzzGuidance implements Guidance {
     static final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
 
     protected final String initialInputFile;
-    BigFuzzMutation mutation = new MutationTemplate();
+    BigFuzzMutation mutation = new MultiMutation();
     private String currentInputFile;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
 
         this.testName = testName;
         this.startTime = startTime;
@@ -514,7 +517,7 @@ public class BigFuzzGuidance implements Guidance {
      * Field setter for the mutation class.
      * @param multiMutationMethod multi mutation method the guidance should follow.
      */
-    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
         mutation.setMultiMutationMethod(multiMutationMethod);
     }
 
@@ -524,8 +527,8 @@ public class BigFuzzGuidance implements Guidance {
      */
 
     public void setMutationStackCount(int intMutationStackCount) {
-        if(mutation instanceof MutationTemplate) {
-            ((MutationTemplate)mutation).setMutationStackCount(intMutationStackCount);
+        if(mutation instanceof MultiMutation) {
+            ((MultiMutation)mutation).setMutationStackCount(intMutationStackCount);
         }
     }
 
@@ -542,8 +545,8 @@ public class BigFuzzGuidance implements Guidance {
      * @param seed seed that needs to be assigned to the Random object
      */
     public void setRandomizationSeed(long seed) {
-        if(mutation instanceof MutationTemplate) {
-            ((MutationTemplate)mutation).setSeed(seed);
+        if(mutation instanceof MultiMutation) {
+            ((MultiMutation)mutation).setSeed(seed);
         }
     }
 }

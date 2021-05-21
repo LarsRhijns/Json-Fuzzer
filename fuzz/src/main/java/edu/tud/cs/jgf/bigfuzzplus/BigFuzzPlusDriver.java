@@ -1,27 +1,33 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.tud.cs.jgf.bigfuzzplus;
 
 //import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation;
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
 
 import java.io.File;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-public class BigFuzzDriver {
+public class BigFuzzPlusDriver {
     // These booleans are for debugging purposes only, toggle them if you want to see the information
     public static boolean PRINT_METHOD_NAMES = false;
     public static boolean PRINT_MUTATION_DETAILS = false;
     public static boolean PRINT_ERRORS = false;
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
+    public static StringBuilder log = new StringBuilder();
+    public static StringBuilder iteration_results = new StringBuilder();
+    public static StringBuilder summarize_results = new StringBuilder();
 
     public static void main(String[] args) {
 
         // LOAD PROGRAM ARGUMENTS
         if (args.length < 2) {
-            System.err.println("Usage: java " + BigFuzzDriver.class + " TEST_CLASS TEST_METHOD [MAX_TRIALS]");
+            System.err.println("Usage: java " + BigFuzzPlusDriver.class + " TEST_CLASS TEST_METHOD [MAX_TRIALS]");
             System.exit(1);
         }
 
@@ -32,18 +38,28 @@ public class BigFuzzDriver {
         System.out.println("maxTrials: " + maxTrials);
 
         int intMultiMutationMethod = args.length > 3 ? Integer.parseInt(args[3]) : 0;
-        MultiMutation.MultiMutationMethod multiMutationMethod = MultiMutation.intToMultiMutationMethod(intMultiMutationMethod);
+        MultiMutationReference.MultiMutationMethod multiMutationMethod = MultiMutationReference.intToMultiMutationMethod(intMultiMutationMethod);
         System.out.println("mutationMethod: " + multiMutationMethod);
 
         // This variable is used for the multiMutationMethod: Smart_mutate
         // If the selected multiMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
-        int intMutationStackCount = args.length > 4 ? Integer.parseInt(args[4]) : multiMutationMethod == MultiMutation.MultiMutationMethod.Smart_mutate ? 2 : 0;
+        int intMutationStackCount = args.length > 4 ? Integer.parseInt(args[4]) : multiMutationMethod == MultiMutationReference.MultiMutationMethod.Smart_mutate ? 2 : 0;
         System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
         // **************
 
         long programStartTime = System.currentTimeMillis();
-
         File outputDir = new File("output/" + programStartTime);
+
+
+        log.append("Program started with the following parameters: ");
+        log.append("\tTest class: " + testClassName);
+        log.append("\tTest method: " + testMethodName);
+        log.append("\tTest multiMutation method: " + multiMutationMethod);
+        log.append("\tTest maximal stacked mutations: " + intMutationStackCount);
+
+        log.append("\nOutput directory is set to: " + outputDir);
+        log.append("Program is started at: " + programStartTime);
+
         boolean newOutputDirCreated = outputDir.mkdir();
         if (!newOutputDirCreated) {
             System.out.println("Something went wrong with making the output directory for this run");
@@ -65,7 +81,7 @@ public class BigFuzzDriver {
 
                 Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
                 //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-                BigFuzzGuidance guidance = new BigFuzzGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, "output/" + programStartTime + "/Test" + atIteration);
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, "output/" + programStartTime + "/Test" + atIteration);
 
                 // Set the provided input argument multiMutationMethod in the guidance mutation
                 guidance.setMultiMutationMethod(multiMutationMethod);
@@ -82,7 +98,7 @@ public class BigFuzzDriver {
                 long endTime = System.currentTimeMillis();
 
                 // Evaluate the results
-                evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance);
+                evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
                 writeToLists(guidance, maxTrials, inputs, uniqueFailureResults, methods, columns);
                 durations.add(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");
@@ -138,7 +154,7 @@ public class BigFuzzDriver {
         }
     }
 
-    private static void writeToLists(BigFuzzGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns) {
+    private static void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns) {
         int cumulative = 0;
         ArrayList<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
         for (long j = 0; j < maxTrials; j++) {
@@ -146,8 +162,8 @@ public class BigFuzzDriver {
                 cumulative++;
             runFoundUniqueFailureCumulative.add(cumulative);
         }
-        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((MutationTemplate) guidance.mutation).mutationMethodTracker;
-        ArrayList<Integer> columnTracker = ((MutationTemplate) guidance.mutation).mutationColumnTracker;
+        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((MultiMutation) guidance.mutation).getMutationMethodTracker();
+        ArrayList<Integer> columnTracker = ((MultiMutation) guidance.mutation).getMutationColumnTracker();
         HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
         HashMap<Integer, Integer> columnMap = new HashMap();
         for (int i = 0; i < methodTracker.size(); i++) {
@@ -187,8 +203,7 @@ public class BigFuzzDriver {
 
     /**
      * Prints the configuration and the results from the run to the Terminal.
-     *
-     * @param testClassName  Class name which is being tested
+     *  @param testClassName  Class name which is being tested
      * @param testMethodName Test method name which is used to perform the test
      * @param file           Input file for the testing
      * @param maxTrials      maximal amount of trials configuration
@@ -196,31 +211,34 @@ public class BigFuzzDriver {
      * @param startTime      start time of the program
      * @param endTime        end time of the program
      * @param guidance       guidance class which is used to perform the BigFuzz testing
+     * @param atIteration
      */
-    private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzGuidance guidance) {
+    private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzPlusGuidance guidance, int atIteration) {
+        StringBuilder e_log = new StringBuilder();
         // Print configuration
-        System.out.println("---CONFIGURATION---");
-        System.out.println("Files used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
-        System.out.println("Max trials: " + maxTrials);
-        System.out.println("Max duration: " + duration.toMillis() + "ms");
+        e_log.append("*** TEST "+atIteration+" LOG ***");
+        e_log.append("\n---CONFIGURATION---");
+        e_log.append("\nFiles used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
+        e_log.append("Max trials: " + maxTrials);
+        e_log.append("Max duration: " + duration.toMillis() + "ms");
 
-        System.out.println("\n---REPRODUCIBILITY---");
-        if (guidance.mutation instanceof MutationTemplate) {
-            System.out.println("Randomization seed: " + ((MutationTemplate) guidance.mutation).getRandomizationSeed());
+        e_log.append("\n---REPRODUCIBILITY---");
+        if (guidance.mutation instanceof MultiMutation) {
+            e_log.append("\n\tRandomization seed: " + ((MultiMutation) guidance.mutation).getRandomizationSeed());
         }
-        System.out.println("Mutated inputs: " + guidance.inputs);
+        e_log.append("\n\tMutated inputs: " + guidance.inputs);
 
         // Print results
-        System.out.println("\n---RESULTS---");
-        if (Boolean.getBoolean("jqf.logCoverage")) {
-            System.out.printf("Covered %d edges.%n",
-                    guidance.getCoverage().getNonZeroCount());
-        }
+        e_log.append("\n---RESULTS---");
+//        if (Boolean.getBoolean("jqf.logCoverage")) {
+//            System.out.printf("Covered %d edges.%n",
+//                    guidance.getCoverage().getNonZeroCount());
+//        }
 
         // Failures
-        System.out.println("Total Failures: " + guidance.totalFailures);
-        System.out.println("Unique Failures: " + guidance.uniqueFailures.size());
-        System.out.println("Unique Failures found at: " + guidance.uniqueFailureRuns);
+        e_log.append("\n\tTotal Failures: " + guidance.totalFailures);
+        e_log.append("\n\tUnique Failures: " + guidance.uniqueFailures.size());
+        e_log.append("\n\tUnique Failures found at: " + guidance.uniqueFailureRuns);
         List<Boolean> runFoundUniqueFailure = new ArrayList<>();
         int cumulative = 0;
         List<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
@@ -230,24 +248,25 @@ public class BigFuzzDriver {
                 cumulative++;
             runFoundUniqueFailureCumulative.add(cumulative);
         }
-        System.out.println("Unique Failure found per run: " + runFoundUniqueFailure);
-        System.out.println("Unique Failure found per run: " + runFoundUniqueFailureCumulative);
+        e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailure);
+        e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailureCumulative);
 
         // Run time
         long totalDuration = endTime - startTime;
         if (guidance.numTrials != maxTrials) {
-            System.out.println("Could not complete all trials in the given duration.");
+            e_log.append("Could not complete all trials in the given duration.");
         }
-        System.out.println("Total run time：" + totalDuration + "ms");
-        System.out.println("Tests run: " + guidance.numTrials);
-        System.out.println("Average test run time: " + (float) totalDuration / guidance.numTrials + "ms");
+        e_log.append("\n\tTotal run time：" + totalDuration + "ms");
+        e_log.append("\n\tTests run: " + guidance.numTrials);
+        e_log.append("\n\tAverage test run time: " + (float) totalDuration / guidance.numTrials + "ms");
 
         // Coverage
         int totalCov = guidance.totalCoverage.getNonZeroCount();
         int validCov = guidance.validCoverage.getNonZeroCount();
-        System.out.println("Total coverage: " + totalCov);
-        System.out.println("Valid coverage: " + validCov);
-        System.out.println("Percent valid coverage: " + (float) validCov / totalCov * 100 + "%");
-
+        e_log.append("\n\tTotal coverage: " + totalCov);
+        e_log.append("\n\tValid coverage: " + validCov);
+        e_log.append("\n\tPercent valid coverage: " + (float) validCov / totalCov * 100 + "%");
+        System.out.println(e_log);
+        iteration_results.append(e_log);
     }
 }

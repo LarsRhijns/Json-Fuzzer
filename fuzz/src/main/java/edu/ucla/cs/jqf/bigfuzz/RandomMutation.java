@@ -6,10 +6,11 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation: randomByteMutation.
  */
 
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -193,7 +194,7 @@ public class RandomMutation implements BigFuzzMutation{
     }
 
     @Override
-    public void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod) {
+    public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
 
     }
 

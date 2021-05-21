@@ -1,5 +1,7 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
+import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -54,5 +56,5 @@ public interface BigFuzzMutation {
     public void writeFile(String outputFile) throws IOException;
     public void deleteFile(String currentFile) throws IOException;
 
-    void setMultiMutationMethod(MultiMutation.MultiMutationMethod multiMutationMethod);
+    void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod);
 }
