@@ -11,7 +11,7 @@ public class WordCountDriver {
 
 @Fuzz
     public void testWordCount(String fileName) throws Exception {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCount.WordCountDriver::testWordCount: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCount.WordCountDriver::testWordCount: "+fileName);
         WordCount analysis = new WordCount();
         analysis.WordCount(fileName);
     }

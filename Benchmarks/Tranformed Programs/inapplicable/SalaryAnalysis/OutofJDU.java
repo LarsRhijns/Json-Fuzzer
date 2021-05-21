@@ -17,7 +17,7 @@ ArrayList<map2> results3 = OutofJDUCustomArray.Map2(results2);
 int pair=results3.size();
 if(pair > 7)
     {
-        System.out.println(pair);
+//        System.out.println(pair);
         assert(pair != 8);
     }
 }}

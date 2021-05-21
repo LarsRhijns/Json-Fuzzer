@@ -12,7 +12,7 @@ public class CommuteTypeDriver {
 
 @Fuzz
     public void testCommuteType(String fileName1,String fileName2) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.CommuteType.CommuteTypeDriver::testCommuteType: "+fileName1+";"+fileName2);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.CommuteType.CommuteTypeDriver::testCommuteType: "+fileName1+";"+fileName2);
         CommuteType analysis = new CommuteType();
         analysis.CommuteType(fileName1,fileName2);
     }

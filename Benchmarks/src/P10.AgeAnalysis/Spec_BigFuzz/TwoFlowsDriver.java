@@ -11,7 +11,7 @@ public class TwoFlowsDriver {
 
 @Fuzz
     public void testTwoFlows(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.TwoFlows.TwoFlowsDriver::testTwoFlows: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.TwoFlows.TwoFlowsDriver::testTwoFlows: "+fileName);
         TwoFlows analysis = new TwoFlows();
         analysis.TwoFlows(fileName);
     }

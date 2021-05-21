@@ -1,6 +1,4 @@
-/*
- * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
- */
+
 
 package P4.FindSalary.Spec_BigFuzz;
 

@@ -75,7 +75,7 @@ public final class Test2$
         }, ClassTag$.MODULE$.apply(scala/Tuple2)).collect()).length;
         if(pair > 7)
         {
-            System.out.println(pair);
+//            System.out.println(pair);
             Predef$.MODULE$.assert(pair != 8);
         }
     }

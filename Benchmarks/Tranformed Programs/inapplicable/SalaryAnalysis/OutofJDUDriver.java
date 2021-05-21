@@ -12,7 +12,7 @@ public class OutofJDUDriver {
 
 @Fuzz
     public void testOutofJDU(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.OutofJDU.OutofJDUDriver::testOutofJDU: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.OutofJDU.OutofJDUDriver::testOutofJDU: "+fileName);
         OutofJDU analysis = new OutofJDU();
         analysis.OutofJDU(fileName);
     }

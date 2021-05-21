@@ -12,7 +12,7 @@ public class DFOperatorDriver {
 
 @Fuzz
     public void testDFOperator(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.DFOperator.DFOperatorDriver::testDFOperator: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.DFOperator.DFOperatorDriver::testDFOperator: "+fileName);
         DFOperator analysis = new DFOperator();
         analysis.DFOperator(fileName);
     }

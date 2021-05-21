@@ -12,7 +12,7 @@ public class OneDFOperatorDriver {
 
 @Fuzz
     public void testOneDFOperator(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.OneDFOperator.OneDFOperatorDriver::testOneDFOperator: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.OneDFOperator.OneDFOperatorDriver::testOneDFOperator: "+fileName);
         OneDFOperator analysis = new OneDFOperator();
         analysis.OneDFOperator(fileName);
     }

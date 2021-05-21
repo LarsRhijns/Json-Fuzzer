@@ -11,7 +11,7 @@ public class ExternalUDFDriver {
 
 @Fuzz
     public void testExternalUDF(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.ExternalUDF.ExternalUDFDriver::testExternalUDF: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.ExternalUDF.ExternalUDFDriver::testExternalUDF: "+fileName);
         ExternalUDF analysis = new ExternalUDF();
         analysis.ExternalUDF(fileName);
     }

@@ -11,7 +11,7 @@ public class InfiniteloopDriver {
 
 @Fuzz
     public void testInfiniteloop(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.SymbolicStateOutofBounds.InfiniteloopDriver::testInfiniteloop: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.SymbolicStateOutofBounds.InfiniteloopDriver::testInfiniteloop: "+fileName);
         Infiniteloop analysis = new Infiniteloop();
         analysis.Infiniteloop(fileName);
     }

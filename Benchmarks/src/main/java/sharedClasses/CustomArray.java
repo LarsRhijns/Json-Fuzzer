@@ -1,10 +1,6 @@
-/*
- * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
- */
 
-package main.java.sharedClasses;/*
- * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
- */
+
+package main.java.sharedClasses;
 
 import edu.berkeley.cs.jqf.instrument.tracing.TraceLogger;
 import edu.ucla.cs.bigfuzz.dataflow.*;
@@ -287,7 +283,7 @@ public class CustomArray {
 
     public static ArrayList<Integer> filter(ArrayList<Integer> input, Integer maximum)
     {
-        System.out.println("Generating Data Flow Event: Filter");
+//        System.out.println("Generating Data Flow Event: Filter");
 
         ArrayList<Integer> ret = new ArrayList<Integer>();
 
@@ -299,7 +295,7 @@ public class CustomArray {
                 ret.add(num);
             }
         }
-        System.out.println(ret.size());
+//        System.out.println(ret.size());
         if( !ret.isEmpty()) arm = 1;
 
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
@@ -384,7 +380,7 @@ public class CustomArray {
         return words;
     }
     public static ArrayList<String> flatMap() {
-        System.out.println("Generating Data Flow Event: FlatMap");
+//        System.out.println("Generating Data Flow Event: FlatMap");
 
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
 
@@ -398,7 +394,7 @@ public class CustomArray {
         return words;
     }
     public static ArrayList<Map<String, Integer>> mapToPair(List<String> words) {
-        System.out.println("Generating Data Flow Event: mapToPair");
+//        System.out.println("Generating Data Flow Event: mapToPair");
 
 //        System.out.println(Thread.currentThread().getStackTrace().length);
 //
@@ -440,7 +436,7 @@ public class CustomArray {
         return wordsCountMapList;
     }
     public static Map<String, Integer> reduceByKey(ArrayList<Map<String, Integer>> wordsCountMapList) {
-        System.out.println("Generating Data Flow Event: ReduceByKey");
+//        System.out.println("Generating Data Flow Event: ReduceByKey");
 
 //        for (int i = 0; i < Thread.currentThread().getStackTrace().length; i++)
 //        {
