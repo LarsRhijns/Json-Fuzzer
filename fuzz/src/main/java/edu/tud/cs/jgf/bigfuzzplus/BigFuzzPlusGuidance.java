@@ -8,6 +8,8 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.ucla.cs.jqf.bigfuzz.IncomeAggregationMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.*;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -27,27 +29,39 @@ import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.*;
  */
 public class BigFuzzPlusGuidance implements Guidance {
 
-    /** The name of the test for display purposes. */
+    /**
+     * The name of the test for display purposes.
+     */
     public final String testName;
     private final String outputDirName;
 
-    /** testClassName for error tracking purposes*/
+    /**
+     * testClassName for error tracking purposes
+     */
     private String testClassName;
 
     private boolean keepGoing = true;
     private static boolean KEEP_GOING_ON_ERROR = true;
     private Coverage coverage;
 
-    /** Time at which the driver started running. */
+    /**
+     * Time at which the driver started running.
+     */
     private final long startTime;
 
-    /** The max amount of time to run for, in milli-seconds */
+    /**
+     * The max amount of time to run for, in milli-seconds
+     */
     protected final long maxDurationMillis;
 
-    /** The number of trials completed. */
+    /**
+     * The number of trials completed.
+     */
     protected long numTrials = 0;
 
-    /** The number of valid inputs. */
+    /**
+     * The number of valid inputs.
+     */
     protected long numValid = 0;
 
     protected final long maxTrials;
@@ -55,62 +69,88 @@ public class BigFuzzPlusGuidance implements Guidance {
     private long numDiscards = 0;
     private final float maxDiscardRatio = 0.9f;
 
-    /** Validity fuzzing -- if true then save valid inputs that increase valid coverage */
+    /**
+     * Validity fuzzing -- if true then save valid inputs that increase valid coverage
+     */
     protected boolean validityFuzzing;
 
-    /** Coverage statistics for a single run. */
+    /**
+     * Coverage statistics for a single run.
+     */
     protected Coverage runCoverage = new Coverage();
 
-    /** Cumulative coverage statistics. */
+    /**
+     * Cumulative coverage statistics.
+     */
     protected Coverage totalCoverage = new Coverage();
 
-    /** Cumulative coverage for valid inputs. */
+    /**
+     * Cumulative coverage for valid inputs.
+     */
     protected Coverage validCoverage = new Coverage();
 
-    /** The maximum number of keys covered by any single input found so far. */
+    /**
+     * The maximum number of keys covered by any single input found so far.
+     */
     protected int maxCoverage = 0;
 
-    /** The list of total failures found so far. */
+    /**
+     * The list of total failures found so far.
+     */
     protected int totalFailures = 0;
 
-    /** The set of unique failures found so far. */
+    /**
+     * The set of unique failures found so far.
+     */
     protected Set<List<StackTraceElement>> uniqueFailures = new HashSet<>();
 
-    /** List of runs which have at which new unique failures have been detected. */
+    /**
+     * List of runs which have at which new unique failures have been detected.
+     */
     protected List<Long> uniqueFailureRuns = new ArrayList<>();
     protected ArrayList<String> inputs = new ArrayList();
 
     // ---------- LOGGING / STATS OUTPUT ------------
 
-    /** Whether to print log statements to stderr (debug option; manually edit). */
+    /**
+     * Whether to print log statements to stderr (debug option; manually edit).
+     */
     protected final boolean verbose = true;
 
 
-    /** The file where log data is written. */
+    /**
+     * The file where log data is written.
+     */
     protected File logFile;
 
     // ------------- TIMEOUT HANDLING ------------
 
-    /** Date when last run was started. */
+    /**
+     * Date when last run was started.
+     */
     protected Date runStart;
 
 
     // ------------- FUZZING HEURISTICS ------------
 
-    /** Whether to save inputs that only add new coverage bits (but no new responsibilities). */
+    /**
+     * Whether to save inputs that only add new coverage bits (but no new responsibilities).
+     */
     static final boolean SAVE_NEW_COUNTS = true;
 
-    /** Whether to steal responsibility from old inputs (this increases computation cost). */
+    /**
+     * Whether to steal responsibility from old inputs (this increases computation cost).
+     */
     static final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
 
     protected final String initialInputFile;
-    BigFuzzMutation mutation = new MultiMutation();
+    BigFuzzMutation mutation;
     private String currentInputFile;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
 
 
-    public BigFuzzPlusGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName, String mutationMethodClassName) throws IOException {
 
         this.testName = testName;
         this.startTime = startTime;
@@ -131,6 +171,53 @@ public class BigFuzzPlusGuidance implements Guidance {
         this.currentInputFile = initialInputFile;
         this.maxTrials = maxTrials;
         this.out = out;
+
+        setMutation(mutationMethodClassName);
+    }
+
+    private void setMutation(String mutationMethodClassName) {
+        switch (mutationMethodClassName) {
+            case "MultiMutation":
+                mutation = new MultiMutation();
+                break;
+            case "IncomeAggregationMutation":
+                mutation = new IncomeAggregationMutation();
+                break;
+            case "AgeAnalysisMutation":
+                mutation = new AgeAnalysisMutation();
+                break;
+            case "CommuteTypeMutation":
+                mutation = new CommuteTypeMutation();
+                break;
+            case "ExternalUDFMutation":
+                mutation = new ExternalUDFMutation();
+                break;
+            case "FindSalaryMutation":
+                mutation = new FindSalaryMutation();
+                break;
+            case "MovieRatingMutation":
+                mutation = new MovieRatingMutation();
+                break;
+            case "NumberSeriesMutation":
+                mutation = new NumberSeriesMutation();
+                break;
+            case "OneDFMutation":
+                mutation = new OneDFMutation();
+                break;
+            case "PropertyInvestmentMutation":
+                mutation = new PropertyInvestmentMutation();
+                break;
+            case "StudentGradeMutation":
+                mutation = new StudentGradeMutation();
+                break;
+            case "WordCountMutation":
+                mutation = new WordCountMutation();
+                break;
+            default:
+                System.err.println("could not match the provided mutation class to an existing class. Provided mutation class: " + mutationMethodClassName);
+                System.exit(0);
+                break;
+        }
     }
 
     private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
@@ -147,47 +234,39 @@ public class BigFuzzPlusGuidance implements Guidance {
     }
 
     @Override
-    public InputStream getInput()
-    {
+    public InputStream getInput() {
         // Clear coverage stats for this run
-        runCoverage= new Coverage();
+        runCoverage = new Coverage();
 
         ///copy the configuration/input file
-        if(testInputFiles.isEmpty())
-        {
+        if (testInputFiles.isEmpty()) {
             // if test input files has not been filled yet, copy the current input file
-            String fileName = currentInputFile.substring(currentInputFile.lastIndexOf('/')+1);
+            String fileName = currentInputFile.substring(currentInputFile.lastIndexOf('/') + 1);
             File src = new File(currentInputFile);
             File dst = new File(fileName);
-            try
-            {
+            try {
                 copyFileUsingFileChannels(src, dst);
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 System.out.println(e);
             }
             currentInputFile = fileName;
-        }
-        else
-        {
-            try
-            {
+        } else {
+            try {
                 // Use the current date and number of trials to create a new file name. This file is used mutate
-                String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date());
+                String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_" + this.numTrials + "'").format(new Date());
                 nextInputFile = this.outputDirName + "/" + nextInputFile;
                 mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
                 currentInputFile = nextInputFile;
 
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 System.out.println(e);
             }
         }
         testInputFiles.add(currentInputFile);
 
-        if (PRINT_METHOD_NAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
+        if (PRINT_METHOD_NAMES) {
+            System.out.println("BigFuzzGuidance::getInput: " + numTrials + ": " + currentInputFile);
+        }
         InputStream targetStream = new ByteArrayInputStream(currentInputFile.getBytes());//currentInputFile.getBytes()
         saveInput(targetStream);
         return targetStream;
@@ -196,20 +275,16 @@ public class BigFuzzPlusGuidance implements Guidance {
     private void saveInput(InputStream targetStream) {
         String inputFileName = loadInput(currentInputFile);
         StringBuilder contentBuilder = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(inputFileName)))
-        {
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFileName))) {
 
             String sCurrentLine;
-            while ((sCurrentLine = br.readLine()) != null)
-            {
+            while ((sCurrentLine = br.readLine()) != null) {
                 contentBuilder.append(sCurrentLine);
             }
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        inputs.add( contentBuilder.toString());
+        inputs.add(contentBuilder.toString());
     }
 
     private String loadInput(String inputFileName) {
@@ -219,8 +294,7 @@ public class BigFuzzPlusGuidance implements Guidance {
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
-        }catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return stringBuilder.toString();
@@ -233,14 +307,15 @@ public class BigFuzzPlusGuidance implements Guidance {
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
-        }catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-       return stringBuilder.toString();
+        return stringBuilder.toString();
     }
 
-    /** Writes a line of text to a given log file. */
+    /**
+     * Writes a line of text to a given log file.
+     */
     protected void appendLineToFile(File file, String line) throws GuidanceException {
 
         try (PrintWriter out = new PrintWriter(new FileWriter(file, true))) {
@@ -254,7 +329,9 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     }
 
-    /** Writes a line of text to the log file. */
+    /**
+     * Writes a line of text to the log file.
+     */
     protected void infoLog(String str, Object... args) {
         if (verbose && PRINT_MUTATION_DETAILS) {
             String line = String.format(str, args);
@@ -275,12 +352,16 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-        System.out.print("\r Trial " + numTrials + " / " + maxTrials );
+        System.out.print("\r Trial " + numTrials + " / " + maxTrials);
         // Stop timeout handling
         this.runStart = null;
 
-        if (PRINT_METHOD_NAMES) { System.out.println("BigFuzz::handleResult"); }
-        if(PRINT_TEST_RESULTS) {System.out.println(result);}
+        if (PRINT_METHOD_NAMES) {
+            System.out.println("BigFuzz::handleResult");
+        }
+        if (PRINT_TEST_RESULTS) {
+            System.out.println(result);
+        }
 
         this.numTrials++;
 
@@ -303,7 +384,7 @@ public class BigFuzzPlusGuidance implements Guidance {
             this.keepGoing = false;
         }
 
-        if (numTrials > 10 && ((float) numDiscards)/((float) (numTrials)) > maxDiscardRatio) {
+        if (numTrials > 10 && ((float) numDiscards) / ((float) (numTrials)) > maxDiscardRatio) {
             throw new GuidanceException("Assumption is too strong; too many inputs discarded");
         }
 
@@ -340,7 +421,7 @@ public class BigFuzzPlusGuidance implements Guidance {
             // Save if new total coverage found
             if (nonZeroAfter > nonZeroBefore) {
                 // Must be responsible for some branch
-                assert(responsibilities.size() > 0);
+                assert (responsibilities.size() > 0);
                 toSave = true;
                 why = why + "+cov";
             }
@@ -348,7 +429,7 @@ public class BigFuzzPlusGuidance implements Guidance {
             // Save if new valid coverage is found
             if (this.validityFuzzing && validNonZeroAfter > validNonZeroBefore) {
                 // Must be responsible for some branch
-                assert(responsibilities.size() > 0);
+                assert (responsibilities.size() > 0);
                 toSave = true;
                 why = why + "+valid";
             }
@@ -368,8 +449,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 currentInputFile += why;
                 File des = new File(currentInputFile);
                 src.renameTo(des);
-            }
-            else {
+            } else {
                 try {
                     mutation.deleteFile(currentInputFile);
                 } catch (IOException e) {
@@ -379,7 +459,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 File src2 = new File(currentInputFile);
                 src2.delete();
             }
-        }else if (result == Result.FAILURE || result == Result.TIMEOUT) {
+        } else if (result == Result.FAILURE || result == Result.TIMEOUT) {
 //            if (out != null) {
 //                error.printStackTrace(out);
 //            }
@@ -400,14 +480,14 @@ public class BigFuzzPlusGuidance implements Guidance {
             boolean testClassFound = false;
             for (int i = 0; i < rootCause.getStackTrace().length; i++) {
                 // If the test class has been found in the stacktrace, but this element is no longer said test class then the stacktrace will only contain the test framework, not the test program.
-                if(testClassFound && !rootCause.getStackTrace()[i].getClassName().equals(testClassName) ) {
+                if (testClassFound && !rootCause.getStackTrace()[i].getClassName().equals(testClassName)) {
                     break;
                 }
 
                 testProgramTraceElements.add(rootCause.getStackTrace()[i]);
 
                 // Check the currect element of the stacktrace if it originated from the test class.
-                if(rootCause.getStackTrace()[i].getClassName().equals(testClassName)) {
+                if (rootCause.getStackTrace()[i].getClassName().equals(testClassName)) {
                     testClassFound = true;
                 }
             }
@@ -496,7 +576,9 @@ public class BigFuzzPlusGuidance implements Guidance {
 //        };
     }
 
-    /** Handles a trace event generated during test execution */
+    /**
+     * Handles a trace event generated during test execution
+     */
     protected void handleEvent(TraceEvent e) {
         runCoverage.handleEvent(e);
     }
@@ -504,6 +586,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     /**
      * Returns a reference to the coverage statistics.
+     *
      * @return a reference to the coverage statistics
      */
     public Coverage getCoverage() {
@@ -515,6 +598,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     /**
      * Field setter for the mutation class.
+     *
      * @param multiMutationMethod multi mutation method the guidance should follow.
      */
     public void setMultiMutationMethod(MultiMutationReference.MultiMutationMethod multiMutationMethod) {
@@ -523,17 +607,19 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     /**
      * Field setter for the mutation class. Is only applied if the mutation class is MutationTemplate
+     *
      * @param intMutationStackCount The max amount of mutations that should be applied to the input seed.
      */
 
     public void setMutationStackCount(int intMutationStackCount) {
-        if(mutation instanceof MultiMutation) {
-            ((MultiMutation)mutation).setMutationStackCount(intMutationStackCount);
+        if (mutation instanceof MultiMutation) {
+            ((MultiMutation) mutation).setMutationStackCount(intMutationStackCount);
         }
     }
 
     /**
      * Field setter
+     *
      * @param testClassName Driver class name of the class that is tested.
      */
     public void setTestClassName(String testClassName) {
@@ -542,11 +628,12 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     /**
      * Set the randomization seed of the mutation class. Only implemented for MutationTemplate
+     *
      * @param seed seed that needs to be assigned to the Random object
      */
     public void setRandomizationSeed(long seed) {
-        if(mutation instanceof MultiMutation) {
-            ((MultiMutation)mutation).setSeed(seed);
+        if (mutation instanceof MultiMutation) {
+            ((MultiMutation) mutation).setSeed(seed);
         }
     }
 }

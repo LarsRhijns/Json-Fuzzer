@@ -6,6 +6,7 @@ import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
 import java.time.Duration;
@@ -23,28 +24,41 @@ public class BigFuzzPlusDriver {
     public static StringBuilder iteration_results = new StringBuilder();
     public static StringBuilder summarized_results = new StringBuilder();
 
+    /**
+     * Run the BigFuzzPlus program with the following parameters:
+     * [0] - test class
+     * [1] - test method
+     * [2] - mutation method
+     * [3] - max Trials                (default = Long.MAXVALUE)
+     * [4] - multi mutation method     (default = disabled)
+     * [5] - max mutation stack        (default = 2)
+     *
+     * @param args program arguments
+     */
     public static void main(String[] args) {
 
         // LOAD PROGRAM ARGUMENTS
-        if (args.length < 2) {
-            System.err.println("Usage: java " + BigFuzzPlusDriver.class + " TEST_CLASS TEST_METHOD [MAX_TRIALS]");
+        if (args.length < 3) {
+            System.err.println("Usage: java " + BigFuzzPlusDriver.class + " TEST_CLASS TEST_METHOD MUTATION_CLASS [MAX_TRIALS]");
             System.exit(1);
         }
 
         String testClassName = args[0];
         String testMethodName = args[1];
+        String mutationMethodClassName = args[2];
 
-        Long maxTrials = args.length > 2 ? Long.parseLong(args[2]) : Long.MAX_VALUE;
+        Long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
         System.out.println("maxTrials: " + maxTrials);
 
-        int intMultiMutationMethod = args.length > 3 ? Integer.parseInt(args[3]) : 0;
+        int intMultiMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
         MultiMutationReference.MultiMutationMethod multiMutationMethod = MultiMutationReference.intToMultiMutationMethod(intMultiMutationMethod);
         System.out.println("mutationMethod: " + multiMutationMethod);
 
         // This variable is used for the multiMutationMethod: Smart_mutate
         // If the selected multiMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
-        int intMutationStackCount = args.length > 4 ? Integer.parseInt(args[4]) : multiMutationMethod == MultiMutationReference.MultiMutationMethod.Smart_mutate ? 2 : 0;
+        int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : multiMutationMethod == MultiMutationReference.MultiMutationMethod.Smart_mutate ? 2 : 0;
         System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
+
         // **************
 
         long programStartTime = System.currentTimeMillis();
@@ -54,6 +68,7 @@ public class BigFuzzPlusDriver {
         log.append("Program started with the following parameters: ");
         log.append("\n\tTest class: " + testClassName);
         log.append("\n\tTest method: " + testMethodName);
+        log.append("\n\tTest method: " + mutationMethodClassName);
         log.append("\n\tTest multiMutation method: " + multiMutationMethod);
         log.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
 
@@ -82,7 +97,7 @@ public class BigFuzzPlusDriver {
                 Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
                 //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
                 String iterationOutputDir = outputDir + "/Test" + atIteration;
-                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, iterationOutputDir);
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, iterationOutputDir, mutationMethodClassName);
 
                 // Set the provided input argument multiMutationMethod in the guidance mutation
                 guidance.setMultiMutationMethod(multiMutationMethod);
@@ -112,7 +127,7 @@ public class BigFuzzPlusDriver {
     }
 
     private static void writeToLog(File outputDir) {
-        File f_out = new File(outputDir+"/log.txt");
+        File f_out = new File(outputDir + "/log.txt");
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(f_out);
@@ -125,15 +140,15 @@ public class BigFuzzPlusDriver {
 
         try {
             bw.write(output);
-        bw.close();
-        fos.close();
+            bw.close();
+            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations) {
-        summarized_results.append("********* PROGRAM SUMMARY **********" );
+        summarized_results.append("********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\nCUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
         for (int i = 0; i < uniqueFailureResults.size(); i++) {
@@ -145,7 +160,7 @@ public class BigFuzzPlusDriver {
         for (int i = 0; i < inputs.size(); i++) {
             summarized_results.append("\nRun " + (i + 1) + " [");
             for (int j = 0; j < inputs.get(i).size(); j++) {
-                if(j!=0) {
+                if (j != 0) {
                     summarized_results.append(", ");
                 }
                 summarized_results.append("\"" + inputs.get(i).get(j) + "\"");
@@ -158,7 +173,7 @@ public class BigFuzzPlusDriver {
         for (int i = 0; i < methods.size(); i++) {
             summarized_results.append("\nRun " + (i + 1) + ": [");
             for (int j = 0; j < methods.get(i).size(); j++) {
-                if(j!=0) {
+                if (j != 0) {
                     summarized_results.append(", ");
                 }
                 summarized_results.append("(" + methods.get(i).get(j) + ")");
@@ -171,7 +186,7 @@ public class BigFuzzPlusDriver {
         for (int i = 0; i < columns.size(); i++) {
             summarized_results.append("\nRun " + (i + 1) + ": [");
             for (int j = 0; j < columns.get(i).size(); j++) {
-                if(j!=0) {
+                if (j != 0) {
                     summarized_results.append(", ");
                 }
                 summarized_results.append("(" + columns.get(i).get(j) + ")");
@@ -237,7 +252,8 @@ public class BigFuzzPlusDriver {
 
     /**
      * Prints the configuration and the results from the run to the Terminal.
-     *  @param testClassName  Class name which is being tested
+     *
+     * @param testClassName  Class name which is being tested
      * @param testMethodName Test method name which is used to perform the test
      * @param file           Input file for the testing
      * @param maxTrials      maximal amount of trials configuration
@@ -250,7 +266,7 @@ public class BigFuzzPlusDriver {
     private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzPlusGuidance guidance, int atIteration) {
         StringBuilder e_log = new StringBuilder();
         // Print configuration
-        e_log.append("*** TEST "+atIteration+" LOG ***");
+        e_log.append("*** TEST " + atIteration + " LOG ***");
         e_log.append("\n---CONFIGURATION---");
         e_log.append("\nFiles used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
         e_log.append("Max trials: " + maxTrials);
@@ -260,12 +276,12 @@ public class BigFuzzPlusDriver {
         if (guidance.mutation instanceof MultiMutation) {
             e_log.append("\n\tRandomization seed: " + ((MultiMutation) guidance.mutation).getRandomizationSeed());
         }
-        e_log.append("\n\tMutated inputs: [" );
+        e_log.append("\n\tMutated inputs: [");
         for (int i = 0; i < guidance.inputs.size(); i++) {
-            if(i!= 0) {
+            if (i != 0) {
                 e_log.append(", ");
             }
-            e_log.append("\"" + guidance.inputs.get(i) +"\"" );
+            e_log.append("\"" + guidance.inputs.get(i) + "\"");
         }
         e_log.append("]");
 
