@@ -1,6 +1,7 @@
 # file: ~/.gitignore_global
 *.DS_Store
 .idea/*
+*.iml
 classes/*
 target/*
 **/target
@@ -9,7 +10,8 @@ target/*
 fuzz/target/
 conf
 conf+cov
+
+output/*
 # Ignores crash reports & sample data
 2021*
 
-*.iml

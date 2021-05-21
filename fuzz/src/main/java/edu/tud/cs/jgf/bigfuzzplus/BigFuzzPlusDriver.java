@@ -7,7 +7,7 @@ import edu.tud.cs.jgf.bigfuzzplus.multiMutation.HighOrderMutation;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutation;
 import edu.tud.cs.jgf.bigfuzzplus.multiMutation.MultiMutationReference;
 
-import java.io.File;
+import java.io.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -21,7 +21,7 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_TEST_RESULTS = false;
     public static StringBuilder log = new StringBuilder();
     public static StringBuilder iteration_results = new StringBuilder();
-    public static StringBuilder summarize_results = new StringBuilder();
+    public static StringBuilder summarized_results = new StringBuilder();
 
     public static void main(String[] args) {
 
@@ -52,13 +52,13 @@ public class BigFuzzPlusDriver {
 
 
         log.append("Program started with the following parameters: ");
-        log.append("\tTest class: " + testClassName);
-        log.append("\tTest method: " + testMethodName);
-        log.append("\tTest multiMutation method: " + multiMutationMethod);
-        log.append("\tTest maximal stacked mutations: " + intMutationStackCount);
+        log.append("\n\tTest class: " + testClassName);
+        log.append("\n\tTest method: " + testMethodName);
+        log.append("\n\tTest multiMutation method: " + multiMutationMethod);
+        log.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
 
         log.append("\nOutput directory is set to: " + outputDir);
-        log.append("Program is started at: " + programStartTime);
+        log.append("\nProgram is started at: " + programStartTime);
 
         boolean newOutputDirCreated = outputDir.mkdir();
         if (!newOutputDirCreated) {
@@ -81,7 +81,8 @@ public class BigFuzzPlusDriver {
 
                 Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
                 //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, "output/" + programStartTime + "/Test" + atIteration);
+                String iterationOutputDir = outputDir + "/Test" + atIteration;
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, iterationOutputDir);
 
                 // Set the provided input argument multiMutationMethod in the guidance mutation
                 guidance.setMultiMutationMethod(multiMutationMethod);
@@ -107,51 +108,84 @@ public class BigFuzzPlusDriver {
             }
         }
         summarizeProgramIterations(uniqueFailureResults, inputs, methods, columns, durations);
+        writeToLog(outputDir);
+    }
+
+    private static void writeToLog(File outputDir) {
+        File f_out = new File(outputDir+"/log.txt");
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(f_out);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+        String output = log.append("\n\n").append(summarized_results).append("\n\n").append(iteration_results).toString();
+
+        try {
+            bw.write(output);
+        bw.close();
+        fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations) {
+        summarized_results.append("********* PROGRAM SUMMARY **********" );
         // --------------- UNIQUE FAILURES --------------
-        System.out.println("CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
+        summarized_results.append("\nCUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
         for (int i = 0; i < uniqueFailureResults.size(); i++) {
-            System.out.println("Run " + (i + 1) + ": " + uniqueFailureResults.get(i));
+            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailureResults.get(i));
         }
 
         // --------------- INPUTS --------------
-        System.out.println("\n APPLIED MUTATIONS PER ITERATION");
+        summarized_results.append("\n\nAPPLIED MUTATIONS PER ITERATION");
         for (int i = 0; i < inputs.size(); i++) {
-            System.out.print("Run " + (i + 1) + " [");
+            summarized_results.append("\nRun " + (i + 1) + " [");
             for (int j = 0; j < inputs.get(i).size(); j++) {
-                System.out.print("\"" + inputs.get(i).get(j) + "\", ");
+                if(j!=0) {
+                    summarized_results.append(", ");
+                }
+                summarized_results.append("\"" + inputs.get(i).get(j) + "\"");
             }
-            System.out.println();
+            summarized_results.append("]");
         }
 
         // --------------- MUTATION COUNTER --------------
-        System.out.println("\n MUTATED INPUTS PER ITERATION");
+        summarized_results.append("\n\n MUTATED INPUTS PER ITERATION");
         for (int i = 0; i < methods.size(); i++) {
-            System.out.print("Run " + (i + 1) + ": [");
+            summarized_results.append("\nRun " + (i + 1) + ": [");
             for (int j = 0; j < methods.get(i).size(); j++) {
-                System.out.print("(" + methods.get(i).get(j) + "), ");
+                if(j!=0) {
+                    summarized_results.append(", ");
+                }
+                summarized_results.append("(" + methods.get(i).get(j) + ")");
             }
-            System.out.println("]");
+            summarized_results.append("]");
         }
 
         // --------------- COLUMN COUNTER --------------
-        System.out.println("\n MUTATIONS APPLIED ON COLUMN PER ITERATION");
+        summarized_results.append("\n\n MUTATIONS APPLIED ON COLUMN PER ITERATION");
         for (int i = 0; i < columns.size(); i++) {
-            System.out.print("Run " + (i + 1) + ": [");
+            summarized_results.append("\nRun " + (i + 1) + ": [");
             for (int j = 0; j < columns.get(i).size(); j++) {
-                System.out.print("(" + columns.get(i).get(j) + "), ");
+                if(j!=0) {
+                    summarized_results.append(", ");
+                }
+                summarized_results.append("(" + columns.get(i).get(j) + ")");
             }
-            System.out.println("]");
+            summarized_results.append("]");
         }
 
         // --------------- DURATION --------------
-        System.out.println("\n DURATION PER ITERATION");
-        System.out.println("durations: " + durations);
+        summarized_results.append("\n\n DURATION PER ITERATION");
+        summarized_results.append("\ndurations: " + durations);
         for (int i = 0; i < durations.size(); i++) {
-            System.out.println("Run " + (i + 1) + ": " + durations.get(i) + " ms");
+            summarized_results.append("\nRun " + (i + 1) + ": " + durations.get(i) + " ms ");
         }
+        System.out.println(summarized_results);
     }
 
     private static void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns) {
@@ -226,14 +260,17 @@ public class BigFuzzPlusDriver {
         if (guidance.mutation instanceof MultiMutation) {
             e_log.append("\n\tRandomization seed: " + ((MultiMutation) guidance.mutation).getRandomizationSeed());
         }
-        e_log.append("\n\tMutated inputs: " + guidance.inputs);
+        e_log.append("\n\tMutated inputs: [" );
+        for (int i = 0; i < guidance.inputs.size(); i++) {
+            if(i!= 0) {
+                e_log.append(", ");
+            }
+            e_log.append("\"" + guidance.inputs.get(i) +"\"" );
+        }
+        e_log.append("]");
 
         // Print results
         e_log.append("\n---RESULTS---");
-//        if (Boolean.getBoolean("jqf.logCoverage")) {
-//            System.out.printf("Covered %d edges.%n",
-//                    guidance.getCoverage().getNonZeroCount());
-//        }
 
         // Failures
         e_log.append("\n\tTotal Failures: " + guidance.totalFailures);
