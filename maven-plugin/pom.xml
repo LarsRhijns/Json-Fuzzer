@@ -37,7 +37,8 @@
         </dependency>
         <dependency>
             <groupId>edu.berkeley.cs.jqf</groupId>
-            <artifactId>jqf-fuzz</artifactId>
+            <artifactId>bigfuzz-guidance</artifactId>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
