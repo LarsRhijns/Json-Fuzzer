@@ -67,6 +67,7 @@
         <module>maven-plugin</module>
         <module>transformer</module>
         <module>customarray</module>
+        <module>Benchmarks</module>
     </modules>
 
     <dependencyManagement>
@@ -109,6 +110,11 @@
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>bigfuzz-dfcoverage</artifactId>
+                <version>1.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.berkeley.cs.jqf</groupId>
+                <artifactId>bigfuzz-Benchmarks</artifactId>
                 <version>1.2-SNAPSHOT</version>
             </dependency>
         </dependencies>

@@ -12,7 +12,7 @@ public class MovieRatingDriver {
 
 @Fuzz
     public void testMovieRating(String fileName) throws IOException {
-//        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.MovieRating.MovieRatingDriver::testMovieRating: "+fileName);
+        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.MovieRating.MovieRatingDriver::testMovieRating: "+fileName);
         MovieRating analysis = new MovieRating();
         analysis.MovieRating(fileName);
     }
