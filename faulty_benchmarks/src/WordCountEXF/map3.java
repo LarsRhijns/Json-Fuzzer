@@ -1,4 +1,4 @@
-package edu.ucla.cs.bigfuzz.customarray.applicable.WordCountEXF;
+package WordCountEXF;
 
 public class map3 {
 

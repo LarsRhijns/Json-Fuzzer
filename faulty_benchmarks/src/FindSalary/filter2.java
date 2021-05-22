@@ -1,4 +1,4 @@
-package edu.ucla.cs.bigfuzz.customarray.applicable.FindSalary;
+package FindSalary;
 
 public class filter2 {
    public static void main(String[] args) { 

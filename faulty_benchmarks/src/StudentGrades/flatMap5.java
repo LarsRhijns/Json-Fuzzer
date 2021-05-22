@@ -1,4 +1,4 @@
-package edu.ucla.cs.bigfuzz.customarray.applicable.StudentGrades;
+package StudentGrades;
 
 public class flatMap5 {
    public static void main(String[] args) { 

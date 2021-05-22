@@ -1,4 +1,4 @@
-package edu.ucla.cs.bigfuzz.customarray.applicable.WordCountEXF;
+package WordCountEXF;
 import java.lang.Math;
 
 public class filter1 {
