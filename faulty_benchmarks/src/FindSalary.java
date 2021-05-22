@@ -1,8 +1,6 @@
-package FindSalary;
-
-import edu.ucla.cs.bigfuzz.customarray.applicable.FindSalary.FindSalaryCustomArray;
 import main.java.sharedClasses.CustomArray;
 
+import FindSalary.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
