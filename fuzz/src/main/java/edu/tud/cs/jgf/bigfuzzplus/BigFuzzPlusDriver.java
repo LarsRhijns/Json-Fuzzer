@@ -91,7 +91,7 @@ public class BigFuzzPlusDriver {
         ArrayList<ArrayList<String>> columns = new ArrayList();
         ArrayList<ArrayList<String>> mutationStacks = new ArrayList();
         ArrayList<Long> durations = new ArrayList();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             int atIteration = i + 1;
             System.out.println("******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
@@ -109,7 +109,7 @@ public class BigFuzzPlusDriver {
                 guidance.setMutationStackCount(intMutationStackCount);
 
                 // Set the randomization seed to the program start time. Seed is passed to allow for custom seeds, independent of the program start time
-                guidance.setRandomizationSeed(5);
+                guidance.setRandomizationSeed(iterationStartTime);
 
                 // Set the test class name in the guidance for the failure tracking
                 guidance.setTestClassName(testClassName);
