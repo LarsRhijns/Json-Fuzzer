@@ -1,6 +1,5 @@
-package WordCountEXF;
-
-
+import WordCountEXF.WordCountNewCustomArray;
+import WordCountEXF.map3;
 import main.java.sharedClasses.CustomArray;
 
 import java.io.IOException;
