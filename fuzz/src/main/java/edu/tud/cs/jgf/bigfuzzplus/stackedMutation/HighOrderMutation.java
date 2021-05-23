@@ -13,11 +13,11 @@ import static edu.tud.cs.jgf.bigfuzzplus.stackedMutation.HighOrderMutation.HighO
 
 public class HighOrderMutation {
     // For each HighOrderMutationMethod enum, a set of other enums is provided to indicate which mutations can NOT be applied after the mutation of the list is applied.
-    private static final HighOrderMutation.HighOrderMutationMethod[] changeValueStackExcludeRule = {RemoveElement, EmptyColumn, ChangeValue};
-    private static final HighOrderMutation.HighOrderMutationMethod[] changeTypeStackExcludeRule = {RemoveElement, EmptyColumn, ChangeType};
-    private static final HighOrderMutation.HighOrderMutationMethod[] removeElementStackExcludeRule = {ChangeValue, ChangeType, AddElement};
+    private static final HighOrderMutation.HighOrderMutationMethod[] changeValueStackExcludeRule = {RemoveElement, EmptyColumn, ChangeValue, RandomCharacter};
+    private static final HighOrderMutation.HighOrderMutationMethod[] changeTypeStackExcludeRule = {RemoveElement, EmptyColumn, ChangeType, RandomCharacter};
+    private static final HighOrderMutation.HighOrderMutationMethod[] removeElementStackExcludeRule = {ChangeValue, ChangeType, RemoveElement, RandomCharacter, EmptyColumn};
     private static final HighOrderMutation.HighOrderMutationMethod[] addElementStackExcludeRule = {AddElement, RemoveElement};
-    private static final HighOrderMutation.HighOrderMutationMethod[] emptyColumnStackExcludeRule = {ChangeValue, ChangeType, RemoveElement, AddElement, EmptyColumn};
+    private static final HighOrderMutation.HighOrderMutationMethod[] emptyColumnStackExcludeRule = {ChangeValue, ChangeType, RemoveElement, AddElement, EmptyColumn, RandomCharacter};
     private static final HighOrderMutation.HighOrderMutationMethod[] changeDelimiterStackExcludeRule = {ChangeDelimiter};
     private static final HighOrderMutation.HighOrderMutationMethod[] RandomCharacterStackExcludeRule = {RemoveElement, EmptyColumn};
 

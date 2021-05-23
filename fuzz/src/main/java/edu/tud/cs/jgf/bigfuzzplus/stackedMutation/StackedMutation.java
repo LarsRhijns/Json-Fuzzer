@@ -57,8 +57,8 @@ public class StackedMutation implements BigFuzzMutation {
     public void mutate(String inputFile, String nextInputFile) throws IOException {
         // Select random row from input file to mutate over
         List<String> fileList = Files.readAllLines(Paths.get(inputFile));
-        Random random = new Random();
-        int n = random.nextInt(fileList.size());
+
+        int n = r.nextInt(fileList.size());
         String fileToMutate = fileList.get(n);
 
         // Mutate selected input file
@@ -131,9 +131,6 @@ public class StackedMutation implements BigFuzzMutation {
      * @param rows List of program inputs in which one row will be mutated
      */
     public void mutate(ArrayList<String> rows) {
-        // TODO: add seed to configuration/result -> evaluation such that the results can be reproduced?
-        r.setSeed(System.currentTimeMillis());
-
         // Select the line in the input to be mutated and split the value son the delimiter
         int lineNum = r.nextInt(rows.size());
         String[] rowElements = rows.get(lineNum).split(",");
@@ -572,11 +569,11 @@ public class StackedMutation implements BigFuzzMutation {
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes) + 1;
         for (int i = 0; i < generatedTimes; i++) {
-            int bits = (int) (Math.random() * 6);
-            String tempRow = RandomStringUtils.randomNumeric(bits);
-            int method = (int) (Math.random() * 2);
+            int bits = (int) (r.nextDouble() * 6);
+            String tempRow = RandomStringUtils.randomNumeric(bits); // TODO: Fix string generation to use r field
+            int method = (int) (r.nextDouble()  * 2);
             if (method == 0) {
-                int next = (int) (Math.random() * 2);
+                int next = (int) (r.nextDouble()  * 2);
                 if (next == 0) {
                     rows.add("$" + tempRow);
                 } else {
