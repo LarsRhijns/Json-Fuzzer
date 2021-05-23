@@ -1,4 +1,4 @@
-package edu.ucla.cs.bigfuzz.customarray.inapplicable.OutofJDU;
+package SalaryAnalysis;
 
 import scala.Tuple3;
 
