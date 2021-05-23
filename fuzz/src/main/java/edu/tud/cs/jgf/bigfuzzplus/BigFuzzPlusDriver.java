@@ -30,11 +30,12 @@ public class BigFuzzPlusDriver {
      * [1] - test method
      * [2] - mutation method
      * [3] - max Trials                (default = Long.MAXVALUE)
-     * [4] - stacked mutation method   (default = disabled)
-     *      *  0 = Disabled
-     *      *  1 = Permute_random (permute between 1 and the max amount of mutations)
-     *      *  2 = Permute_max (Always permute until the max amount of mutations)
-     *      *  3 = Smart_stack
+     * [4] - stacked mutation method   (default = 0)
+                 *  0 = Disabled
+                 *  1 = Permute_random (permute between 1 and the max amount of mutations)
+                 *  2 = Permute_max (Always permute until the max amount of mutations)
+                 *  3 = Smart_stack (Apply highorder mutation exclusion rules)
+                 *  4 = Single mutate (Only apply 1 mutation per column)
      * [5] - max mutation stack        (default = 2)
      *
      * @param args program arguments

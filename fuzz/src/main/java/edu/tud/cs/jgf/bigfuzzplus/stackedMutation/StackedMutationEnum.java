@@ -10,7 +10,8 @@ public class StackedMutationEnum {
         Disabled,
         Permute_random,
         Permute_max,
-        Smart_stack
+        Smart_stack,
+        Single_mutate
     }
 
     /**
@@ -18,7 +19,8 @@ public class StackedMutationEnum {
      *  0 = Disabled
      *  1 = Permute_random (permute between 1 and the max amount of mutations)
      *  2 = Permute_max (Always permute until the max amount of mutations)
-     *  3 = Smart_stack
+     *  3 = Smart_stack (Apply highorder mutation exclusion rules)
+     *  4 = Single mutate (Only apply 1 mutation per column)
      *  else: Disabled
      * @param i integer corresponding to a mutation method
      * @return returns StackedMutationMethod depending on the passed integer.
@@ -29,6 +31,7 @@ public class StackedMutationEnum {
             case 1: return StackedMutationMethod.Permute_random;
             case 2: return StackedMutationMethod.Permute_max;
             case 3: return StackedMutationMethod.Smart_stack;
+            case 4: return StackedMutationMethod.Single_mutate;
             default: return StackedMutationMethod.Disabled;
         }
     }

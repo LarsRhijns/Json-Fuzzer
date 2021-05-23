@@ -149,6 +149,9 @@ public class StackedMutation implements BigFuzzMutation {
             case Smart_stack:
                 mutatedElements = smart_mutate(rowElements);
                 break;
+            case Single_mutate:
+                mutatedElements = single_mutate(rowElements);
+                break;
             default:
                 mutatedElements = mutateLine(rowElements);
         }
@@ -167,6 +170,91 @@ public class StackedMutation implements BigFuzzMutation {
         //mutatedRowString = nextMutationResultInList();
 
         rows.set(lineNum, mutatedRowString);
+    }
+
+    /**
+     * Apply the max amount of mutations, where only 1 mutation is applied per column
+     * @param rowElements elements that needs to be mutated
+     * @return mutated elements where each element is at most mutated once.
+     */
+    private String[] single_mutate(String[] rowElements) {
+        ArrayList<HighOrderMutationMethod> appliedMutationPerColumn = new ArrayList<>();
+        for (int i = 0; i < rowElements.length; i++) {
+            appliedMutationPerColumn.add(HighOrderMutationMethod.NoMutation);
+        }
+        boolean[] mutatedColumns = new boolean[rowElements.length];
+        int mutatedColumnsCount = 0;
+
+        boolean changeDelimiter = false;
+
+        // Apply at most the max amount of mutations
+        for (int i = 0; i < maxMutationStack; i++) {
+            if(rowElements.length <= mutatedColumnsCount) {
+                break;
+            }
+
+            // Randomly pick a pointer to use as for next mutation
+            int rowElementIdPointer = r.nextInt(rowElements.length - mutatedColumnsCount);
+            // Get a random mutations method which can still be applied to the randomly selected column
+            HighOrderMutationMethod mutationMethod = HighOrderMutation.getRandomMutation(r);
+
+            int rowElementId = 0;
+            int loopPointer=0;
+
+            // Loop through all the row elements. If the column has already been mutated skip. If the loop pointer is equal to the rowElementIdPointer, use that element to mutate
+            for (int j = 0; j < rowElements.length; j++) {
+                if(!mutatedColumns[j]) {
+                    if(rowElementIdPointer == loopPointer) {
+                        rowElementId = j;
+                    } else {
+                        loopPointer++;
+                    }
+                }
+            }
+
+            // Remove element is always called on the last element, therefore a swap needs to be done
+            if(mutationMethod == HighOrderMutationMethod.RemoveElement) {
+                // If the last element has not been mutated yet, use said column to apply the remove element on
+                // Else swap the mutation
+                if(!mutatedColumns[rowElements.length-1]) {
+                    rowElementId = rowElements.length-1;
+                } else {
+                    mutationMethod = appliedMutationPerColumn.get(rowElements.length-1);
+                    appliedMutationPerColumn.set(rowElements.length-1, mutationMethod);
+                }
+            }
+
+            // Change delimiter is not applied on a column, therefore dont add it to the count
+            if(mutationMethod != HighOrderMutationMethod.ChangeDelimiter) {
+                appliedMutationPerColumn.set(rowElementId, mutationMethod);
+                mutatedColumns[rowElementId] = true;
+                mutatedColumnsCount++;
+            } else {
+                changeDelimiter= true;
+            }
+        }
+        mutationStackTracker.add(appliedMutationPerColumn.size());
+
+        // Create a mutation list containing the mutation and element ID
+        LinkedList<MutationPair> mutations = new LinkedList<>();
+
+        // Collect all mutations in a linked list
+        for (int i = 0; i < appliedMutationPerColumn.size(); i++) {
+            if(mutatedColumns[i]) {
+                mutations.add(new MutationPair(i, appliedMutationPerColumn.get(i)));
+            }
+        }
+
+        if(changeDelimiter) {
+            mutations.add(new MutationPair(0, HighOrderMutationMethod.ChangeDelimiter));
+        }
+
+        // Apply all mutations
+        for (MutationPair pair :
+                mutations) {
+            rowElements = applyMutationMethod(pair.getMutation(), rowElements, pair.getElementId());
+        }
+        return rowElements;
     }
 
     /**
@@ -240,11 +328,6 @@ public class StackedMutation implements BigFuzzMutation {
 
         // Mutate the row using the selected mutation method
         String[] mutationResult = applyMutationMethod(method, rowElements, rowElementId);
-
-        // If the mutation is to change the delimiter, do so.
-        if (method == HighOrderMutationMethod.ChangeDelimiter) {
-            changeDelimiter();
-        }
 
         return mutationResult;
     }
@@ -330,6 +413,9 @@ public class StackedMutation implements BigFuzzMutation {
                 break;
             case EmptyColumn:
                 mutationResult = emptyOneElement(rowElements, elementId);
+                break;
+            case ChangeDelimiter:
+                changeDelimiter();
                 break;
         }
 
