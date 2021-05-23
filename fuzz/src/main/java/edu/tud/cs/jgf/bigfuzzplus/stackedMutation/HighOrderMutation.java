@@ -30,9 +30,10 @@ public class HighOrderMutation {
     private static final boolean emptyColumnActive = true;
     private static final boolean changeDelimiterActive = true;
     private static final boolean randomCharacterActive = true;
-    private static ArrayList<HighOrderMutationMethod> activeMutations;
+    private static final ArrayList<HighOrderMutationMethod> activeMutations = createActiveMutations();
 
     // Indicates a bias towards the mutation method
+    private static final boolean biasEnabled = false;
     private static final float changeValueBias = 1f;
     private static final float changeTypeBias = 1f;
     private static final float removeElementBias = 1f;
@@ -76,6 +77,11 @@ public class HighOrderMutation {
      * @return a random weighted mutation
      */
     private static HighOrderMutationMethod selectWeightedMutation(Random r, ArrayList<HighOrderMutationMethod> mutationList) {
+        // If bias is not enabled, return a random index of the mutation list (for performance reasons)
+        if(!biasEnabled) {
+            return mutationList.get(r.nextInt(mutationList.size()));
+        }
+
         float[] biasWeights = new float[mutationList.size()];
         float total = 0;
         for (int i = 0; i < mutationList.size(); i++) {
@@ -93,10 +99,10 @@ public class HighOrderMutation {
         float randomFloat = randomFloatMultiple * total;
         float sumFloat = 0;
         for (int i = 0; i < mutationList.size(); i++) {
-            if(sumFloat <= randomFloat) {
+            sumFloat += biasWeights[i];
+            if(sumFloat >= randomFloat) {
                 return mutationList.get(i);
             }
-            sumFloat += biasWeights[i];
         }
 
         //Code should not reach this part
@@ -172,7 +178,7 @@ public class HighOrderMutation {
      */
     private static ArrayList<HighOrderMutationMethod> getMutationListFromAppliedMutations(ArrayList<HighOrderMutationMethod> highOrderMutationMethods) {
         // Create a list of all available mutations. This list will be reduced by the exclusion rules.
-        ArrayList<HighOrderMutationMethod> res = new ArrayList(Arrays.asList(getActiveHighOrderMutationMethodList()));
+        ArrayList<HighOrderMutationMethod> res = new ArrayList(getActiveHighOrderMutationMethodList());
 
         // Loop over every used mutation and apply the exclusion rules on it
         for (HighOrderMutationMethod usedMethod :
@@ -235,15 +241,17 @@ public class HighOrderMutation {
     public static ArrayList<HighOrderMutationMethod> getActiveHighOrderMutationMethodList() {
         // Mutation active status does not change once the program started. When first time called, create the active mutation list
         if (activeMutations == null) {
-            createActiveMutations();
+            System.err.println("No active mutations found");
+            System.exit(0);
         }
         return activeMutations;
     }
 
     /**
      * Instantiate the list of activeMutations using the mutation activity booleans defined in this class.
+     * @return
      */
-    private static void createActiveMutations() {
+    private static ArrayList<HighOrderMutationMethod> createActiveMutations() {
         ArrayList<HighOrderMutationMethod> holder = new ArrayList<>();
 
         // For Every mutation defined in the enum. Check if the mutation has been enables and ad it to the mutation list
@@ -284,14 +292,10 @@ public class HighOrderMutation {
                     if(randomCharacterActive) {
                         holder.add(h);
                     }
+                    break;
             }
         }
-//        // Transform arraylist to an array and assign it to the active mutations
-//        HighOrderMutationMethod[] res = new HighOrderMutationMethod[holder.size()];
-//        for (int i = 0; i < holder.size(); i++) {
-//            res[i] = holder.get(i);
-//        }
-        activeMutations = holder;
+        return holder;
     }
 
 

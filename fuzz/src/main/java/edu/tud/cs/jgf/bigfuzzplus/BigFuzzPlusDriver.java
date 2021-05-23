@@ -109,7 +109,8 @@ public class BigFuzzPlusDriver {
                 guidance.setMutationStackCount(intMutationStackCount);
 
                 // Set the randomization seed to the program start time. Seed is passed to allow for custom seeds, independent of the program start time
-                guidance.setRandomizationSeed(iterationStartTime);
+//                guidance.setRandomizationSeed(iterationStartTime);
+                guidance.setRandomizationSeed(5);
 
                 // Set the test class name in the guidance for the failure tracking
                 guidance.setTestClassName(testClassName);
