@@ -63,7 +63,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     protected final long maxTrials;
     private final PrintStream out;
-    private long numDiscards = 0;
+    protected long numDiscards = 0;
     // Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
     private final float maxDiscardRatio = 0.9f;
 

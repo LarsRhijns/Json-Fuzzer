@@ -30,7 +30,7 @@ public class HighOrderMutation {
     private static final boolean emptyColumnActive = true;
     private static final boolean changeDelimiterActive = true;
     private static final boolean randomCharacterActive = true;
-    private static final ArrayList<HighOrderMutationMethod> activeMutations = createActiveMutations();
+    private static ArrayList<HighOrderMutationMethod> activeMutations;
 
     // Indicates a bias towards the mutation method
     private static final boolean biasEnabled = false;
@@ -239,11 +239,16 @@ public class HighOrderMutation {
      * @return list of active mutations
      */
     public static ArrayList<HighOrderMutationMethod> getActiveHighOrderMutationMethodList() {
-        // Mutation active status does not change once the program started. When first time called, create the active mutation list
         if (activeMutations == null) {
-            System.err.println("No active mutations found");
-            System.exit(0);
+            activeMutations = createActiveMutations();
+            // Mutation active status does not change once the program started. When first time called, create the active mutation list
+            if (activeMutations.size() == 0) {
+                System.err.println("No active mutations found");
+                System.exit(0);
+            }
         }
+
+
         return activeMutations;
     }
 

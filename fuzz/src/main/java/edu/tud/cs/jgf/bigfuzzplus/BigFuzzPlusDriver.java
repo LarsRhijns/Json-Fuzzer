@@ -90,6 +90,8 @@ public class BigFuzzPlusDriver {
         ArrayList<ArrayList<String>> methods = new ArrayList();
         ArrayList<ArrayList<String>> columns = new ArrayList();
         ArrayList<ArrayList<String>> mutationStacks = new ArrayList();
+        ArrayList<Long> errorInputCount = new ArrayList();
+        ArrayList<Long> validInputCount = new ArrayList();
         ArrayList<Long> durations = new ArrayList();
         for (int i = 0; i < 2; i++) {
             int atIteration = i + 1;
@@ -121,14 +123,14 @@ public class BigFuzzPlusDriver {
 
                 // Evaluate the results
                 evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
-                writeToLists(guidance, maxTrials, inputs, uniqueFailureResults, methods, columns, mutationStacks);
+                writeToLists(guidance, maxTrials, inputs, uniqueFailureResults, methods, columns, mutationStacks, errorInputCount, validInputCount);
                 durations.add(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        summarizeProgramIterations(uniqueFailureResults, inputs, methods, columns, durations, mutationStacks);
+        summarizeProgramIterations(uniqueFailureResults, inputs, methods, columns, durations, mutationStacks, errorInputCount, validInputCount);
         writeLogToFile(outputDir);
     }
 
@@ -161,14 +163,16 @@ public class BigFuzzPlusDriver {
 
     /**
      * Convert collected data lists to a readable string in summarized_results
-     *  @param uniqueFailureResults List of unique failures per program iteration
+     * @param uniqueFailureResults List of unique failures per program iteration
      * @param inputs               List of sequential mutated inputs per program iteration
      * @param methods              List of summed HighOrderMutation methods applied per iteration
      * @param columns              List of count per column how many times mutation was applied to said column
      * @param durations            List of iteration durations
      * @param mutationStacks
+     * @param errorInputCount
+     * @param validInputCount
      */
-    private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<ArrayList<String>> mutationStacks) {
+    private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<ArrayList<String>> mutationStacks, ArrayList<Long> errorInputCount, ArrayList<Long> validInputCount) {
         summarized_results.append("********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\nCUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
@@ -235,13 +239,25 @@ public class BigFuzzPlusDriver {
             summarized_results.append("]");
         }
 
+        // --------------- INPUTS ---------------------
+        summarized_results.append("\n\n ERROR/VALID COUNT PER ITERATION");
+        summarized_results.append("\ntotal errors: " + errorInputCount);
+        for (int i = 0; i < durations.size(); i++) {
+            summarized_results.append("\nRun " + (i + 1) + ": " + errorInputCount.get(i) + " ");
+        }
+
+        summarized_results.append("\ntotal valid inputs: " + validInputCount);
+        for (int i = 0; i < durations.size(); i++) {
+            summarized_results.append("\nRun " + (i + 1) + ": " + validInputCount.get(i) + " ");
+        }
+
+
         System.out.println(summarized_results);
 
     }
 
     /**
      * Transforms data in guidance to required lists.
-     *
      * @param guidance             guidance class which contains all data
      * @param maxTrials            maximal amount of trials (configuration)
      * @param inputs               list of inputs passed to the program that is being tested
@@ -249,8 +265,10 @@ public class BigFuzzPlusDriver {
      * @param methods              list of methods applied
      * @param columns              list of count how many times mutation was applied per column
      * @param mutationStacks
+     * @param errorInputCount
+     * @param validInputCount
      */
-    private static void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<ArrayList<String>> mutationStacks) {
+    private static void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<ArrayList<String>> mutationStacks, ArrayList<Long> errorInputCount, ArrayList<Long> validInputCount) {
         // Unique failure results
         int cumulative = 0;
         ArrayList<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
@@ -300,6 +318,8 @@ public class BigFuzzPlusDriver {
             }
             methods.add(methodStringList);
             columns.add(columnStringList);
+            errorInputCount.add((long)guidance.totalFailures);
+            validInputCount.add(guidance.numValid);
         }
 
 
@@ -369,7 +389,10 @@ public class BigFuzzPlusDriver {
         e_log.append("\n---RESULTS---");
 
         // Failures
+        e_log.append("\nTotal run count: " + guidance.numTrials);
         e_log.append("\n\tTotal Failures: " + guidance.totalFailures);
+        e_log.append("\n\tTotal Valid: " + guidance.numValid);
+        e_log.append("\n\tTotal Invalid: " + guidance.numDiscards);
         e_log.append("\n\tUnique Failures: " + guidance.uniqueFailures.size());
         e_log.append("\n\tUnique Failures found at: " + guidance.uniqueFailureRuns);
         List<Boolean> runFoundUniqueFailure = new ArrayList<>();
@@ -389,17 +412,19 @@ public class BigFuzzPlusDriver {
         if (guidance.numTrials != maxTrials) {
             e_log.append("Could not complete all trials in the given duration.");
         }
+        e_log.append("\n\nRun time");
         e_log.append("\n\tTotal run time：" + totalDuration + "ms");
-        e_log.append("\n\tTests run: " + guidance.numTrials);
         e_log.append("\n\tAverage test run time: " + (float) totalDuration / guidance.numTrials + "ms");
 
         // Coverage
         int totalCov = guidance.totalCoverage.getNonZeroCount();
         int validCov = guidance.validCoverage.getNonZeroCount();
+        e_log.append("\n\nCoverage: ");
         e_log.append("\n\tTotal coverage: " + totalCov);
         e_log.append("\n\tValid coverage: " + validCov);
         e_log.append("\n\tPercent valid coverage: " + (float) validCov / totalCov * 100 + "%");
         System.out.println(e_log);
         iteration_results.append(e_log);
+
     }
 }
