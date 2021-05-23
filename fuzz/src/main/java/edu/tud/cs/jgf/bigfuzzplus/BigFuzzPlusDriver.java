@@ -31,6 +31,10 @@ public class BigFuzzPlusDriver {
      * [2] - mutation method
      * [3] - max Trials                (default = Long.MAXVALUE)
      * [4] - stacked mutation method   (default = disabled)
+     *      *  0 = Disabled
+     *      *  1 = Permute_random (permute between 1 and the max amount of mutations)
+     *      *  2 = Permute_max (Always permute until the max amount of mutations)
+     *      *  3 = Smart_stack
      * [5] - max mutation stack        (default = 2)
      *
      * @param args program arguments
@@ -84,6 +88,7 @@ public class BigFuzzPlusDriver {
         ArrayList<ArrayList<String>> inputs = new ArrayList();
         ArrayList<ArrayList<String>> methods = new ArrayList();
         ArrayList<ArrayList<String>> columns = new ArrayList();
+        ArrayList<ArrayList<String>> mutationStacks = new ArrayList();
         ArrayList<Long> durations = new ArrayList();
         for (int i = 0; i < 1; i++) {
             int atIteration = i + 1;
@@ -114,19 +119,20 @@ public class BigFuzzPlusDriver {
 
                 // Evaluate the results
                 evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
-                writeToLists(guidance, maxTrials, inputs, uniqueFailureResults, methods, columns);
+                writeToLists(guidance, maxTrials, inputs, uniqueFailureResults, methods, columns, mutationStacks);
                 durations.add(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        summarizeProgramIterations(uniqueFailureResults, inputs, methods, columns, durations);
+        summarizeProgramIterations(uniqueFailureResults, inputs, methods, columns, durations, mutationStacks);
         writeLogToFile(outputDir);
     }
 
     /**
      * Write collected log in the variables log, summarized results and iteration results to a file in the output folder named log.txt.
+     *
      * @param outputDir Directory where the log file should be written to
      */
     private static void writeLogToFile(File outputDir) {
@@ -153,13 +159,14 @@ public class BigFuzzPlusDriver {
 
     /**
      * Convert collected data lists to a readable string in summarized_results
-     * @param uniqueFailureResults List of unique failures per program iteration
-     * @param inputs    List of sequential mutated inputs per program iteration
-     * @param methods   List of summed HighOrderMutation methods applied per iteration
-     * @param columns   List of count per column how many times mutation was applied to said column
-     * @param durations List of iteration durations
+     *  @param uniqueFailureResults List of unique failures per program iteration
+     * @param inputs               List of sequential mutated inputs per program iteration
+     * @param methods              List of summed HighOrderMutation methods applied per iteration
+     * @param columns              List of count per column how many times mutation was applied to said column
+     * @param durations            List of iteration durations
+     * @param mutationStacks
      */
-    private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations) {
+    private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<ArrayList<String>> mutationStacks) {
         summarized_results.append("********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\nCUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
@@ -212,19 +219,36 @@ public class BigFuzzPlusDriver {
         for (int i = 0; i < durations.size(); i++) {
             summarized_results.append("\nRun " + (i + 1) + ": " + durations.get(i) + " ms ");
         }
+
+        // --------------- MUTATION STACK ---------------------
+        summarized_results.append("\n\n STACKED MUTATION COUNT PER ITERATION");
+        for (int i = 0; i < mutationStacks.size(); i++) {
+            summarized_results.append("\nRun " + (i + 1) + ": [");
+            for (int j = 0; j < mutationStacks.get(i).size(); j++) {
+                if (j != 0) {
+                    summarized_results.append(", ");
+                }
+                summarized_results.append("(" + mutationStacks.get(i).get(j) + ")");
+            }
+            summarized_results.append("]");
+        }
+
         System.out.println(summarized_results);
+
     }
 
     /**
      * Transforms data in guidance to required lists.
-     * @param guidance  guidance class which contains all data
-     * @param maxTrials maximal amount of trials (configuration)
-     * @param inputs list of inputs passed to the program that is being tested
+     *
+     * @param guidance             guidance class which contains all data
+     * @param maxTrials            maximal amount of trials (configuration)
+     * @param inputs               list of inputs passed to the program that is being tested
      * @param uniqueFailureResults list of unique failures
-     * @param methods list of methods applied
-     * @param columns list of count how many times mutation was applied per column
+     * @param methods              list of methods applied
+     * @param columns              list of count how many times mutation was applied per column
+     * @param mutationStacks
      */
-    private static void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns) {
+    private static void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<ArrayList<String>> mutationStacks) {
         // Unique failure results
         int cumulative = 0;
         ArrayList<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
@@ -233,49 +257,75 @@ public class BigFuzzPlusDriver {
                 cumulative++;
             runFoundUniqueFailureCumulative.add(cumulative);
         }
-        // Methods and columns
-        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = new ArrayList<>();
-        ArrayList<Integer> columnTracker =new ArrayList<>();
-        if(guidance.mutation instanceof StackedMutation) {
-             methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
-            columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
-        }
 
-        HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
-        HashMap<Integer, Integer> columnMap = new HashMap();
-        for (int i = 0; i < methodTracker.size(); i++) {
-            HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
-            int column = columnTracker.get(i);
-            if (methodMap.containsKey(method)) {
-                methodMap.put(method, methodMap.get(method) + 1);
-            } else {
-                methodMap.put(method, 1);
-            }
-            if (columnMap.containsKey(column)) {
-                columnMap.put(column, columnMap.get(column) + 1);
-            } else {
-                columnMap.put(column, 1);
-            }
-        }
-        Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
-        ArrayList<String> methodStringList = new ArrayList();
-        while (it.hasNext()) {
-            Map.Entry e = it.next();
-            methodStringList.add(e.getKey() + ": " + e.getValue());
-        }
-
-        Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
-        ArrayList<String> columnStringList = new ArrayList();
-        while (it2.hasNext()) {
-            Map.Entry e = it2.next();
-            columnStringList.add(e.getKey() + ": " + e.getValue());
-        }
-
-
-        methods.add(methodStringList);
-        columns.add(columnStringList);
-        inputs.add(guidance.inputs);
         uniqueFailureResults.add(runFoundUniqueFailureCumulative);
+        // Methods and columns
+        if (guidance.mutation instanceof StackedMutation) {
+
+            ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = new ArrayList<>();
+            ArrayList<Integer> columnTracker = new ArrayList<>();
+            methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
+            columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
+
+            HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
+            HashMap<Integer, Integer> columnMap = new HashMap();
+            for (int i = 0; i < methodTracker.size(); i++) {
+                HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
+                int column = columnTracker.get(i);
+                if (methodMap.containsKey(method)) {
+                    methodMap.put(method, methodMap.get(method) + 1);
+                } else {
+                    methodMap.put(method, 1);
+                }
+                if (columnMap.containsKey(column)) {
+                    columnMap.put(column, columnMap.get(column) + 1);
+                } else {
+                    columnMap.put(column, 1);
+                }
+            }
+            Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
+            ArrayList<String> methodStringList = new ArrayList();
+            while (it.hasNext()) {
+                Map.Entry e = it.next();
+                methodStringList.add(e.getKey() + ": " + e.getValue());
+            }
+
+            Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
+            ArrayList<String> columnStringList = new ArrayList();
+            while (it2.hasNext()) {
+                Map.Entry e = it2.next();
+                columnStringList.add(e.getKey() + ": " + e.getValue());
+            }
+            methods.add(methodStringList);
+            columns.add(columnStringList);
+        }
+
+
+        //Mutation stack
+        if (guidance.mutation instanceof StackedMutation) {
+            ArrayList<Integer> stackCountList = ((StackedMutation) guidance.mutation).getMutationStackTracker();
+            // Create a hashmap of the count and how many times it occured
+            HashMap<Integer,Integer> stackCount = new HashMap();
+            for (int i = 0; i < stackCountList.size(); i++) {
+                if (stackCount.containsKey(stackCountList.get(i))) {
+                    stackCount.put(stackCountList.get(i), stackCount.get(stackCountList.get(i)) + 1);
+                } else {
+                    stackCount.put(stackCountList.get(i), 1);
+                }
+            }
+            Iterator<Map.Entry<Integer, Integer>> it = stackCount.entrySet().iterator();
+            ArrayList<String> mutationStackStringList = new ArrayList();
+            while (it.hasNext()) {
+                Map.Entry e = it.next();
+                mutationStackStringList.add(e.getKey() + ": " + e.getValue());
+            }
+
+            mutationStacks.add(mutationStackStringList);
+        }
+
+
+
+        inputs.add(guidance.inputs);
     }
 
     /**
@@ -297,8 +347,8 @@ public class BigFuzzPlusDriver {
         e_log.append("*** TEST " + atIteration + " LOG ***");
         e_log.append("\n---CONFIGURATION---");
         e_log.append("\nFiles used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
-        e_log.append("Max trials: " + maxTrials);
-        e_log.append("Max duration: " + duration.toMillis() + "ms");
+        e_log.append("\n\nMax trials: " + maxTrials);
+        e_log.append("\nMax duration: " + duration.toMillis() + "ms");
 
         e_log.append("\n---REPRODUCIBILITY---");
         if (guidance.mutation instanceof StackedMutation) {

@@ -25,14 +25,13 @@ public class StackedMutation implements BigFuzzMutation {
     String delete;
     int maxGenerateTimes = 20;
     int maxDuplicatedTimes = 10;
-    int mutationMethodCount = 7;
     int maxMutationStack = 2;
     char delimiter = ',';
 
 
     // *********** REPRODUCIBILITY ****************
     // TODO: extend this section such that runs can be hardcoded.
-    int[] fixedMutationList = {0,1,2,3};
+    int[] fixedMutationList = {0, 1, 2, 3};
     int fixedMutationPointer = 0;
 //        boolean useFixedMutationResult = true;
 //    String[] fixedMutationResultList = {"90024,20,10900", "90024,,10900", "20,10900,null", "90024,10900,null", "20,10900,null", "900Ë24,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,7409,10900", "90024,1822942453,10900", "9002ë4,20,10900", ",20,10900", "8615,90024,20,10900", "-1062395398,20,10900", "90024,5638,20,10900", "90024,20,5589,10900", "90024,20,-1846169804", "-1752145988,20,10900", "90024,10900,null", "90024,,10900", "90024,20,10900", "90024,20,7427,10900", "90024,20,10900", "90024,2¥0,10900", "90024,20,10900", "90024,20.865862,10900", "1916238466,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,null", "90024,20,10900.3125", "90024,20,10900.722", "90024,20,10900", "20,10900,null", ",20,10900", "90024,20,-2112085416", ",20,10900", "90024,20,", "90024,,10900", "900/24,20,10900", "90024,20,-1069745514", "90024,10900,null", ",20,10900", "-1688978241,20,10900", "90024,20,null", "90024,94490979,10900", "20,10900,null", "90024,20,", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,10900", "20,10900,null", "90024,20,534,10900", "90024,20,1426980250", "90024,1450486204,10900", "90024,20,807747523", "90024,,10900", "90024,20,10900", "90024,20,10900", "90024.4,20,10900", "90024,2m0,10900", "243604623,20,10900", "90024,20,10900", "90024,,10900", "90024.63,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "90024,20.876112,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20.784615,10900", "90024,20,10900", "90024.37,20,10900", "9101,90024,20,10900", "90024.8,20,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,1090B0", "1358,90024,20,10900", "90024,,10900", "20,10900,null", ",20,10900", ",20,10900", "90024,10900,null", "90024,20,-1418695809", "90024,20.111279,10900", "90024,20,", "90024,20,", "90024,20,null", "90024,20,10900", "90024,10900,null", "90024,20,"};
@@ -44,6 +43,7 @@ public class StackedMutation implements BigFuzzMutation {
     ArrayList<HighOrderMutationMethod> mutationMethodTracker = new ArrayList();
     @SuppressWarnings({"rawtypes"})
     ArrayList<Integer> mutationColumnTracker = new ArrayList();
+    ArrayList<Integer> mutationStackTracker = new ArrayList();
 
     public StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
 
@@ -143,10 +143,7 @@ public class StackedMutation implements BigFuzzMutation {
         String[] mutatedElements;
         switch (stackedMutationMethod) {
             case Permute_random:
-            case Permute_2:
-            case Permute_3:
-            case Permute_4:
-            case Permute_5:
+            case Permute_max:
                 mutatedElements = mutate_permute(rowElements);
                 break;
             case Smart_stack:
@@ -162,7 +159,7 @@ public class StackedMutation implements BigFuzzMutation {
         // Append all row elements together and set the mutation result in the original input list.
         String mutatedRowString = listToString(mutatedElements);
 
-        if(PRINT_MUTATIONS) {
+        if (PRINT_MUTATIONS) {
             System.out.println("Input before mutation:" + rowString);
             System.out.println("Input after mutation:" + mutatedRowString);
         }
@@ -220,6 +217,8 @@ public class StackedMutation implements BigFuzzMutation {
             appliedMutationPerColumn.get(rowElementId).add(mutationMethod);
         }
 
+        mutationStackTracker.add(mutations.size());
+
         // Apply all mutations in sequential order
         for (MutationPair pair :
                 mutations) {
@@ -230,6 +229,7 @@ public class StackedMutation implements BigFuzzMutation {
 
     /**
      * Apply a single random mutation on provided elements
+     *
      * @param rowElements Elements on which mutation is applied
      * @return mutated elements
      */
@@ -250,7 +250,8 @@ public class StackedMutation implements BigFuzzMutation {
     }
 
     /**
-     *  Stack mutations randomly defined in the program arguments. If Mutations can interfere/cancel each other out.
+     * Stack mutations randomly defined in the program arguments. If Mutations can interfere/cancel each other out.
+     *
      * @param rows elements that should be mutated
      * @return mutated elements
      */
@@ -258,20 +259,12 @@ public class StackedMutation implements BigFuzzMutation {
         int mutationCount = 1;
         switch (stackedMutationMethod) {
             case Permute_random:
-                mutationCount = r.nextInt(mutationMethodCount);
+                mutationCount = r.nextInt(maxMutationStack) + 1; // prevent 0 mutation counts
                 break;
-            case Permute_2:
-                mutationCount = 2;
+            case Permute_max:
+                mutationCount = maxMutationStack;
                 break;
-            case Permute_3:
-                mutationCount = 3;
-                break;
-            case Permute_4:
-                mutationCount = 4;
-                break;
-            case Permute_5:
-                mutationCount = 5;
-                break;
+
         }
         String[] mutatedElements = rows;
         for (int i = 0; i < mutationCount; i++) {
@@ -301,7 +294,7 @@ public class StackedMutation implements BigFuzzMutation {
     private int nextMutationInList() {
         int nextMutation = fixedMutationList[fixedMutationPointer];
         fixedMutationPointer++;
-        return  nextMutation;
+        return nextMutation;
     }
 
     /**
@@ -324,7 +317,7 @@ public class StackedMutation implements BigFuzzMutation {
                 mutationResult = changeType(rowElements, elementId);
                 break;
             case RandomCharacter:
-                if(rowElements[elementId] != null && !rowElements[elementId].equals(""))
+                if (rowElements[elementId] != null && !rowElements[elementId].equals(""))
                     mutationResult = changeToRandomInsert(rowElements, elementId);
                 break;
             case RemoveElement:
@@ -368,7 +361,7 @@ public class StackedMutation implements BigFuzzMutation {
      * @return list of elements where the element on the elementId is mutated from an integer to a float + a random value.
      */
     private String[] changeType(String[] rowElements, int elementId) {
-        if(isFloat(rowElements[elementId])) {
+        if (isFloat(rowElements[elementId])) {
             rowElements[elementId] = rowElements[elementId] + "a";
         } else {
             int value;
@@ -384,17 +377,18 @@ public class StackedMutation implements BigFuzzMutation {
 
     /**
      * Checks if string is a float by checking if there is a '.' and the left and right sides can be parsed to integers
+     *
      * @param rowElement elements which is checked to be a float
      * @return true if the string can be parsed to a float
      */
     private boolean isFloat(String rowElement) {
         // If there is a . in the element and the last and first index are the same, we know there is exactly 1 '.'
-        if(rowElement.indexOf('.') >= 0 && rowElement.indexOf('.') == rowElement.indexOf('.')) {
+        if (rowElement.indexOf('.') >= 0 && rowElement.indexOf('.') == rowElement.indexOf('.')) {
             String[] splitted = rowElement.split("\\.");
             // To allow for .xxxx floats instead of xxx.xxx
             for (int i = 0; i < splitted.length; i++) {
                 //To allow for -.xxx values
-                if(splitted[i] .equals( "-")) {
+                if (splitted[i].equals("-")) {
                     continue;
                 }
                 try {
@@ -452,11 +446,11 @@ public class StackedMutation implements BigFuzzMutation {
      * @return a new list of String, where the element at index is removed
      */
     public static String[] removeOneElement(String[] rowElements) {
-        if(rowElements == null || rowElements.length == 0) {
+        if (rowElements == null || rowElements.length == 0) {
             return rowElements;
         }
 
-        String[] result = new String[rowElements.length-1];
+        String[] result = new String[rowElements.length - 1];
 
         // Remove last element from the rowElements
         // Smart_mutations relies on the last element being removed
@@ -546,7 +540,7 @@ public class StackedMutation implements BigFuzzMutation {
     @Override
     public void deleteFile(String currentFile) throws IOException {
         // Check if delete is not null (which it is when the file is deleted in the first run)
-        if(delete != null) {
+        if (delete != null) {
             File del = new File(delete);
             del.delete();
         }
@@ -559,11 +553,12 @@ public class StackedMutation implements BigFuzzMutation {
 
     /**
      * Concatenated the list of string elements to a string using the delimiter
+     *
      * @param mutationResult elements that need to be concatenated
      * @return String of concatenated elements
      */
     private String listToString(String[] mutationResult) {
-        if(mutationResult == null) {
+        if (mutationResult == null) {
             return "";
         }
         StringBuilder row = new StringBuilder();
@@ -597,12 +592,15 @@ public class StackedMutation implements BigFuzzMutation {
     }
 
 
-
     public ArrayList<HighOrderMutationMethod> getMutationMethodTracker() {
         return mutationMethodTracker;
     }
 
     public ArrayList<Integer> getMutationColumnTracker() {
         return mutationColumnTracker;
+    }
+
+    public ArrayList<Integer> getMutationStackTracker() {
+        return mutationStackTracker;
     }
 }
