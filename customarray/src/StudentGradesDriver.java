@@ -13,10 +13,10 @@ public class StudentGradesDriver {
 
 @Fuzz
     public void testStudentGrades(String fileName) throws IOException {
-        System.out.println("StudentGradesDriver::testStudentGrades: "+fileName);
+//        System.out.println("StudentGradesDriver::testStudentGrades: "+fileName);
         StudentGrades analysis = new StudentGrades();
     List<String> fileList = Files.readAllLines(Paths.get(fileName));
-    System.out.println(fileList.size());
+//    System.out.println(fileList.size());
     analysis.StudentGrades(fileList.get(0));
     }
 
