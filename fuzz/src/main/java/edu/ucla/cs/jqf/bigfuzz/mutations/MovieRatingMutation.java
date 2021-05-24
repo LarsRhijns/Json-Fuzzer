@@ -1,16 +1,16 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.*;
 
-public class StudentGradeMutation implements BigFuzzMutation{
+public class MovieRatingMutation implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
@@ -49,11 +49,6 @@ public class StudentGradeMutation implements BigFuzzMutation{
         bw.close();
     }
 
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
-    }
-
     public void mutateFile(String inputFile) throws IOException
     {
 
@@ -78,14 +73,14 @@ public class StudentGradeMutation implements BigFuzzMutation{
         br.close();
 
         int method =(int)(Math.random() * 2);
-        if(method == 0){
+//        if(method == 0){
+        if(true){
             ArrayList<String> tempRows = new ArrayList<String>();
             randomGenerateRows(tempRows);
-            System.out.println("rows: " + tempRows);
+//            System.out.println("rows: " + tempRows);
             rows = tempRows;
 
-            int next =(int)(Math.random() * 2);
-            if(next == 0){
+            if(r.nextBoolean()){
                 mutate(rows);
             }
         }else{
@@ -100,6 +95,18 @@ public class StudentGradeMutation implements BigFuzzMutation{
         List<String> arrList = new ArrayList<String>(list1);
         arrList.remove(input[index]);
         return arrList.toArray(new String[arrList.size()]);
+//        List result = new LinkedList();
+//
+//        for(int i=0;i<input.length;i++)
+//        {
+//            if(i==index)
+//            {
+//                continue;
+//            }
+//            result.add(input[i]);
+//        }
+//
+//        return (String [])result.toArray(input);
     }
     public static String[] AddOneElement(String[] input, String value, int index) {
         List result = new LinkedList();
@@ -123,143 +130,101 @@ public class StudentGradeMutation implements BigFuzzMutation{
         int lineNum = r.nextInt(list.size());
         System.out.println("mutate linenum: " + list.get(lineNum));
 
-        if(list.get(lineNum).isEmpty()) return;
         int method =(int)(Math.random() * 3);
-//        System.out.println("select method:" + method);
+        System.out.println("select method:" + method);
         if(method == 0){
-            String[] first = list.get(lineNum).split(",");
+            String[] columns = list.get(lineNum).split(":");
 
-            int firstID = (int)(Math.random() * first.length);
-            String[] columns = first[firstID].split(":");
-            int columnID = (int)(Math.random() * 2);
-            columns = removeOneElement(columns,columnID);
-            int delimeter =(int)(Math.random() * 2);
-            if(delimeter == 0){
-                if(columnID == 0) first[firstID] = ":" + columns[0];
-                else if(columnID == 1) first[firstID] = columns[0] + ":";
-            }else if(delimeter == 1){
-                if(columnID == 0) first[firstID] = "#" + columns[0];
-                else if(columnID == 1) first[firstID] = columns[0] + "#";
-            }
+            int columnID = (int)(Math.random() * 2);;
+            columns = removeOneElement(columns, columnID);
 
             String line = "";
-            for(int j=0;j<first.length;j++) {
+            for(int j=0;j<columns.length;j++) {
                 if(j==0)
                 {
-                    line = line + first[j];
+                    line = columns[j];
                 }
                 else
                 {
-                    line = line+","+first[j];
+                    line = line+":"+columns[j];
                 }
             }
-
-            System.out.println("deleting column,,,,,,,,," + line);
+            System.out.println("::::::::::::: " + line);
             list.set(lineNum, line);
         }
-        else if(method == 1){
-            String[] first = list.get(lineNum).split(",");
+        else if(method ==1){
+            String[] first = list.get(lineNum).split(":");
 
-            int firstID = (int)(Math.random() * first.length);
-            String[] columns = first[firstID].split(":");
-            columns[1] = RandomStringUtils.randomAscii(2);
-            int delimeter =(int)(Math.random() * 2);
-            if(delimeter == 0){
-                first[firstID] = columns[0] + ":" + columns[1];
-            }else if(delimeter == 1){
-                first[firstID] = columns[0] + "#" + columns[1];
-            }
-
-            String line = "";
-            for(int j=0;j<first.length;j++) {
+            String[] columns = first[1].split(",");
+            int columnID = (int)(Math.random() * columns.length);
+            columns[columnID]="";
+            String line = first[0]+":";
+            for(int j=0;j<columns.length;j++) {
                 if(j==0)
                 {
-                    line = line + first[j];
+                    line = line + columns[j];
                 }
                 else
                 {
-                    line = line+","+first[j];
+                    line = line+","+columns[j];
                 }
             }
-
-            System.out.println("random change column ,,,,,,,,," + line);
+            System.out.println(",,,,,,,,,,,, " + line);
             list.set(lineNum, line);
         }
-        else if(method == 2){
-            String[] first = list.get(lineNum).split(",");
+        else{
+            String[] first = list.get(lineNum).split(":");
 
-            int firstID = (int)(Math.random() * first.length);
-            String[] columns = first[firstID].split(":");
-            int columnID = (int)(Math.random() * 2);
-            columns[columnID] = "";
-            int delimeter =(int)(Math.random() * 2);
-            if(delimeter == 0){
-                if(columnID == 0) first[firstID] = ":" + columns[0];
-                else if(columnID == 1) first[firstID] = columns[0] + ":";
-            }else if(delimeter == 1){
-                if(columnID == 0) first[firstID] = "#" + columns[0];
-                else if(columnID == 1) first[firstID] = columns[0] + "#";
+            String[] columns = first[1].split(",");
+
+            int next = (int)(Math.random() * columns.length);
+            for (int i = 0; i < next; i++){
+                int columnID = 0;
+                String rr = RandomStringUtils.randomAscii(2);
+                int empty = (int)(Math.random() * 2);
+                if(empty == 1){
+                    columns[columnID] = "_";
+                }else{
+                    columns[columnID] = "_" + rr;
+                }
+                System.out.println("column: " + columns[columnID]);
             }
-
-
-            String line = "";
-            for(int j=0;j<first.length;j++) {
+            String line = first[0]+":";
+            for(int j=0;j<columns.length;j++) {
                 if(j==0)
                 {
-                    line = line + first[j];
+                    line = line + columns[j];
                 }
                 else
                 {
-                    line = line+","+first[j];
+                    line = line+","+columns[j];
                 }
             }
-            System.out.println("random empty column ,,,,,,,,,,,,,,,," + line);
             list.set(lineNum, line);
         }
-    }
-
-    @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
 
     }
 
     @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
-
         for(int i=0;i<generatedTimes;i++)
         {
-            int numberInRow = (int)(Math.random() * 5);
-//            int numberInRow = 1;
             String numberAsString = new String();
-            for (int j = 0; j < numberInRow; j++){
-                String course= Integer.toString(r.nextInt(10) + 1);
-                String dep = new String();
-                if(r.nextBoolean()){
-                    dep = "EE";
-                }else dep = "CS";
-                String grade = Integer.toString(r.nextInt(90)+10);
+            int bits = (int)(Math.random() * 10);
+            String name = RandomStringUtils.randomAlphanumeric(bits);
+            numberAsString = name + ":";
 
-                numberAsString = dep + course + ":" + grade + numberAsString;
-                if(j < (numberInRow-1)) numberAsString = "," + numberAsString;
+            int numberRow = (int)(Math.random() * 2)+1;
+            for(int j = 0; j<numberRow; j++){
+                int rating = (int)(Math.random()*99);
+                numberAsString = numberAsString + "_" + Integer.toString(rating);
+
+                if(j < (numberRow-1)) numberAsString = numberAsString+",";
             }
+
             rows.add(numberAsString);
         }
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
     }
 
     @Override
@@ -270,9 +235,6 @@ public class StudentGradeMutation implements BigFuzzMutation{
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 
         for (int i = 0; i < fileRows.size(); i++) {
-            if(fileRows.get(i) == null) {
-                continue;
-            }
             bw.write(fileRows.get(i));
             bw.newLine();
         }

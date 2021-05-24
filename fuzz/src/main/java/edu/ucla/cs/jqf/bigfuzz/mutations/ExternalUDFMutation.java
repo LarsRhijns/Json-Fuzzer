@@ -1,26 +1,26 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
 /*
- mutation for I6: it contains a for loop.
+ mutation for I1: external UDF function call
  */
 
+
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.*;
 
-public class PropertyInvestmentMutation implements BigFuzzMutation{
+public class ExternalUDFMutation implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
-    int maxGenerateTimes = 5;
-
+    int maxGenerateTimes = 10;
 
     public void mutate(String inputFile, String nextInputFile) throws IOException
     {
@@ -51,11 +51,6 @@ public class PropertyInvestmentMutation implements BigFuzzMutation{
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException
@@ -100,10 +95,23 @@ public class PropertyInvestmentMutation implements BigFuzzMutation{
     }
 
     public static String[] removeOneElement(String[] input, int index) {
+
         List<String> list1 = Arrays.asList(input);
         List<String> arrList = new ArrayList<String>(list1);
         arrList.remove(input[index]);
         return arrList.toArray(new String[arrList.size()]);
+//        List result = new LinkedList();
+//
+//        for(int i=0;i<input.length;i++)
+//        {
+//            if(i==index)
+//            {
+//                continue;
+//            }
+//            result.add(input[i]);
+//        }
+//
+//        return (String [])result.toArray(input);
     }
     public static String[] AddOneElement(String[] input, String value, int index) {
         List result = new LinkedList();
@@ -133,29 +141,32 @@ public class PropertyInvestmentMutation implements BigFuzzMutation{
         // 4: random add one coumn
         String[] columns = list.get(lineNum).split(",");
         int method = r.nextInt(2);
-        int columnID = (int)(Math.random() * columns.length);
-        System.out.println("PropertyInvestmentMutation *** "+method+" "+lineNum+" "+columnID);
+        int columnID = r.nextInt(Integer.parseInt("3"));
+//        System.out.println("ExternalUDFMutation *** "+method+" "+lineNum+" "+columnID);
 //        if(method == 0){
 //            columns[columnID] = Integer.toString(r.nextInt());
 //        }
         if(method==0) {
+           // int value = 0;
             String r = RandomStringUtils.randomAscii((int)(Math.random() * 5));
             columns[columnID] = r;
         }
-//        else if(method==2) {
-//            char temp = (char)r.nextInt(255);
-//            int pos = r.nextInt(columns[columnID].length());
-//            columns[columnID] = columns[columnID].substring(0, pos)+temp+columns[columnID].substring(pos);
+//        else if(method==1) {
+//            String r = RandomStringUtils.randomAscii((int)(Math.random() * 5));
+//            columns[columnID] = r;
 //        }
         else if(method==1) {
-            columns = removeOneElement(columns, columnID);
+            int next = r.nextInt(Integer.parseInt("3"));
+            for (int i = 0; i < next; i++){
+                columnID = r.nextInt(columns.length);
+                columns = removeOneElement(columns, columnID);
+            }
         }
 //        else if(method==4) {
 //            String one = Integer.toString(r.nextInt(10000));
 //            columns = AddOneElement(columns, one, columnID);
 //        }
         String line = "";
-        int delimeter = r.nextInt(2);
         for(int j=0;j<columns.length;j++) {
             if(j==0)
             {
@@ -163,11 +174,12 @@ public class PropertyInvestmentMutation implements BigFuzzMutation{
             }
             else
             {
-                if(delimeter == 0){
+            //    int next = (int)(Math.random() * 2);
+            //    if(next == 0){
                     line = line+","+columns[j];
-                }else{
-                    line = line + "#" + columns[j];
-                }
+            //    }else{
+            //        line = line + columns[j];
+            //    }
             }
         }
         list.set(lineNum, line);
@@ -197,38 +209,16 @@ public class PropertyInvestmentMutation implements BigFuzzMutation{
     }
 
     @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         for(int i=0;i<generatedTimes;i++)
         {
-            String numberAsString = new String();
-            String first= RandomStringUtils.randomNumeric((int)(Math.random() * 4)) + ".0";
-            Integer second = r.nextInt(30);
-            String third = "0.0" + RandomStringUtils.randomNumeric((int)(Math.random() * 2));
-            String fourth = RandomStringUtils.randomAlphanumeric((int)(Math.random() * 4));
-            numberAsString = "a0,a1," + first + "," + second + "," + third + ",a5," + fourth;
+            int a = (int)(Math.random()*255);
+            int b = (int)(Math.random()*255);
+            int c = (int)(Math.random()*255);
+            String numberAsString = Integer.toString(a) + "," + Integer.toString(b) + "," + Integer.toString(c);
             rows.add(numberAsString);
         }
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
     }
 
     @Override

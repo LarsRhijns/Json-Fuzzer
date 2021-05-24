@@ -1,11 +1,11 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.*;
 
 public class CommuteTypeMutation implements BigFuzzMutation {
@@ -46,7 +46,7 @@ public class CommuteTypeMutation implements BigFuzzMutation {
         bw.close();
     }
 
-    public void mutateFile(String inputFile, int index) throws IOException{
+    private void mutateFile(String inputFile, int index) throws IOException{
         switch(index)
         {
             case 0 :
@@ -245,11 +245,6 @@ public class CommuteTypeMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         for(int i=0;i<generatedTimes;i++) {
@@ -274,21 +269,6 @@ public class CommuteTypeMutation implements BigFuzzMutation {
             numberAsString = zip + "," + name;
             rows.add(numberAsString);
         }
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
     }
 
     @Override

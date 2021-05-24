@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.generation;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -17,7 +17,7 @@ public class MutationGenerator {
         int lineCount = 0;
         String cols = "";
         LinkedList<String> types = new LinkedList<String>();
-        String delimeter = "";
+        String delimiter = ",";
         while((str = bufferedReader.readLine())!=null)
         {
             //System.out.println(str);
@@ -35,7 +35,7 @@ public class MutationGenerator {
             }
             else if(lineCount == 5)
             {
-                delimeter = str;
+                delimiter = str;
             }
             lineCount++;
         }
@@ -51,7 +51,7 @@ public class MutationGenerator {
         String dstPath = "fuzz/src/main/java/edu/ucla/cs/jqf/bigfuzz/CustomMutation.java";
 
 
-        generateCustomedSourceFile(srcPath, dstPath, "CustomMutation", delimeter, cols);
+        generateCustomedSourceFile(srcPath, dstPath, "CustomMutation", delimiter, cols);
 
     }
 
@@ -67,7 +67,7 @@ public class MutationGenerator {
             outputChannel.close();
         }
     }*/
-    private static void generateCustomedSourceFile(String srcPath, String dstPath, String newClassName, String delimeter, String cols)
+    private static void generateCustomedSourceFile(String srcPath, String dstPath, String newClassName, String delimiter, String cols)
     {
         try
         {
@@ -79,7 +79,7 @@ public class MutationGenerator {
             in.close();
             String content = new String(buffer);
             content = content.replace("MutationTemplate", newClassName);
-            content = content.replace("$del$", delimeter);
+            content = content.replace("$del$", delimiter);
             content = content.replace("$cols$", cols);
             File txt=new File(dstPath);
             if(!txt.exists()){

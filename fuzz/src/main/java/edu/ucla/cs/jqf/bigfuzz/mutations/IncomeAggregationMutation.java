@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,6 +6,7 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation for I5: unsupported DF operator
  */
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -19,14 +20,14 @@ import java.util.Random;
 
 import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
 
-public class IncomeAggregationMutation implements BigFuzzMutation{
+public class IncomeAggregationMutation implements BigFuzzMutation {
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;
     int maxGenerateTimes = 20;
     int maxGenerateValue = 10000000;
     DecimalFormat decimalFormat = new DecimalFormat("#,##0");
-    ArrayList<String> fileRows = new ArrayList<String>();
+    private ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
 
     /**
@@ -90,7 +91,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         }
     }
 
-    public void randomDuplacteOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
+    public void randomDuplicateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
     {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         ArrayList<String> tempRows = new ArrayList<String>(rows);
@@ -104,26 +105,6 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
             }
         }
         rows = tempRows;
-    }
-
-    public void improveOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
-    {
-        for(int i=0;i<rows.size();i++) {
-            String row = rows.get(i);
-            String[] columns = row.split(",");
-            int val = Integer.parseInt(columns[columnID]);
-            if (val < minV || val > maxV) {
-                columns[columnID] = Integer.toString(r.nextInt(maxV-minV)+minV);
-                String insertRow = columns[0];
-
-                for(int j=1;j<columns.length;j++)
-                {
-                    insertRow = insertRow + ","+columns[j];
-                }
-
-                rows.set(i, insertRow);
-            }
-        }
     }
 
     public void writeFile(String outputFile) throws IOException {
@@ -179,11 +160,6 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException

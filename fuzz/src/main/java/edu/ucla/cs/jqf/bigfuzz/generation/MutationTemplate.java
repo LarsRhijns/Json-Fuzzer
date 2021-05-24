@@ -1,17 +1,17 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.generation;
 
-//import org.apache.commons.lang.ArrayUtils;
+
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class MutationTemplate implements BigFuzzMutation{
+public class MutationTemplate implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
@@ -30,8 +30,6 @@ public class MutationTemplate implements BigFuzzMutation{
         writeFile(fileName);
 
         String path = System.getProperty("user.dir")+"/"+fileName;
-//        System.out.println(path);
-//        System.out.println(fileList);
 
         delete = path;
         // write next input config
@@ -47,11 +45,6 @@ public class MutationTemplate implements BigFuzzMutation{
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException
@@ -185,27 +178,7 @@ public class MutationTemplate implements BigFuzzMutation{
     }
 
     @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 

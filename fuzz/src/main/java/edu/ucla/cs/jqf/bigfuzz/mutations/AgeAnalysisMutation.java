@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,6 +6,7 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation for I4: two JDU tree
  */
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -17,7 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class AgeAnalysisMutation implements BigFuzzMutation{
+public class AgeAnalysisMutation implements BigFuzzMutation {
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;
@@ -88,7 +89,7 @@ public class AgeAnalysisMutation implements BigFuzzMutation{
         }
     }
 
-    public void randomDuplacteOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
+    public void randomDuplicateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
     {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         ArrayList<String> tempRows = new ArrayList<String>(rows);
@@ -177,11 +178,6 @@ public class AgeAnalysisMutation implements BigFuzzMutation{
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException

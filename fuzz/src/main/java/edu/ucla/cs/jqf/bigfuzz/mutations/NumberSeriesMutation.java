@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,15 +6,15 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation for I3: it contains infinite symbolic states
  */
 
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.*;
 
-public class NumberSeriesMutation implements BigFuzzMutation{
+public class NumberSeriesMutation implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
@@ -51,11 +51,6 @@ public class NumberSeriesMutation implements BigFuzzMutation{
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException
@@ -191,11 +186,6 @@ public class NumberSeriesMutation implements BigFuzzMutation{
     }
 
     @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         for(int i=0;i<generatedTimes;i++)
@@ -207,21 +197,6 @@ public class NumberSeriesMutation implements BigFuzzMutation{
             numberAsString = first + "," + second;
             rows.add(numberAsString);
         }
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
     }
 
     @Override

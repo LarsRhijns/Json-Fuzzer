@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,23 +6,21 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation: randomByteMutation.
  */
 
-import org.apache.commons.lang.RandomStringUtils;
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class WordCountMutation implements BigFuzzMutation{
+public class RandomMutation implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
-    int maxDuplicatedTimes = 20;
 
 
     public void mutate(String inputFile, String nextInputFile) throws IOException
@@ -56,11 +54,6 @@ public class WordCountMutation implements BigFuzzMutation{
         bw.close();
     }
 
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
-    }
-
     public void mutateFile(String inputFile) throws IOException
     {
 
@@ -84,12 +77,7 @@ public class WordCountMutation implements BigFuzzMutation{
 
         br.close();
 
-        int method =(int)(Math.random() * 2);
-        if(method == 0){
-            randomDuplicateRows(rows);
-        }else{
-            mutate(rows);
-        }
+        mutate(rows);
 
         fileRows = rows;
     }
@@ -126,8 +114,12 @@ public class WordCountMutation implements BigFuzzMutation{
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        int lineNum = r.nextInt(list.size());
+        System.out.println("mutate size: "+ list.size());
+//        int lineNum = r.nextInt(list.size());
+        int lineNum =(int)(Math.random() * list.size());
 
+
+        System.out.println("mutate linenum: " + lineNum);
         String line = randomChangeByte(list.get(lineNum));
         list.set(lineNum, line);
     }
@@ -139,55 +131,15 @@ public class WordCountMutation implements BigFuzzMutation{
         //int pos = r.nextInt(instr.length());
         int pos = (int)(Math.random() * instr.length());
         System.out.println("randomChangeByte pos: " + pos);
-
-        //random change several bytes
-        //char temp = (char)(Math.random() * 256);
-        String r = RandomStringUtils.randomAscii((int)(Math.random() * 5));
-        System.out.println("randomChangeByte randomAscii: " + r);
-//        char[] rchars = r.toCharArray();
-
-
-//        char[] characters = instr.toCharArray();
-//        characters[pos] = rchars[0];
-
-        StringBuilder sb = new StringBuilder(instr);
-        sb.insert(pos, r);
-        instr = sb.toString();
-
-//        return new String(characters);
-        return instr;
-    }
-
-    @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-        int ind = r.nextInt(rows.size());
-        int duplicatedTimes = r.nextInt(maxDuplicatedTimes)+1;
-        String duplicatedValue = rows.get(ind);
-        for(int i=0;i<duplicatedTimes;i++)
-        {
-            int insertPos = r.nextInt(rows.size());
-            rows.add(insertPos, duplicatedValue);
-        }
-
+        //random change byte
+        char temp = (char)r.nextInt(256);
+        char[] characters = instr.toCharArray();
+        characters[pos] = temp;
+        return new String(characters);
     }
 
     @Override
     public void randomGenerateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 
