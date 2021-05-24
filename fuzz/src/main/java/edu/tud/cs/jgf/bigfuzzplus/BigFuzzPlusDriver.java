@@ -20,6 +20,7 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_ERRORS = false;
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
+
     public static StringBuilder program_configuration = new StringBuilder();
     public static StringBuilder iteration_results = new StringBuilder();
     public static StringBuilder summarized_results = new StringBuilder();
@@ -93,7 +94,7 @@ public class BigFuzzPlusDriver {
         ArrayList<Long> errorInputCount = new ArrayList();
         ArrayList<Long> validInputCount = new ArrayList();
         ArrayList<Long> durations = new ArrayList();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             int atIteration = i + 1;
             System.out.println("******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
@@ -172,17 +173,17 @@ public class BigFuzzPlusDriver {
      * @param validInputCount
      */
     private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<ArrayList<String>> mutationStacks, ArrayList<Long> errorInputCount, ArrayList<Long> validInputCount) {
-        summarized_results.append("********* PROGRAM SUMMARY **********");
+        summarized_results.append("#********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
-        summarized_results.append("\nCUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
+        summarized_results.append("\n#CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
         for (int i = 0; i < uniqueFailureResults.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailureResults.get(i));
+            summarized_results.append("\nRun_" + (i + 1) + "= " + uniqueFailureResults.get(i));
         }
 
         // --------------- INPUTS --------------
-        summarized_results.append("\n\nAPPLIED MUTATIONS PER ITERATION");
+        summarized_results.append("\n\n#APPLIED MUTATIONS PER ITERATION");
         for (int i = 0; i < inputs.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + " [");
+            summarized_results.append("\nRun_" + (i + 1) + " [");
             for (int j = 0; j < inputs.get(i).size(); j++) {
                 if (j != 0) {
                     summarized_results.append(", ");
@@ -193,9 +194,9 @@ public class BigFuzzPlusDriver {
         }
 
         // --------------- MUTATION COUNTER --------------
-        summarized_results.append("\n\n MUTATED INPUTS PER ITERATION");
+        summarized_results.append("\n\n #MUTATED INPUTS PER ITERATION");
         for (int i = 0; i < methods.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": [");
+            summarized_results.append("\nRun_" + (i + 1) + "= [");
             for (int j = 0; j < methods.get(i).size(); j++) {
                 if (j != 0) {
                     summarized_results.append(", ");
@@ -208,46 +209,46 @@ public class BigFuzzPlusDriver {
         // --------------- COLUMN COUNTER --------------
         summarized_results.append("\n\n MUTATIONS APPLIED ON COLUMN PER ITERATION");
         for (int i = 0; i < columns.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": [");
+            summarized_results.append("\nRun_" + (i + 1) + "= [");
             for (int j = 0; j < columns.get(i).size(); j++) {
                 if (j != 0) {
                     summarized_results.append(", ");
                 }
-                summarized_results.append("(" + columns.get(i).get(j) + ")");
+                summarized_results.append("\"" + columns.get(i).get(j) + "\"");
             }
             summarized_results.append("]");
         }
 
         // --------------- DURATION --------------
-        summarized_results.append("\n\n DURATION PER ITERATION");
-        summarized_results.append("\ndurations: " + durations);
+        summarized_results.append("\n\n #DURATION PER ITERATION");
+        summarized_results.append("\ndurations= " + durations);
         for (int i = 0; i < durations.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": " + durations.get(i) + " ms ");
+            summarized_results.append("\nRun_" + (i + 1) + "= \"" + durations.get(i) + " ms\"");
         }
 
         // --------------- MUTATION STACK ---------------------
-        summarized_results.append("\n\n STACKED MUTATION COUNT PER ITERATION");
+        summarized_results.append("\n\n #STACKED MUTATION COUNT PER ITERATION");
         for (int i = 0; i < mutationStacks.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": [");
+            summarized_results.append("\nRun_" + (i + 1) + "= [");
             for (int j = 0; j < mutationStacks.get(i).size(); j++) {
                 if (j != 0) {
                     summarized_results.append(", ");
                 }
-                summarized_results.append("(" + mutationStacks.get(i).get(j) + ")");
+                summarized_results.append("\"" + mutationStacks.get(i).get(j) + "\"");
             }
             summarized_results.append("]");
         }
 
         // --------------- INPUTS ---------------------
-        summarized_results.append("\n\n ERROR/VALID COUNT PER ITERATION");
-        summarized_results.append("\ntotal errors: " + errorInputCount);
+        summarized_results.append("\n\n #ERROR/VALID COUNT PER ITERATION");
+        summarized_results.append("\ntotal_errors= " + errorInputCount);
         for (int i = 0; i < durations.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": " + errorInputCount.get(i) + " ");
+            summarized_results.append("\nRun_" + (i + 1) + "= " + errorInputCount.get(i) + " ");
         }
 
-        summarized_results.append("\ntotal valid inputs: " + validInputCount);
+        summarized_results.append("\ntotal_valid_inputs: " + validInputCount);
         for (int i = 0; i < durations.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": " + validInputCount.get(i) + " ");
+            summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
         }
 
 
