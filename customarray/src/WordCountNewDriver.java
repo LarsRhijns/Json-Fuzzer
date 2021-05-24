@@ -16,7 +16,7 @@ public class WordCountNewDriver {
 
 @Fuzz
     public void testWordCountNew(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCountEXF.WordCountNewDriver::testWordCountNew: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCountEXF.WordCountNewDriver::testWordCountNew: "+fileName);
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
 
     try {
