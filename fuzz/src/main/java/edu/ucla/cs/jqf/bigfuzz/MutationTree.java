@@ -1,7 +1,9 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import static edu.ucla.cs.jqf.bigfuzz.MutationTree.MutationExclusion.*;
 import static edu.ucla.cs.jqf.bigfuzz.MutationTree.MutationType.*;
 import static edu.ucla.cs.jqf.bigfuzz.SystematicMutation.MUTATION_DEPTH;
 
@@ -50,7 +52,9 @@ public class MutationTree {
 		private final MutationType mutationType;
 		private final ArrayList<MutationPair> prevMutations;
 		private final int column;
+
 		//amount of columns after mutation has been applied
+
 		private final int columnAmount;
 		private final int level;
 		private boolean isVisited;
@@ -142,6 +146,10 @@ public class MutationTree {
 			return column;
 		}
 
+		public int getColumnAmount() {
+			return columnAmount;
+		}
+
 		public void setVisited() {
 			isVisited = true;
 		}
@@ -164,22 +172,22 @@ public class MutationTree {
 
 		public void addAllTypes() {
 			//for every mutation type besides ChangeDelimiter and AddElement
-			for (int i = 1; i < values().length - 1; i++) {
+			for (int i = 1; i < MutationType.values().length - 1; i++) {
 				//for every column if turned on
 				if (SystematicMutation.MUTATE_COLUMNS) {
 					for (int column = 0; column < columnAmount; column++) {
-						MutationPair nextValue = new MutationPair(values()[i], column);
+						MutationPair nextValue = new MutationPair(MutationType.values()[i], column);
 						MutationPair currentValue = new MutationPair(this.mutationType, this.column);
 						if (!this.prevMutations.contains(nextValue) && !nextValue.equals(currentValue)) {
-							this.addChild(new Mutation(this, values()[i], column));
+							this.addChild(new Mutation(this, MutationType.values()[i], column));
 						}
 					}
 				} else {
 					//otherwise select one random column
 					int randomColumn = SystematicMutation.r.nextInt(columnAmount);
 					if (this.prevMutations.stream().noneMatch(pair -> pair.getMutationType() == this.mutationType)
-							&& this.mutationType != values()[i]) {
-						this.addChild(new Mutation(this, values()[i], randomColumn));
+							&& this.mutationType != MutationType.values()[i]) {
+						this.addChild(new Mutation(this, MutationType.values()[i], randomColumn));
 					}
 				}
 			}
@@ -196,27 +204,57 @@ public class MutationTree {
 		}
 
 		private void excludeTypes() {
-
+			ArrayList<MutationPair> excludeMutations = new ArrayList<>(this.prevMutations);
+			excludeMutations.add(new MutationPair(this.mutationType, this.column));
+			for (MutationPair pair : excludeMutations) {
+				this.children.removeIf(child -> pair.getColumn() == child.column &&
+						Arrays.stream(pair.getMutationType().exclusion.types).anyMatch(type -> child.getMutationType() == type));
+			}
 		}
 	}
 
-	//     *                    -: no mutation used for root
-//     *                    0: random change value   (M1)
-//     *                    1: random change into float (M2)
-//     *                    2: random insert value in element (M4)
-//     *                    3: random delete one column/element (M5)
-//     *                    4: Empty String (M6)
-//     *                    5: random add one column/element (?)
-//     *                    6: change delimiter (M3)
+	/*
+	 *                    -: no mutation used for root
+	 *                    0: random change value   (M1)
+	 *                    1: random change into float (M2)
+	 *                    2: random insert value in element (M4)
+	 *                    3: random delete one column/element (M5)
+	 *                    4: Empty String (M6)
+	 *                    5: random add one column/element (?)
+	 *                    6: change delimiter (M3)
+	 */
 	public enum MutationType {
-		NoMutation,
-		ChangeValue,
-		ChangeType,
-		InsertChar,
-		RemoveElement,
-		EmptyColumn,
-		AddElement,
-		ChangeDelimiter
+		NoMutation(NoExclusion),
+		ChangeValue(ChangeValueExclusion),
+		ChangeType(ChangeTypeExclusion),
+		InsertChar(InsertCharExclusion),
+		RemoveElement(RemoveElementExclusion),
+		EmptyColumn(EmptyColumnExclusion),
+		AddElement(AddElementExclusion),
+		ChangeDelimiter(NoExclusion);
+
+		public final MutationExclusion exclusion;
+
+		MutationType(MutationExclusion exclusion) {
+			this.exclusion = exclusion;
+		}
+
 	}
 
+	protected enum MutationExclusion {
+		ChangeValueExclusion(new MutationType[]{RemoveElement, EmptyColumn}),
+		ChangeTypeExclusion(new MutationType[]{ChangeValue, RemoveElement, EmptyColumn}),
+		InsertCharExclusion(new MutationType[]{ChangeValue, ChangeType, RemoveElement, EmptyColumn}),
+		RemoveElementExclusion(new MutationType[]{ChangeValue, ChangeType, InsertChar, EmptyColumn, AddElement}),
+		EmptyColumnExclusion(new MutationType[]{ChangeValue, ChangeType, InsertChar, RemoveElement, AddElement}),
+		AddElementExclusion(new MutationType[]{RemoveElement}),
+		NoExclusion(new MutationType[]{});
+//		ChangeDelimiterExclusion(new MutationType[]{});
+
+		private final MutationType[] types;
+
+		MutationExclusion(MutationType[] exclusions) {
+			this.types = exclusions;
+		}
+	}
 }
