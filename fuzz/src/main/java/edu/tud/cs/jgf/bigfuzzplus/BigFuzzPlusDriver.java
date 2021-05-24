@@ -54,16 +54,13 @@ public class BigFuzzPlusDriver {
         String mutationMethodClassName = args[2];
 
         Long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
-        System.out.println("maxTrials: " + maxTrials);
 
         int intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
         StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
-        System.out.println("stackedMutationMethod: " + stackedMutationMethod);
 
         // This variable is used for the stackedMutationMethod: Smart_mutate
         // If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
         int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
-        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
 
         // **************
 
@@ -83,9 +80,10 @@ public class BigFuzzPlusDriver {
 
         boolean newOutputDirCreated = outputDir.mkdir();
         if (!newOutputDirCreated) {
-            System.out.println("Something went wrong with making the output directory for this run");
+            System.err.println("Something went wrong with making the output directory for this run");
             System.exit(0);
         }
+        System.out.println(program_configuration);
 
         ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList();
         ArrayList<ArrayList<String>> inputs = new ArrayList();
