@@ -1,10 +1,10 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
+import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
+import edu.ucla.cs.jqf.bigfuzz.MutationTree.Mutation;
+
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -13,151 +13,165 @@ import java.util.Random;
  * @author Lars van Koetsveld van Ankeren
  */
 public class SystematicMutation implements BigFuzzMutation {
-	private String delimiter = ",";
-	private String delete;
-	private Random r = new Random();
-	private ArrayList<String> fileRows = new ArrayList<String>();
-	private static int mutationCounter;
+	protected static final Random r = new Random();
+	private static String delimiter;
+	private String deletePath;
+	private String seedFile;
+
+	//mutation tree
+	private MutationTree mutationTree;
+	//mutation data per mutation depth level
+	private final ArrayList<String[]> levelData;
+	//current level in tree
+	private int currentLevel;
+
+	//depth of tree
+	public static final int MUTATION_DEPTH = 6;
+	//apply mutations to all columns
+	public static boolean MUTATE_COLUMNS = false;
+	//print level and mutation type for every mutation
+	private static final boolean EVALUATE = false;
 
 	/**
-	 * Mutate on an csv file
+	 * Constructor for SystematicMutation class. Reads input conf file for path of seed.
 	 *
-	 * @param inputFile     csv input file.
-	 * @param nextInputFile path of output file written to by the class. Will contain mutated data.
-	 * @throws IOException if file cannot be found.
+	 * @param inputFile path of input conf file containing path of seed
 	 */
-	@Override
-	public void mutate(String inputFile, String nextInputFile) throws IOException {
-		List<String> fileList = Files.readAllLines(Paths.get(inputFile));
-		Random random = new Random();
-		int n = random.nextInt(fileList.size());
-		String fileToMutate = fileList.get(n);
-		mutateFile(fileToMutate);
+	public SystematicMutation(String inputFile) {
+		revertDelimiter();
+		currentLevel = 0;
+		levelData = new ArrayList<>(MUTATION_DEPTH);
 
-		String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/') + 1);
+		//reads files and sets seedFile and fileRows.
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(inputFile));
+			seedFile = br.readLine();
+			br = new BufferedReader(new FileReader(seedFile));
+			levelData.add(br.readLine().split(delimiter));
+			br.close();
+		} catch (IOException e) {
+			System.out.println("Error loading mutation files.");
+		}
+		mutationTree = new MutationTree(levelData.get(0).length);
+	}
+
+	public String evaluation() {
+		return "Current level: " + currentLevel +
+				"\nNext mutation: " + mutationTree.getCurrentMutation().getMutationType();
+	}
+
+	/**
+	 * Start mutating on a csv input file or continue mutating with previous mutation.
+	 *
+	 * @param outputFile path of output file written to by the class. Will contain mutated data
+	 * @throws IOException if file cannot be found
+	 */
+	public void mutate(String inputFile, String outputFile) throws IOException {
+		if (EVALUATE) {
+			System.out.print(evaluation());
+		}
+		Mutation currentMutation = mutationTree.traverseTree();
+		currentLevel = currentMutation.getLevel();
+
+		//Start from seed after all mutations have been applied
+		if (currentLevel == 0) {
+			System.out.println("Reached end of tree, restarting.");
+			mutationTree = new MutationTree(levelData.get(0).length);
+			levelData.subList(1, MUTATION_DEPTH + 1).clear();
+			revertDelimiter();
+			currentMutation = mutationTree.traverseTree();
+			currentLevel = currentMutation.getLevel();
+		}
+
+		int columnsBefore = levelData.get(currentLevel - 1).length;
+		String[] mutationRows = new String[columnsBefore];
+		System.arraycopy(levelData.get(currentLevel - 1), 0, mutationRows, 0, columnsBefore);
+		mutationRows = applyMutation(mutationRows, currentMutation);
+
+		if (levelData.size() <= currentLevel) {
+			levelData.add(currentLevel, mutationRows);
+		} else {
+			levelData.set(currentLevel, mutationRows);
+		}
+		String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
 		writeFile(fileName);
 
 		String path = System.getProperty("user.dir") + "/" + fileName;
 
-		delete = path;
+		deletePath = path;
 		// write next input config
-		BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
-
-		for (int i = 0; i < fileList.size(); i++) {
-			if (i == n)
-				bw.write(path);
-			else
-				bw.write(fileList.get(i));
-			bw.newLine();
-			bw.flush();
-		}
+		BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+		bw.write(path);
 		bw.close();
 	}
 
-	//    /**
-//     * mutate file based on index (support multiple data-specific mutations)
-//     *
-//     * @param inputFile
-//     * @param index
-//     * @throws IOException
-//     */
-//    @Override
-//    public void mutateFile(String inputFile, int index) throws IOException {
-//
-//    }
-	private void mutateFile(String inputFile) throws IOException {
-		File file = new File(inputFile);
-
-		ArrayList<String> rows = new ArrayList<String>();
-		BufferedReader br = new BufferedReader(new FileReader(inputFile));
-
-		if (file.exists()) {
-			String readLine = null;
-			while ((readLine = br.readLine()) != null) {
-				rows.add(readLine);
-			}
-		} else {
-			System.out.println("File does not exist!");
-			return;
-		}
-
-		br.close();
-
-		mutate(rows);
-
-		fileRows = rows;
-	}
-
 	/**
-	 * Mutate on rows of an input file. Applies 6 higher order mutations systematically.
+	 * Mutate on rows of an input file. Applies 7 mutations systematically.
 	 *
-	 * @param rows Input to be mutated.
+	 * @param mutationRows input rows that will be mutated.
+	 * @param mutation     mutation to be applied
+	 * @return string array containing mutated columns
 	 */
-	@Override
-	public void mutate(ArrayList<String> rows) {
+	private String[] applyMutation(String[] mutationRows, Mutation mutation) {
 		r.setSeed(System.currentTimeMillis());
-		int lineNum = r.nextInt(rows.size());
-		String[] columns = rows.get(lineNum).split(delimiter);
-
 		//can only mutate if data is present
-		assert columns.length > 0;
-		int columnIndex = r.nextInt(columns.length);
+		assert mutationRows.length > 0;
+		int columnIndex = mutation.getColumn();
 
-		switch (mutationCounter) {
-			case 0:     //change value
-				columns[columnIndex] = Integer.toString(r.nextInt());
+		switch (mutation.getMutationType()) {
+			case ChangeValue:       //change value
+				mutationRows[columnIndex] = Integer.toString(r.nextInt());
 				break;
-			case 1:     //change data type
-				changeType(columns);
+			case ChangeType:        //change data type
+				changeType(columnIndex, mutationRows);
 				break;
-			case 2:     //change delimiter
+			case ChangeDelimiter:               //change delimiter
 				changeDelimiter();
 				break;
-			case 3:     //insert characters
-				insertChar(columns, columnIndex);
+			case InsertChar:                    //insert characters
+				insertChar(columnIndex, mutationRows);
 				break;
-			case 4:     //remove column
-				removeOneElement(columns, columnIndex);
+			case RemoveElement:                 //remove column
+				mutationRows = removeOneElement(columnIndex, mutationRows);
 				break;
-			case 5:     //change to empty string
-				columns[columnIndex] = "";
+			case AddElement:                    //add column
+				mutationRows = addOneElement(mutationRows);
+				break;
+			case EmptyColumn:                   //change to empty string
+				mutationRows[columnIndex] = "";
+				break;
+			case NoMutation:
+				throw new GuidanceException("Can not mutate without mutation");
 		}
-		//output mutated rows
-		String line = columns[0];
-		for (String column : columns) {
-			line += delimiter + column;
-		}
-		rows.set(lineNum, line);
-		mutationCounter = (mutationCounter + 1) % 6;
-
+		return mutationRows;
 	}
 
 	/**
-	 * Change the data type of a number column from int to float or from float to int.
-	 *
-	 * @param columns Input to mutate
-	 * @return Input
+	 * Changes type of column from float to String, int to float and String to int.
+	 * @param columnIndex column to be mutated
+	 * @param mutationRows input to be mutated
 	 */
-	private void changeType(String[] columns) {
-		for (int i = 0; i < columns.length; i++) {
-			String element = columns[i];
-			try {
-				Integer.parseInt(element);                      //if int
-				columns[i] += ".0";                             //change to float
-				break;
-			} catch (NumberFormatException eInt) {              //if float
-				try {                                           //change to int
-					Float.parseFloat(element);
-					columns[i] = element.substring(0, element.lastIndexOf("."));
-					break;
-				} catch (NumberFormatException ignored) {       //not a number, continue looping
-				}
+	private void changeType(int columnIndex, String[] mutationRows) {
+		String element = mutationRows[columnIndex];
+		try {
+			//if float change to String
+			Float.parseFloat(element);
+			if (element.lastIndexOf(".") != -1) {
+				mutationRows[columnIndex] = "ChangeType";
 			}
+			//if int change to float
+			else {
+				mutationRows[columnIndex] += ".0";
+			}
+		} catch (NumberFormatException ignored) {
+			//if string change to number
+			mutationRows[columnIndex] = "0";
 		}
 	}
 
 	/**
-	 * Change delimiter to new character. Changes "," to "~", other delimiter characters to ",".
+	 * Change delimiter to new character. Changes "," to "~" and changes other delimiter characters to ",".
+	 * The change is applied when writeFile is called.
 	 */
 	private void changeDelimiter() {
 		if (delimiter.equals(",")) {
@@ -168,28 +182,61 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	/**
-	 * Set delimiter to new value.
+	 * Insert random char into row.
 	 *
-	 * @param d New string for delimiter
+	 * @param columnIndex index of column
 	 */
-	public void setDelimiter(String d) {
-		delimiter = d;
-	}
-
-	private void insertChar(String[] columns, int columnIndex) {
+	private void insertChar(int columnIndex, String[] mutationRows) {
 		char insertChar = (char) r.nextInt(255);
-		String element = columns[columnIndex];
-		int pos = r.nextInt(element.length());
-		columns[columnIndex] = element.substring(0, pos) + insertChar + element.substring(pos);
-	}
-
-	private void removeOneElement(String[] columns, int columnIndex) {
+		String element = mutationRows[columnIndex];
+		int pos = 0;
+		if (element.length() != 0) {
+			pos = r.nextInt(element.length());
+		}
+		mutationRows[columnIndex] = element.substring(0, pos) + insertChar + element.substring(pos);
 	}
 
 	/**
-	 * Randomly generate some rows and then randomly insert into the input lines
+	 * Removes one column from input.
 	 *
-	 * @param rows input to mutate
+	 * @param removeIndex  index of column to remove
+	 * @param mutationRows input to be mutated
+	 * @return array of strings with column removed at provided index
+	 */
+	private String[] removeOneElement(int removeIndex, String[] mutationRows) {
+		if (mutationRows.length < 2) {
+			return mutationRows;
+		}
+		String[] result = new String[mutationRows.length - 1];
+		int updateIndex = 0;
+
+		for (int i = 0; i < mutationRows.length - 1; i++) {
+			if (i == removeIndex) {
+				updateIndex++;
+			}
+			result[i] = mutationRows[updateIndex];
+			updateIndex++;
+		}
+		return result;
+	}
+
+	/**
+	 * Add one element at last column.
+	 *
+	 * @param mutationRows input to be mutated
+	 * @return array of strings with random element added at provided index
+	 */
+	public String[] addOneElement(String[] mutationRows) {
+		String[] result = new String[mutationRows.length + 1];
+		System.arraycopy(mutationRows, 0, result, 0, mutationRows.length);
+		result[mutationRows.length] = Integer.toString(r.nextInt(10000));
+		return result;
+	}
+
+	//TODO merge random generation
+
+	/**
+	 * Randomly generate some rows and then randomly insert into the input lines.
 	 */
 	@Override
 	public void randomGenerateRows(ArrayList<String> rows) {
@@ -197,64 +244,43 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	/**
-	 * Write rows into csv txt file.
+	 * Writes mutated data into csv txt file.
 	 *
-	 * @param outputFile path of output file.
+	 * @param outputFile path of output file
 	 */
-	@Override
 	public void writeFile(String outputFile) throws IOException {
-		File fout = new File(outputFile);
-		FileOutputStream fos = new FileOutputStream(fout);
+		File fOut = new File(outputFile);
+		FileOutputStream fos = new FileOutputStream(fOut);
+		String[] mutationRows = levelData.get(currentLevel);
 
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-		for (String fileRow : fileRows) {
-			if (fileRow == null) {
-				continue;
-			}
-			bw.write(fileRow);
-			bw.newLine();
+		StringBuilder sb = new StringBuilder(mutationRows[0]);
+		for (int i = 1; i < mutationRows.length; i++) {
+			String element = mutationRows[i];
+			sb.append(delimiter).append(element);
 		}
-
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+		bw.write(sb.toString());
 		bw.close();
 		fos.close();
 	}
 
-	@Override
+	/**
+	 * Reverts delimiter to standard value: ",".
+	 */
+	public static void revertDelimiter() {
+		delimiter = ",";
+	}
+
 	public void deleteFile(String currentFile) throws IOException {
-		File del = new File(delete);
+		File del = new File(deletePath);
 		del.delete();
 	}
 
-	//unused methods
-
-	@Override
-	public void mutateFile(String inputFile, int index) throws IOException {
-
-	}
-
 	/**
-	 * Randomly duplicate some rows and then randomly insert into the input lines
-	 *
-	 * @param rows
+	 * Unused method to implement BigFuzzMutation interface.
 	 */
 	@Override
-	public void randomDuplicateRows(ArrayList<String> rows) {
-
+	public void mutate(ArrayList<String> rows) {
 	}
 
-	@Override
-	public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-	}
-
-	@Override
-	public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-	}
-
-	@Override
-	public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-	}
 }
