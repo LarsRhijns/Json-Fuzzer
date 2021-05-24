@@ -305,7 +305,7 @@ public class HighOrderMutation {
 
 
     /**
-     * Returns a HighOrderMutationMethod depending on the passses parameter:
+     * Returns a HighOrderMutationMethod depending on the passed parameter:
      * 0: ChangeValue
      * 1: ChangeType
      * 2: ChangeDelimiter
@@ -335,6 +335,40 @@ public class HighOrderMutation {
                 return AddElement;
             default:
                 return HighOrderMutationMethod.NoMutation;
+        }
+    }
+
+    /**
+     * Returns a int depending on the passed parameter:
+     *  ChangeValue     - 0
+     *  ChangeType      - 1
+     *  ChangeDelimiter - 2
+     *  RandomCharacter - 3
+     *  RemoveElement   - 4
+     *  EmptyColumn     - 5
+     *  AddElement      - 6
+     *
+     * @param m HighOrderMutationMethod
+     * @return Integer that matched the passed highordermutationmethod
+     */
+    public static int highOrderMutationMethodToInt(HighOrderMutationMethod m) {
+        switch (m) {
+            case ChangeValue:
+                return 0;
+            case ChangeType:
+                return 1;
+            case ChangeDelimiter:
+                return 2;
+            case RandomCharacter:
+                return 3;
+            case RemoveElement:
+                return 4;
+            case EmptyColumn:
+                return 5;
+            case AddElement:
+                return 6;
+            default:
+                return -1;
         }
     }
 }

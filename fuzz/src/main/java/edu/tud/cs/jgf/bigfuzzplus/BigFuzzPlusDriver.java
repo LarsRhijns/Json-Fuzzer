@@ -93,7 +93,7 @@ public class BigFuzzPlusDriver {
         ArrayList<Long> errorInputCount = new ArrayList();
         ArrayList<Long> validInputCount = new ArrayList();
         ArrayList<Long> durations = new ArrayList();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 10; i++) {
             int atIteration = i + 1;
             System.out.println("******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
@@ -101,7 +101,7 @@ public class BigFuzzPlusDriver {
             try {
                 long iterationStartTime = System.currentTimeMillis();
 
-                Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
+                Duration maxDuration = Duration.of(5, ChronoUnit.MINUTES);
                 //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
                 String iterationOutputDir = outputDir + "/Test" + atIteration;
                 BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, iterationOutputDir, mutationMethodClassName);
@@ -111,8 +111,7 @@ public class BigFuzzPlusDriver {
                 guidance.setMutationStackCount(intMutationStackCount);
 
                 // Set the randomization seed to the program start time. Seed is passed to allow for custom seeds, independent of the program start time
-//                guidance.setRandomizationSeed(iterationStartTime);
-                guidance.setRandomizationSeed(5);
+                guidance.setRandomizationSeed(iterationStartTime);
 
                 // Set the test class name in the guidance for the failure tracking
                 guidance.setTestClassName(testClassName);
@@ -309,6 +308,7 @@ public class BigFuzzPlusDriver {
                 Map.Entry e = it.next();
                 methodStringList.add(e.getKey() + ": " + e.getValue());
             }
+
 
             Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
             ArrayList<String> columnStringList = new ArrayList();

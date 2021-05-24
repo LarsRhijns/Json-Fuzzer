@@ -406,7 +406,7 @@ public class StackedMutation implements BigFuzzMutation {
             case AddElement:
                 String one = Integer.toString(r.nextInt(10000));
                 int columnIndexNewElement = r.nextInt(rowElements.length + 1);
-                mutationResult = addOneElement(rowElements, one, columnIndexNewElement);
+                mutationResult = addOneElement(rowElements, one);
                 break;
             case EmptyColumn:
                 mutationResult = emptyOneElement(rowElements, elementId);
@@ -498,28 +498,19 @@ public class StackedMutation implements BigFuzzMutation {
     }
 
     /**
-     * Add one element to the provided String list. Provided value is inserted at the provided index. If the element needs to be inserted at the en of the list, use index input.size() + 1
+     * Add one element to the provided String list. Provided value is inserted at the end.
      *
      * @param rowElements  String list in which the new element is inserted
      * @param elementValue Value which needs to be inserted in the provided list
-     * @param index        Index at which the new element needs to be inserted
      * @return New List in which the provided value is inserted in the input list at index
      */
-    public static String[] addOneElement(String[] rowElements, String elementValue, int index) {
-        List<String> result = new LinkedList<>();
+    public static String[] addOneElement(String[] rowElements, String elementValue) {
+        String[] result = new String[rowElements.length + 1];
 
-        for (int i = 0; i < rowElements.length; i++) {
-            if (i == index) {
-                result.add(elementValue);
-            }
-            result.add(rowElements[i]);
-        }
+        System.arraycopy(rowElements, 0, result, 0, rowElements.length);
+        result[rowElements.length] = elementValue;
 
-        if (index == rowElements.length + 1) {
-            result.add(elementValue);
-        }
-
-        return result.toArray(rowElements);
+        return result;
     }
 
     /**
