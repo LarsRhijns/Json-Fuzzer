@@ -1,16 +1,11 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
-//import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.Objects;
 
 public class BigFuzzDriver {
@@ -55,7 +50,7 @@ public class BigFuzzDriver {
             String title = testClassName+"#"+testMethodName;
               Duration duration = Duration.of(10, ChronoUnit.SECONDS);
              //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err, outputDirectory);
+             BigFuzzGuidance guidance = new BigFuzzGuidance(title, file, maxTrials, duration, System.err, outputDirectory);
 
              // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);

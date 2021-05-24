@@ -11,3 +11,4 @@ conf
 conf+cov
 # Ignores crash reports & sample data
 2021*
+fuzz-results/

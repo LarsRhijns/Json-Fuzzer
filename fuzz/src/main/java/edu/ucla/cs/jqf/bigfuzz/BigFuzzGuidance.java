@@ -1,9 +1,9 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
+import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
-import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import org.apache.commons.io.FileUtils;
@@ -32,10 +32,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.LOG_AND_PRINT_STATS;
 import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
 import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
-import static java.lang.Math.ceil;
-import static java.lang.Math.log;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
@@ -56,6 +55,12 @@ public class BigFuzzGuidance implements Guidance {
 
     /** Time at last stats refresh. */
     protected Date lastRefreshTime = startTime;
+
+    /** Total execs at last stats refresh. */
+    protected long lastNumTrials = 0;
+
+    /** Minimum amount of time (in millis) between two stats refreshes. */
+    protected static final long STATS_REFRESH_TIME_PERIOD = 300;
 
     /** The max amount of time to run for, in milli-seconds */
     protected final long maxDurationMillis;
@@ -80,6 +85,34 @@ public class BigFuzzGuidance implements Guidance {
 
     /** The directory where all mutations are written. */
     protected File allInputsDirectory;
+
+    /** Set of saved inputs to fuzz. */
+    protected ArrayList<ZestGuidance.Input> savedInputs = new ArrayList<>();
+
+    /** Queue of seeds to fuzz. */
+    protected Deque<ZestGuidance.Input> seedInputs = new ArrayDeque<>();
+
+    /** Index of currentInput in the savedInputs -- valid after seeds are processed (OK if this is inaccurate). */
+    protected int currentParentInputIdx = 0;
+
+    /** Number of mutated inputs generated from currentInput. */
+    protected int numChildrenGeneratedForCurrentParentInput = 0;
+
+    /** Number of cycles completed (i.e. how many times we've reset currentParentInputIdx to 0. */
+    protected int cyclesCompleted = 0;
+
+    /** Number of favored inputs in the last cycle. */
+    protected int numFavoredLastCycle = 0;
+
+    /** Blind fuzzing -- if true then the queue is always empty. */
+    protected boolean blind;
+
+    /** Number of saved inputs.
+     *
+     * This is usually the same as savedInputs.size(),
+     * but we do not really save inputs in TOTALLY_RANDOM mode.
+     */
+    protected int numSavedInputs = 0;
 
     private final long maxTrials;
     private final PrintStream out;
@@ -133,6 +166,12 @@ public class BigFuzzGuidance implements Guidance {
 
     /** Whether to save inputs that only add new coverage bits (but no new responsibilities). */
     static final boolean SAVE_NEW_COUNTS = true;
+
+    /** Baseline number of mutated children to produce from a given parent input. */
+    static final int NUM_CHILDREN_BASELINE = 50;
+
+    /** Multiplication factor for number of children to produce for favored inputs. */
+    static final int NUM_CHILDREN_MULTIPLIER_FAVORED = 20;
 
     /** Whether to steal responsibility from old inputs (this increases computation cost). */
     static final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
@@ -200,17 +239,22 @@ public class BigFuzzGuidance implements Guidance {
             FileUtils.cleanDirectory(FileUtils.getFile(allInputsDirectory));
         }
 
-        this.statsFile = new File(outputDirectory, "plot_data");
-        if (!statsFile.createNewFile()) {
-            assert statsFile.delete();
+        if (LOG_AND_PRINT_STATS) {
+            this.statsFile = new File(outputDirectory, "plot_data");
+            if (!this.statsFile.createNewFile()) {
+                System.out.println("!! Could not create file: " + statsFile);
+            }
         }
         this.logFile = new File(outputDirectory, "fuzz.log");
         if (!logFile.createNewFile()) {
             assert logFile.delete();
         }
 
-        appendLineToFile(statsFile,"# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
-                "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, valid_inputs, invalid_inputs, valid_cov");
+        if (LOG_AND_PRINT_STATS) {
+            appendLineToFile(statsFile, "# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
+                    "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, valid_inputs, " +
+                    "invalid_inputs, valid_cov");
+        }
     }
 
     @Override
@@ -279,7 +323,7 @@ public class BigFuzzGuidance implements Guidance {
         this.runStart = null;
 
         if (PRINT_METHODNAMES) { System.out.println("BigFuzz::handleResult"); }
-        System.out.println(result);
+//        System.out.println("result: " + result);
 
         this.numTrials++;
 
@@ -319,7 +363,7 @@ public class BigFuzzGuidance implements Guidance {
             // A valid input will steal responsibility from invalid inputs
             Set<Object> responsibilities = computeResponsibilities(valid);
             if (responsibilities.size() > 0) {
-                System.out.println("New responsibilities found: " + responsibilities);
+//                System.out.println("New responsibilities found: " + responsibilities);
             }
 
             // Update total coverage
@@ -447,6 +491,112 @@ public class BigFuzzGuidance implements Guidance {
                 currentInputFile = lastWorkingInputFile;
             }
         }
+
+        if (LOG_AND_PRINT_STATS) {
+            this.displayStats();
+        }
+    }
+
+    private void displayStats() {
+        PrintStream console = System.out;
+        assert (console != null);
+
+        Date now = new Date();
+        long intervalMilliseconds = now.getTime() - lastRefreshTime.getTime();
+        if (intervalMilliseconds < STATS_REFRESH_TIME_PERIOD) {
+            return;
+        }
+        long intervalTrials = numTrials - lastNumTrials;
+        long intervalExecsPerSec = intervalTrials * 1000L / intervalMilliseconds;
+        double intervalExecsPerSecDouble = intervalTrials * 1000.0 / intervalMilliseconds;
+        lastRefreshTime = now;
+        lastNumTrials = numTrials;
+        long elapsedMilliseconds = now.getTime() - startTime.getTime();
+        long execsPerSec = numTrials * 1000L / elapsedMilliseconds;
+
+        String currentParentInputDesc;
+        if (seedInputs.size() > 0 || savedInputs.isEmpty()) {
+            currentParentInputDesc = "<seed>";
+        } else {
+            ZestGuidance.Input currentParentInput = savedInputs.get(currentParentInputIdx);
+            currentParentInputDesc = currentParentInputIdx + " ";
+            currentParentInputDesc += currentParentInput.isFavored() ? "(favored)" : "(not favored)";
+            currentParentInputDesc += " {" + numChildrenGeneratedForCurrentParentInput +
+                    "/" + getTargetChildrenForParent(currentParentInput) + " mutations}";
+        }
+
+        int nonZeroCount = totalCoverage.getNonZeroCount();
+        double nonZeroFraction = nonZeroCount * 100.0 / totalCoverage.size();
+        int nonZeroValidCount = validCoverage.getNonZeroCount();
+        double nonZeroValidFraction = nonZeroValidCount * 100.0 / validCoverage.size();
+
+        console.print("\033[2J");
+        console.print("\033[H");
+        console.println(this.getTitle() + ":");
+        if (this.testName != null) {
+            console.printf("\tTest name:            %s\n", this.testName);
+        }
+        console.printf("\tResults directory:    %s\n", this.outputDirectory.getAbsolutePath());
+        console.printf("\tElapsed time:         %s (%s)\n", millisToDuration(elapsedMilliseconds),
+                maxDurationMillis == Long.MAX_VALUE ? "no time limit" : ("max " + millisToDuration(maxDurationMillis)));
+        console.printf("\tNumber of executions: %,d\n", numTrials);
+        console.printf("\tValid inputs:         %,d (%.2f%%)\n", numValid, numValid*100.0/numTrials);
+        console.printf("\tCycles completed:     %d\n", cyclesCompleted);
+        console.printf("\tUnique failures:      %,d\n", uniqueFailures.size());
+        console.printf("\tQueue size:           %,d (%,d favored last cycle)\n", savedInputs.size(), numFavoredLastCycle);
+        console.printf("\tCurrent parent input: %s\n", currentParentInputDesc);
+        console.printf("\tExecution speed:      %,d/sec now | %,d/sec overall\n", intervalExecsPerSec, execsPerSec);
+        console.printf("\tTotal coverage:       %,d branches (%.2f%% of map)\n", nonZeroCount, nonZeroFraction);
+        console.printf("\tValid coverage:       %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
+        console.println();
+
+        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%",
+                TimeUnit.MILLISECONDS.toSeconds(now.getTime()), cyclesCompleted, currentParentInputIdx,
+                numSavedInputs, 0, 0, nonZeroFraction, uniqueFailures.size(), 0, 0, intervalExecsPerSecDouble,
+                numValid, numTrials-numValid, nonZeroValidFraction);
+        appendLineToFile(statsFile, plotData);
+
+    }
+
+    private int getTargetChildrenForParent(ZestGuidance.Input parentInput) {
+        // Baseline is a constant
+        int target = NUM_CHILDREN_BASELINE;
+
+        // We like inputs that cover many things, so scale with fraction of max
+        if (maxCoverage > 0) {
+            target = (NUM_CHILDREN_BASELINE * parentInput.nonZeroCoverage) / maxCoverage;
+        }
+
+        // We absolutely love favored inputs, so fuzz them more
+        if (parentInput.isFavored()) {
+            target = target * NUM_CHILDREN_MULTIPLIER_FAVORED;
+        }
+
+        return target;
+    }
+
+    /** Returns the banner to be displayed on the status screen */
+    private String getTitle() {
+        if (blind) {
+            return  "Generator-based random fuzzing (no guidance)";
+        } else {
+            return  "BigFuzz: Efficient fuzz testing for data analytics using framework abstraction";
+        }
+    }
+
+    private String millisToDuration(long millis) {
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis % TimeUnit.MINUTES.toMillis(1));
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis % TimeUnit.HOURS.toMillis(1));
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        String result = "";
+        if (hours > 0) {
+            result = hours + "h ";
+        }
+        if (hours > 0 || minutes > 0) {
+            result += minutes + "m ";
+        }
+        result += seconds + "s";
+        return result;
     }
 
     // Compute a set of branches for which the current input may assume responsibility
@@ -462,7 +612,7 @@ public class BigFuzzGuidance implements Guidance {
         // This input is responsible for all new coverage
         Collection<?> newCoverage = runCoverage.computeNewCoverage(totalCoverage);
         if (newCoverage.size() > 0) {
-            System.out.println("coverage increased");
+//            System.out.println("coverage increased");
             result.addAll(newCoverage);
         }
 
