@@ -2,6 +2,7 @@ package edu.ucla.cs.jqf.bigfuzz;
 
 //import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.time.Duration;
@@ -13,6 +14,8 @@ public class BigFuzzDriver {
     // These booleans are for debugging purposes only, toggle them if you want to see the information
     public static boolean PRINT_METHODNAMES = false;
     public static boolean PRINT_MUTATIONDETAILS = false;
+    public static boolean FLUSH_OUTPUTDIR = true;
+    public static String OUTPUT_DIR = "output";
 
     public static void main(String[] args) {
         if (args.length < 2) {
@@ -31,17 +34,22 @@ public class BigFuzzDriver {
            long startTime = System.currentTimeMillis();
 
             String title = testClassName+"#"+testMethodName;
-              Duration duration = Duration.of(100, ChronoUnit.SECONDS);
+              Duration duration = Duration.of(300, ChronoUnit.SECONDS);
              //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, startTime, duration, System.err, "output");
+             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, startTime, duration, System.err, OUTPUT_DIR);
 
              // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
             long endTime = System.currentTimeMillis();
 
-            // Evaluate the results
-            evaluation(testClassName, testMethodName, file, maxTrials, duration, startTime, endTime, guidance);
+           // Evaluate the results
+           evaluation(testClassName, testMethodName, file, maxTrials, duration, startTime, endTime, guidance);
 
+           //empty directory
+           if (FLUSH_OUTPUTDIR) {
+               System.gc();
+               FileUtils.cleanDirectory(FileUtils.getFile(OUTPUT_DIR));
+           }
        } catch (Exception e) {
             e.printStackTrace();
         }
