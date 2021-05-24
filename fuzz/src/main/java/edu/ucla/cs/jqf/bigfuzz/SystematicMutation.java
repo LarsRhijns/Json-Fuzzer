@@ -26,11 +26,11 @@ public class SystematicMutation implements BigFuzzMutation {
 	private int currentLevel;
 
 	//depth of tree
-	public static final int MUTATION_DEPTH = 6;
+	public static final int MUTATION_DEPTH = 7;
 	//apply mutations to all columns
-	public static boolean MUTATE_COLUMNS = false;
+	public static boolean MUTATE_COLUMNS = true;
 	//print level and mutation type for every mutation
-	private static final boolean EVALUATE = false;
+	public static final boolean EVALUATE = false;
 
 	/**
 	 * Constructor for SystematicMutation class. Reads input conf file for path of seed.
@@ -204,7 +204,7 @@ public class SystematicMutation implements BigFuzzMutation {
 	 * @return array of strings with column removed at provided index
 	 */
 	private String[] removeOneElement(int removeIndex, String[] mutationRows) {
-		if (mutationRows.length < 2) {
+		if (mutationTree.getCurrentMutation().getColumnAmount() < 2) {
 			return mutationRows;
 		}
 		String[] result = new String[mutationRows.length - 1];
