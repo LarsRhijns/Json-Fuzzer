@@ -73,10 +73,11 @@ public class BigFuzzPlusDriver {
         program_configuration.append("Program started with the following parameters: ");
         program_configuration.append("\n\tTest class: " + testClassName);
         program_configuration.append("\n\tTest method: " + testMethodName);
-        program_configuration.append("\n\tTest method: " + mutationMethodClassName);
-        program_configuration.append("\n\tTest stackedMutation method: " + stackedMutationMethod);
-        program_configuration.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
-
+        program_configuration.append("\n\tMutation class: " + mutationMethodClassName);
+        if(mutationMethodClassName.equals("StackedMutation")) {
+            program_configuration.append("\n\tTest stackedMutation method: " + stackedMutationMethod);
+            program_configuration.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
+        }
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
 
@@ -242,12 +243,12 @@ public class BigFuzzPlusDriver {
         // --------------- INPUTS ---------------------
         summarized_results.append("\n\n #ERROR/VALID COUNT PER ITERATION");
         summarized_results.append("\ntotal_errors= " + errorInputCount);
-        for (int i = 0; i < durations.size(); i++) {
+        for (int i = 0; i < errorInputCount.size(); i++) {
             summarized_results.append("\nRun_" + (i + 1) + "= " + errorInputCount.get(i) + " ");
         }
 
         summarized_results.append("\ntotal_valid_inputs: " + validInputCount);
-        for (int i = 0; i < durations.size(); i++) {
+        for (int i = 0; i < validInputCount.size(); i++) {
             summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
         }
 
