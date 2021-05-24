@@ -53,9 +53,9 @@ public class BigFuzzDriver {
         String file = "dataset/conf";
        try {
             String title = testClassName+"#"+testMethodName;
-              Duration duration = Duration.of(100, ChronoUnit.SECONDS);
+              Duration duration = Duration.of(10, ChronoUnit.SECONDS);
              //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, startTime, duration, System.err, outputDirectory);
+             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err, outputDirectory);
 
              // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
