@@ -19,16 +19,16 @@ public class WordCountNewDriver {
 //        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCountEXF.WordCountNewDriver::testWordCountNew: "+fileName);
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
 
-    try {
-        Scanner sc = new Scanner(new File(fileList.get(0)));
-
-        while (sc.hasNextLine()) {
-            System.out.println(sc.nextLine());
-
-        }
-    } catch (FileNotFoundException e) {
-
-    }
+//    try {
+//        Scanner sc = new Scanner(new File(fileList.get(0)));
+//
+//        while (sc.hasNextLine()) {
+////            System.out.println(sc.nextLine());
+//
+//        }
+//    } catch (FileNotFoundException e) {
+//
+//    }
 
         WordCountNew analysis = new WordCountNew();
         analysis.WordCountNew(fileList.get(0));
