@@ -25,8 +25,8 @@ public class SystematicMutation implements BigFuzzMutation {
 	//current level in tree
 	private int currentLevel;
 
-	//depth of tree
-	public static final int MUTATION_DEPTH = 7;
+	//maximum depth of tree
+	public static final int MUTATION_DEPTH = 4;
 	//apply mutations to all columns
 	public static boolean MUTATE_COLUMNS = true;
 	//print level and mutation type for every mutation
@@ -56,8 +56,9 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	public String evaluation() {
-		return "Current level: " + currentLevel +
-				"\nNext mutation: " + mutationTree.getCurrentMutation().getMutationType();
+		return "Level: " + currentLevel +
+				"\nColumn: " + mutationTree.getCurrentMutation().getColumn() +
+				"\nNext mutation: " + mutationTree.getCurrentMutation().getMutationType() + "\n";
 	}
 
 	/**
@@ -75,9 +76,9 @@ public class SystematicMutation implements BigFuzzMutation {
 
 		//Start from seed after all mutations have been applied
 		if (currentLevel == 0) {
-			System.out.println("Reached end of tree, restarting.");
+			System.out.println("\nReached end of tree, restarting.");
 			mutationTree = new MutationTree(levelData.get(0).length);
-			levelData.subList(1, MUTATION_DEPTH + 1).clear();
+			levelData.subList(1, levelData.size()).clear();
 			revertDelimiter();
 			currentMutation = mutationTree.traverseTree();
 			currentLevel = currentMutation.getLevel();

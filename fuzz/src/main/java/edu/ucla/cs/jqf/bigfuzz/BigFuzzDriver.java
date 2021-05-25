@@ -70,10 +70,12 @@ public class BigFuzzDriver {
      */
     private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzGuidance guidance) {
         // Print configuration
-        System.out.println("---CONFIGURATION---");
+        System.out.println("\r---CONFIGURATION---");
         System.out.println("Files used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
         System.out.println("Max trials: " + maxTrials);
         System.out.println("Max duration: " + duration.toMillis() + "ms");
+        System.out.println("Mutation depth: " + SystematicMutation.MUTATION_DEPTH);
+        System.out.println("Explore all columns: " + SystematicMutation.MUTATE_COLUMNS);
 
         // Print results
         System.out.println("\n---RESULTS---");
