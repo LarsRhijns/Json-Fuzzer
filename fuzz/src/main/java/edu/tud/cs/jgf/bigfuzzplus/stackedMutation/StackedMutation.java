@@ -276,8 +276,10 @@ public class StackedMutation implements BigFuzzMutation {
         // ASSUMPTION: remove element will always remove the LAST element
         int elementDeletionCount = 0;
 
+        int mutationStackRandomCount = r.nextInt(maxMutationStack ) + 1;
+
         // Generate as many mutations as possible which is withing the maxMutationStack value.
-        for (int i = 0; i < maxMutationStack; i++) {
+        for (int i = 0; i < mutationStackRandomCount; i++) {
             // If all the elements have been deleted, stop stacking mutations as no more mutations can be applied
             if (elementDeletionCount == rowElements.length) {
                 break;
