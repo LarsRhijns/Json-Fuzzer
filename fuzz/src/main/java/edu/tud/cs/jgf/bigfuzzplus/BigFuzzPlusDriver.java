@@ -172,7 +172,7 @@ public class BigFuzzPlusDriver {
      * @param validInputCount
      */
     private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<ArrayList<String>> mutationStacks, ArrayList<Long> errorInputCount, ArrayList<Long> validInputCount) {
-        summarized_results.append("#********* PROGRAM SUMMARY **********");
+        summarized_results.append("\n#********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\n#CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
         for (int i = 0; i < uniqueFailureResults.size(); i++) {
@@ -366,7 +366,7 @@ public class BigFuzzPlusDriver {
     private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzPlusGuidance guidance, int atIteration) {
         StringBuilder e_log = new StringBuilder();
         // Print configuration
-        e_log.append("*** TEST " + atIteration + " LOG ***");
+        e_log.append("\n*** TEST " + atIteration + " LOG ***");
         e_log.append("\n---CONFIGURATION---");
         e_log.append("\nFiles used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
         e_log.append("\n\nMax trials: " + maxTrials);
