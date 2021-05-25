@@ -1,8 +1,8 @@
-package edu.bigfuzztabulardata;
+package edu.tabfuzz;
 
 import com.github.curiousoddman.rgxgen.RgxGen;
 
-import java.util.Random;
+import java.util.*;
 
 public class DataFormat {
     private String columnName;
@@ -65,12 +65,12 @@ public class DataFormat {
             generateArrayInputInRange(5); //TODO: What should array size be?
         }
         else {
-            s = generateIntervalValue();
+            s = generateIntervalValue(range);
         }
         return s;
     }
 
-    private String generateIntervalValue() {
+    private String generateIntervalValue(String[] range) {
         String interval = "";
         if (range.length != 0) {
             int rangeSelection = (int) (Math.random() * range.length);
@@ -100,175 +100,119 @@ public class DataFormat {
         return s;
     }
 
-    private String generateByteValue(String interval) {
-        if (interval.equals("")) {
-            Random r = new Random();
-            return r.nextInt(Byte.MAX_VALUE + 1) + "";
-        }
-        byte low;
-        byte high;
-        if (interval.contains(">")) {
-            low = Byte.parseByte(interval.substring(1));
-            high = Byte.MAX_VALUE;
-        } else if (interval.contains("<")) {
-            low = Byte.MIN_VALUE;
-            high = Byte.parseByte(interval.substring(1));
-        } else {
-            String[] bounds = interval.split("-");
-            low = Byte.parseByte(bounds[0]);
-            high = Byte.parseByte(bounds[1]);
-        }
-        return low + (byte) (Math.random() * (high - low)) + "";
-    }
-
-    private String generateShortValue(String interval) {
-        if (interval.equals("")) {
-            Random r = new Random();
-            return r.nextInt(Short.MAX_VALUE + 1) + "";
-        }
-        short low;
-        short high;
-        if (interval.contains(">")) {
-            low = Short.parseShort(interval.substring(1));
-            high = Short.MAX_VALUE;
-        } else if (interval.contains("<")) {
-            low = Short.MIN_VALUE;
-            high = Short.parseShort(interval.substring(1));
-        } else {
-            String[] bounds = interval.split("-");
-            low = Short.parseShort(bounds[0]);
-            high = Short.parseShort(bounds[1]);
-        }
-        return low + (short) (Math.random() * (high - low)) + "";
-    }
-
-    private String generateIntValue(String interval) {
-        if (interval.equals("")) {
-            Random r = new Random();
-            return r.nextInt() + "";
-        }
-        int low;
-        int high;
-        if (interval.contains(">")) {
-            low = Integer.parseInt(interval.substring(1));
-            high = Integer.MAX_VALUE;
-        } else if (interval.contains("<")) {
-            low = Integer.MIN_VALUE;
-            high = Integer.parseInt(interval.substring(1));
-        } else {
-            String[] bounds = interval.split("-");
-            low = Integer.parseInt(bounds[0]);
-            high = Integer.parseInt(bounds[1]);
-        }
-        return low + (int) (Math.random() * (high - low)) + "";
-    }
-
-    private String generateLongValue(String interval) {
-        if (interval.equals("")) {
-            Random r = new Random();
-            return r.nextLong() + "";
-        }
-        long low;
-        long high;
-        if (interval.contains(">")) {
-            low = Long.parseLong(interval.substring(1));
-            high = Long.MAX_VALUE;
-        } else if (interval.contains("<")) {
-            low = Long.MIN_VALUE;
-            high = Long.parseLong(interval.substring(1));
-        } else {
-            String[] bounds = interval.split("-");
-            low = Long.parseLong(bounds[0]);
-            high = Long.parseLong(bounds[1]);
-        }
-        return low + (long) (Math.random() * (high - low)) + "";
-    }
-
-    private String generateFloatValue(String interval) { //TODO: Check what the string representation should be
-        if (interval.equals("")) {
-            Random r = new Random();
-            int signSelection = (int) (Math.random() * 2);
-            if (signSelection == 0) {
-                return r.nextFloat() * Float.MAX_VALUE + "";
+        public String generateInputOutsideRange() {
+        String s = "";
+        if (dataType.equals("String")) {
+            if (range[0].equals("")) {
+                return generateInputInRange();
             }
-            return "-" + r.nextFloat() * Float.MAX_VALUE + "";
+            RgxGen generator = new RgxGen(range[0]);
+            s = generator.generateNotMatching();
         }
-        float low;
-        float high;
-        if (interval.contains(">")) {
-            low = Float.parseFloat(interval.substring(1));
-            high = Float.MAX_VALUE;
-        } else if (interval.contains("<")) {
-            low = Float.MIN_VALUE;
-            high = Float.parseFloat(interval.substring(1));
-        } else {
-            String[] bounds = interval.split("-");
-            low = Float.parseFloat(bounds[0]);
-            high = Float.parseFloat(bounds[1]);
+        else if (dataType.equals("char")) {
+            return "";
+            //TODO: generate char outside regex
         }
-        return low + (Math.random() * (high - low)) + "";
-    }
-
-    private String generateDoubleValue(String interval) { //TODO: Check what the string representation should be
-        if (interval.equals("")) {
-            Random r = new Random();
-            int signSelection = (int) (Math.random() * 2);
-            if (signSelection == 0) {
-                return r.nextDouble() * Double.MAX_VALUE + "";
+        else if (dataType.equals("boolean")) {
+            return "";
+        }
+        else {
+            if (range.length == 0) {
+                generateIntervalValue(range);
             }
-            return "-" + r.nextDouble() * Double.MAX_VALUE + "";
+            s = generateIntervalValue(findReverseIntervals());
+            //TODO: Default range
         }
-        double low;
-        double high;
-        if (interval.contains(">")) {
-            low = Double.parseDouble(interval.substring(1));
-            high = Double.MAX_VALUE;
-        } else if (interval.contains("<")) {
-            low = Double.MIN_VALUE;
-            high = Double.parseDouble(interval.substring(1));
-        } else {
-            String[] bounds = interval.split("-");
-            low = Double.parseDouble(bounds[0]);
-            high = Double.parseDouble(bounds[1]);
-        }
-        return low + (Math.random() * (high - low)) + "";
+        return s;
     }
 
-//    public String generateInputOutsideRange() { //TODO: still a lot of trouble with this
-//        String s = "";
-//        if (rangeType.equals("regex")) {
-//            s = generateRegexValueOutsideRange();
-//        } else {
-//            s = generateIntervalValueOutsideRange();
-//        }
-//        return s;
-//    }
+    Comparator<String> c = new Comparator<String>() {
+        @Override
+        public int compare(String s1, String s2) {
+            if (s1.contains(">") || s2.contains("<")) {
+                return 1;
+            } else if (s1.contains("<") || s2.contains(">") ) {
+                return -1;
+            } else {
+                String[] s1split = s1.split("#");
+                String[] s2split = s2.split("#");
+                if (Double.parseDouble(s1split[0]) > Double.parseDouble(s2split[0])) {
+                    return 1;
+                }
+                return -1;
+            }
+        }
+    };
 
-//    private String generateRegexValueOutsideRange() {
-//        RgxGen generator = new RgxGen(range);
-//        String s = generator.generateNotMatching(); //TODO: it now generates just any string -> type errors instead of range errors
-////        if (dataType.contains("int")) {
-////            RgxGen generator = new RgxGen("[^0-9]*|" + range);
-////            s = generator.generateNotMatching();
-////        }
-//        //TODO: Doesnt work properly; Library's fault?; Look into the concept again later
-//        if (defaultRange) {
-//            return "TODO:DefaultRange";
-//        }
-//        return s;
-//    }
 
-//    private String generateIntervalValueOutsideRange() { //TODO: generate values close to the interval boundaries
-//        String[] bounds = range.split("-");
-//        long low = Long.parseLong(bounds[0]);
-//        long high = Long.parseLong(bounds[1]);
-//
-//        if ((int) (Math.random() * 2) == 0) {
-//            return Integer.MIN_VALUE + (long) (Math.random() * (low - Integer.MIN_VALUE)) + "";
-//        }
-//
-//        return high + (long) (Math.random() * (Integer.MAX_VALUE - high)) + "";
-//    }
+    public String[] findReverseIntervals() {
+        String[] sortedRanges = range;
+        Arrays.sort(sortedRanges, c);
+        ArrayList<String> result = new ArrayList<>();
+        switch(dataType) {
+            case "byte":
+                result = constructReverseIntervals(Byte.MIN_VALUE, Byte.MAX_VALUE, sortedRanges);
+                break;
+            case "short":
+                result = constructReverseIntervals(Short.MIN_VALUE, Short.MAX_VALUE, sortedRanges);
+                break;
+            case "int":
+                result = constructReverseIntervals(Integer.MIN_VALUE, Integer.MAX_VALUE, sortedRanges);
+                break;
+            case "long":
+                result = constructReverseIntervals(Long.MIN_VALUE, Long.MAX_VALUE, sortedRanges);
+                break;
+            case "float":
+                result = constructReverseIntervals(Float.MIN_VALUE, Float.MAX_VALUE, sortedRanges);
+                break;
+            case "double":
+                result = constructReverseIntervals(Double.MIN_VALUE, Double.MAX_VALUE, sortedRanges);
+                break;
+        }
+        for (int i = 0; i < result.size(); i++) {
+            System.out.println(result.get(i));
+        }
+        String[] res = new String[result.size()];
+        return result.toArray(res);
+    }
+
+    private ArrayList<String> constructReverseIntervals(double minValue, double maxValue, String[] sortedRanges) {
+        // Format the data to all intervals:
+        for (int i = 0; i < sortedRanges.length; i++) {
+            if (sortedRanges[i].contains("<")) {
+                sortedRanges[i] = minValue + "#" + sortedRanges[i].substring(1);
+            }
+            if (sortedRanges[i].contains(">")) {
+                sortedRanges[i] = sortedRanges[i].substring(1) + "#" + maxValue;
+            }
+        }
+        // Construct the reverse intervals:
+        ArrayList<String> result = new ArrayList<>();
+
+        for (int i = 0; i < sortedRanges.length-1; i++) { //TODO: Doesnt allow overlapping ranges
+            String[] s1split = sortedRanges[i].split("#");
+            double s1low = Double.parseDouble(s1split[0]);
+            double s1high = Double.parseDouble(s1split[1]);
+            String[] s2split = sortedRanges[i+1].split("#");
+            double s2low = Double.parseDouble(s2split[0]);
+            double s2high = Double.parseDouble(s2split[1]);
+
+            if (i == 0 && s1low != minValue) {
+                double val = s1low - 1;
+                result.add(minValue + "#" + val);
+            }
+            if (i == sortedRanges.length - 1 && s2high != maxValue) {
+                double val = s2high + 1;
+                result.add(val + "#" + maxValue);
+            }
+            double val1 = s1high + 1;
+            double val2 = s2low - 1;
+            result.add(val1 + "#" + val2);
+        }
+
+         return result;
+    }
+
 
     public String changeDataType(String element) {
         //TODO: There could be more variation in the way the data type is changed
@@ -436,6 +380,140 @@ public class DataFormat {
         array += "]";
 
         return array;
+    }
+
+    private String generateByteValue(String interval) {
+        if (interval.equals("")) {
+            Random r = new Random();
+            return r.nextInt(Byte.MAX_VALUE + 1) + "";
+        }
+        byte low;
+        byte high;
+        if (interval.contains(">")) {
+            low = Byte.parseByte(interval.substring(1));
+            high = Byte.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Byte.MIN_VALUE;
+            high = Byte.parseByte(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("#");
+            low = Byte.parseByte(bounds[0]);
+            high = Byte.parseByte(bounds[1]);
+        }
+        return low + (byte) (Math.random() * (high - low)) + "";
+    }
+
+    private String generateShortValue(String interval) {
+        if (interval.equals("")) {
+            Random r = new Random();
+            return r.nextInt(Short.MAX_VALUE + 1) + "";
+        }
+        short low;
+        short high;
+        if (interval.contains(">")) {
+            low = Short.parseShort(interval.substring(1));
+            high = Short.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Short.MIN_VALUE;
+            high = Short.parseShort(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("#");
+            low = Short.parseShort(bounds[0]);
+            high = Short.parseShort(bounds[1]);
+        }
+        return low + (short) (Math.random() * (high - low)) + "";
+    }
+
+    private String generateIntValue(String interval) {
+        if (interval.equals("")) {
+            Random r = new Random();
+            return r.nextInt() + "";
+        }
+        int low;
+        int high;
+        if (interval.contains(">")) {
+            low = Integer.parseInt(interval.substring(1));
+            high = Integer.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Integer.MIN_VALUE;
+            high = Integer.parseInt(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("#");
+            low = Integer.parseInt(bounds[0]);
+            high = Integer.parseInt(bounds[1]);
+        }
+        return low + (int) (Math.random() * (high - low)) + "";
+    }
+
+    private String generateLongValue(String interval) {
+        if (interval.equals("")) {
+            Random r = new Random();
+            return r.nextLong() + "";
+        }
+        long low;
+        long high;
+        if (interval.contains(">")) {
+            low = Long.parseLong(interval.substring(1));
+            high = Long.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Long.MIN_VALUE;
+            high = Long.parseLong(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("#");
+            low = Long.parseLong(bounds[0]);
+            high = Long.parseLong(bounds[1]);
+        }
+        return low + (long) (Math.random() * (high - low)) + "";
+    }
+
+    private String generateFloatValue(String interval) { //TODO: Check what the string representation should be
+        if (interval.equals("")) {
+            Random r = new Random();
+            int signSelection = (int) (Math.random() * 2);
+            if (signSelection == 0) {
+                return r.nextFloat() * Float.MAX_VALUE + "";
+            }
+            return "-" + r.nextFloat() * Float.MAX_VALUE + "";
+        }
+        float low;
+        float high;
+        if (interval.contains(">")) {
+            low = Float.parseFloat(interval.substring(1));
+            high = Float.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Float.MIN_VALUE;
+            high = Float.parseFloat(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("#");
+            low = Float.parseFloat(bounds[0]);
+            high = Float.parseFloat(bounds[1]);
+        }
+        return low + (Math.random() * (high - low)) + "";
+    }
+
+    private String generateDoubleValue(String interval) { //TODO: Check what the string representation should be
+        if (interval.equals("")) {
+            Random r = new Random();
+            int signSelection = (int) (Math.random() * 2);
+            if (signSelection == 0) {
+                return r.nextDouble() * Double.MAX_VALUE + "";
+            }
+            return "-" + r.nextDouble() * Double.MAX_VALUE + "";
+        }
+        double low;
+        double high;
+        if (interval.contains(">")) {
+            low = Double.parseDouble(interval.substring(1));
+            high = Double.MAX_VALUE;
+        } else if (interval.contains("<")) {
+            low = Double.MIN_VALUE;
+            high = Double.parseDouble(interval.substring(1));
+        } else {
+            String[] bounds = interval.split("#");
+            low = Double.parseDouble(bounds[0]);
+            high = Double.parseDouble(bounds[1]);
+        }
+        return low + (Math.random() * (high - low)) + "";
     }
 
     /**

@@ -1,4 +1,4 @@
-package edu.bigfuzztabulardata;
+package edu.tabfuzz;
 
 import com.opencsv.CSVWriter;
 
@@ -10,8 +10,8 @@ import java.util.Calendar;
 public class InputGenerator {
 
     DataFormat[] inputSpecification;
-    String generatedInputFilesFolder = "fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/";
-    private static final int INPUT_FILE_AMOUNT_OF_LINES = 20;
+    String generatedInputFilesFolder = "fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/";
+    private static final int INPUT_FILE_AMOUNT_OF_LINES = 1;
     private static final int ARRAY_SIZE = 5;
 
     public InputGenerator(DataFormat[] inputSpecification) {

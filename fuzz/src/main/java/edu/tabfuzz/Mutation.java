@@ -1,4 +1,4 @@
-package edu.bigfuzztabulardata;
+package edu.tabfuzz;
 
 import com.github.curiousoddman.rgxgen.RgxGen;
 import com.opencsv.CSVReader;
@@ -10,54 +10,50 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
 public class Mutation {
 
     private static final int MUTATIONS_AMOUNT = 5;
-    private static final String GENERATED_INPUT_FILES_FOLDER = "fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/";
+    private static final String GENERATED_INPUT_FILES_FOLDER = "fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/";
     private int mutationGeneration = 0;
-    private DataFormat[] dataSpecification;
 
     /**
      * String fileName = "InputFile";
      *         fileName += new SimpleDateFormat("yyyyMMddHHmmssSS").format(Calendar.getInstance().getTime());
      *         String filePath = GENERATED_INPUT_FILES_FOLDER + fileName + ".csv";
      */
-    public Mutation(DataFormat[] dataSpecification) {
-        this.dataSpecification = dataSpecification;
+    public Mutation() {
     }
 
-    public void mutate(List<String[]> data) {
-        performRandomMutation(data, constructFilePath());
+    public void mutate(List<String[]> data, DataFormat[] dataSpecification) {
+        performRandomMutation(data, constructFilePath(), dataSpecification);
     }
 
-    public void mutateFile(String fileName) {
+    public void mutateFile(String fileName, DataFormat[] dataSpecification) {
         String currentFile = constructFilePath(fileName);
         List<String[]> data;
         try {
             CSVReader reader = new CSVReader(new FileReader(currentFile));
             data = reader.readAll();
-            performRandomMutation(data, constructFilePath(fileName + "-mutation" + mutationGeneration));
+            performRandomMutation(data, constructFilePath(fileName + "-mutation" + mutationGeneration), dataSpecification);
             mutationGeneration++;
         } catch (IOException | CsvException e) {
             e.printStackTrace();
         }
     }
 
-    public void performRandomMutation(List<String[]> data, String currentFile) {
+    public void performRandomMutation(List<String[]> data, String currentFile, DataFormat[] dataSpecification) {
         int r = (int) (Math.random() * MUTATIONS_AMOUNT);
 //        r = 2;
         List<String[]> newData= null;
         switch (r) {
             case 0:
-                newData = dataDistributionMutation(data);
+                newData = dataDistributionMutation(data, dataSpecification);
                 break;
             case 1:
-                newData = dataTypeMutation(data);
+                newData = dataTypeMutation(data, dataSpecification);
                 break;
             case 2:
                 newData = dataColumnMutation(data);
@@ -73,12 +69,12 @@ public class Mutation {
         writeMutation(newData, currentFile);
     }
 
-    private List<String[]> dataDistributionMutation(List<String[]> data) {
-        //TODO: Fix implementation
+    private List<String[]> dataDistributionMutation(List<String[]> data, DataFormat[] dataSpecification) {
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());
         int randomColumn = (int) (Math.random() * newData.get(randomRow).length);
-        newData.get(randomRow)[randomColumn] = "";//dataSpecification[randomColumn].generateInputOutsideRange();
+        //TODO: Pick data within range sometimes
+        newData.get(randomRow)[randomColumn] = dataSpecification[randomColumn].generateInputOutsideRange();
         return newData;
     }
 
@@ -87,7 +83,7 @@ public class Mutation {
      * @param data dataset to mutate.
      * @return the mutated dataset.
      */
-    private List<String[]> dataTypeMutation(List<String[]> data) {
+    private List<String[]> dataTypeMutation(List<String[]> data, DataFormat[] dataSpecification) {
         List<String[]> newData = data;
         int randomRow = (int) (Math.random() * newData.size());
         int randomColumn = (int) (Math.random() * newData.get(randomRow).length);

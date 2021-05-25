@@ -5,7 +5,7 @@ Special: 90042
 
 Column: Column1
 Datatype: int
-Range: 1-120
+Range: 1#120
 
 Column: Column2
 Datatype: int

@@ -1,8 +1,8 @@
 # file: ~/.gitignore_global
 *.DS_Store
 .idea/*
-fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/*
-!fuzz/src/main/java/edu/bigfuzztabulardata/generatedInputFiles/.gitkeep
+fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/*
+!fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/.gitkeep
 classes/*
 target/*
 **/target
