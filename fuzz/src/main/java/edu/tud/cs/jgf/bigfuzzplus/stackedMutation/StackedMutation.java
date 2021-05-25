@@ -31,11 +31,10 @@ public class StackedMutation implements BigFuzzMutation {
 
     // *********** REPRODUCIBILITY ****************
     // TODO: extend this section such that runs can be hardcoded.
-    int[] fixedMutationList = {0, 1, 2, 3};
-    int fixedMutationPointer = 0;
-//        boolean useFixedMutationResult = true;
-//    String[] fixedMutationResultList = {"90024,20,10900", "90024,,10900", "20,10900,null", "90024,10900,null", "20,10900,null", "900Ë24,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,7409,10900", "90024,1822942453,10900", "9002ë4,20,10900", ",20,10900", "8615,90024,20,10900", "-1062395398,20,10900", "90024,5638,20,10900", "90024,20,5589,10900", "90024,20,-1846169804", "-1752145988,20,10900", "90024,10900,null", "90024,,10900", "90024,20,10900", "90024,20,7427,10900", "90024,20,10900", "90024,2¥0,10900", "90024,20,10900", "90024,20.865862,10900", "1916238466,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,null", "90024,20,10900.3125", "90024,20,10900.722", "90024,20,10900", "20,10900,null", ",20,10900", "90024,20,-2112085416", ",20,10900", "90024,20,", "90024,,10900", "900/24,20,10900", "90024,20,-1069745514", "90024,10900,null", ",20,10900", "-1688978241,20,10900", "90024,20,null", "90024,94490979,10900", "20,10900,null", "90024,20,", "90024,20,null", "90024,10900,null", "90024,10900,null", "20,10900,null", "90024,20,10900", "20,10900,null", "90024,20,534,10900", "90024,20,1426980250", "90024,1450486204,10900", "90024,20,807747523", "90024,,10900", "90024,20,10900", "90024,20,10900", "90024.4,20,10900", "90024,2m0,10900", "243604623,20,10900", "90024,20,10900", "90024,,10900", "90024.63,20,10900", "90024,20,null", "90024,10900,null", "90024,10900,null", "90024,20.876112,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20.784615,10900", "90024,20,10900", "90024.37,20,10900", "9101,90024,20,10900", "90024.8,20,10900", "90024,10900,null", "90024,20,10900", "90024,20,10900", "90024,20,10900", "90024,20,1090B0", "1358,90024,20,10900", "90024,,10900", "20,10900,null", ",20,10900", ",20,10900", "90024,10900,null", "90024,20,-1418695809", "90024,20.111279,10900", "90024,20,", "90024,20,", "90024,20,null", "90024,20,10900", "90024,10900,null", "90024,20,"};
-//    int fixedMutationResultPointer = 0;
+
+    boolean useFixedMutationResult = false;
+    String[] fixedMutationResultList = {};
+    int fixedMutationResultPointer = 0;
     // ********************************************
 
 
@@ -44,6 +43,7 @@ public class StackedMutation implements BigFuzzMutation {
     @SuppressWarnings({"rawtypes"})
     ArrayList<Integer> mutationColumnTracker = new ArrayList();
     ArrayList<Integer> mutationStackTracker = new ArrayList();
+    ArrayList<MutationPair> appliedmutations = new ArrayList();
 
     public StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
 
@@ -60,6 +60,9 @@ public class StackedMutation implements BigFuzzMutation {
 
         int n = r.nextInt(fileList.size());
         String fileToMutate = fileList.get(n);
+
+        // Empty applied mutations, as it is only containing the mutations performed in this cycle
+        appliedmutations.clear();
 
         // Mutate selected input file
         mutateFile(fileToMutate);
@@ -163,8 +166,10 @@ public class StackedMutation implements BigFuzzMutation {
             System.out.println("Input before mutation:" + rowString);
             System.out.println("Input after mutation:" + mutatedRowString);
         }
-        // HARD CODED MUTATIONS:
-        //mutatedRowString = nextMutationResultInList();
+        // Only use hard coded inputs if the fixed mutation results is enabled:
+        if(useFixedMutationResult) {
+            mutatedRowString = nextMutationResultInList();
+        }
 
         rows.set(lineNum, mutatedRowString);
     }
@@ -373,9 +378,17 @@ public class StackedMutation implements BigFuzzMutation {
         return HighOrderMutation.getRandomMutation(r);
     }
 
-    private int nextMutationInList() {
-        int nextMutation = fixedMutationList[fixedMutationPointer];
-        fixedMutationPointer++;
+    /**
+     * return the next mutation in the fixed list. If the list is empty, return an error. If the pointer is exceeding the list length, keep returning the last element.
+     * @return String next input element in the fixed list
+     */
+    private String nextMutationResultInList() {
+        if(fixedMutationResultList.length == 0) {
+            System.err.println("Fixed mutation list is enabled, but the list of inputs to use is empty");
+        }
+        fixedMutationResultPointer = Math.min(fixedMutationResultPointer, fixedMutationResultList.length - 1);
+        String nextMutation = fixedMutationResultList[fixedMutationResultPointer];
+        fixedMutationResultPointer++;
         return nextMutation;
     }
 
