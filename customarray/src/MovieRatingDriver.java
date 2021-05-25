@@ -13,10 +13,10 @@ public class MovieRatingDriver {
 
 @Fuzz
     public void testMovieRating(String fileName) throws IOException {
-        System.out.println("MovieRatingDriver::testMovieRating: "+fileName);
+//        System.out.println("MovieRatingDriver::testMovieRating: "+fileName);
         MovieRating analysis = new MovieRating();
     List<String> fileList = Files.readAllLines(Paths.get(fileName));
-    System.out.println(fileList.size());
+//    System.out.println(fileList.size());
     analysis.MovieRating(fileList.get(0));
     }
 
