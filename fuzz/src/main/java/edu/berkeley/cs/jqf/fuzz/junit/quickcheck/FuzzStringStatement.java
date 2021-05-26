@@ -58,7 +58,7 @@ import org.junit.runners.model.TestClass;
 import ru.vyarus.java.generics.resolver.GenericsResolver;
 
 import static edu.berkeley.cs.jqf.fuzz.guidance.Result.*;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHOD_NAMES;
 
 /**
  *
@@ -84,7 +84,7 @@ public class FuzzStringStatement extends Statement {
 
     public FuzzStringStatement(FrameworkMethod method, TestClass testClass,
                          GeneratorRepository generatorRepository) {
-        if (PRINT_METHODNAMES) { System.out.println("FuzzStringStatement:FuzzStringStatement()"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("FuzzStringStatement:FuzzStringStatement()"); }
         this.method = method;
         this.testClass = testClass;
         this.typeVariables =

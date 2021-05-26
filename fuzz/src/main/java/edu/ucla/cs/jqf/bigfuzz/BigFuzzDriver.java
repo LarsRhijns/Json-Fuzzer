@@ -15,8 +15,9 @@ public class BigFuzzDriver {
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = true;
 
     // These booleans are for debugging purposes only, toggle them if you want to see the information
-    public static boolean PRINT_METHODNAMES = false;
-    public static boolean PRINT_MUTATIONDETAILS = false;
+    public static boolean PRINT_METHOD_NAMES = false;
+    public static boolean PRINT_MUTATION_DETAILS = false;
+    public static boolean PRINT_COVERAGE_DETAILS = false;
     public static boolean LOG_AND_PRINT_STATS = false;
 
     public static void main(String[] args) {
@@ -46,20 +47,20 @@ public class BigFuzzDriver {
         File outputDirectory = new File(outputDirectoryName);
 
         String file = "dataset/conf";
-       try {
-            String title = testClassName+"#"+testMethodName;
-              Duration duration = Duration.of(10, ChronoUnit.SECONDS);
-             //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-             BigFuzzGuidance guidance = new BigFuzzGuidance(title, file, maxTrials, duration, System.err, outputDirectory);
+        String title = testClassName+"#"+testMethodName;
+        Duration duration = Duration.of(10, ChronoUnit.SECONDS);
 
-             // Run the Junit test
+        try {
+            // Create the Guidance
+            BigFuzzGuidance guidance = new BigFuzzGuidance(title, file, maxTrials, duration, outputDirectory);
+
+            // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
             long endTime = System.currentTimeMillis();
 
             // Evaluate the results
             evaluation(testClassName, testMethodName, file, maxTrials, duration, startTime, endTime, guidance);
-
-       } catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -116,7 +117,8 @@ public class BigFuzzDriver {
         System.out.println("Total coverage: " + totalCov);
         System.out.println("Valid coverage: " + validCov);
         System.out.println("Percent valid coverage: " + (float) validCov / totalCov * 100 + "%");
+        System.out.println("New Coverage found at: " + guidance.newCoverageRuns);
         System.out.println("Branches hit count: " + guidance.branchesHitCount);
-        System.out.println("Number of Seed inputs: " + Objects.requireNonNull(guidance.coverageInputsDirectory.listFiles()).length);
+        System.out.println("Number of Seed inputs: " + guidance.newCoverageRuns.size());
     }
 }

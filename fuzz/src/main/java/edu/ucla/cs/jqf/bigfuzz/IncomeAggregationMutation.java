@@ -17,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATION_DETAILS;
 
 public class IncomeAggregationMutation implements BigFuzzMutation{
 
@@ -189,6 +189,9 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
     {
 
         File file=new File(inputFile);
+        if (PRINT_MUTATION_DETAILS) {
+            System.out.println("mutate file: " + file.getPath());
+        }
 
         ArrayList<String> rows = new ArrayList<String>();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
@@ -210,7 +213,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         if(method == 0){
             ArrayList<String> tempRows = new ArrayList<String>();
             randomGenerateRows(tempRows);
-            if (PRINT_MUTATIONDETAILS) {
+            if (PRINT_MUTATION_DETAILS) {
                 System.out.println("rows: " + tempRows);
             }
             rows = tempRows;
@@ -267,7 +270,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
 
         int method = (int)(Math.random() * 2);
         int columnID = r.nextInt(columns.length);
-        if (PRINT_MUTATIONDETAILS) {
+        if (PRINT_MUTATION_DETAILS) {
             System.out.println("IncomeAggregationMutation *** "+method+" "+lineNum+" "+columnID);
             System.out.println("mutate size: " + list.size());
             System.out.println("mutate linenum: " + list.get(lineNum));

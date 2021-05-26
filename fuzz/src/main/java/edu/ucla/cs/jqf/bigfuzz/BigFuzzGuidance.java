@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -33,21 +32,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.LOG_AND_PRINT_STATS;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_COVERAGE_DETAILS;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHOD_NAMES;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATION_DETAILS;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
  * Mutations: 1. randomly mutation
- * code coverage guidance: control flow coverage, dataflow operators's coverage
+ * code coverage guidance: control flow coverage, dataflow operator's coverage
  */
+@SuppressWarnings({"rawtypes", "Duplicates"})
 public class BigFuzzGuidance implements Guidance {
 
     /** The name of the test for display purposes. */
     protected final String testName;
 
     private boolean keepGoing = true;
-    private static boolean KEEP_GOING_ON_ERROR = true;
     private Coverage coverage;
 
     /** Time since this guidance instance was created. */
@@ -115,9 +115,7 @@ public class BigFuzzGuidance implements Guidance {
     protected int numSavedInputs = 0;
 
     private final long maxTrials;
-    private final PrintStream out;
     private long numDiscards = 0;
-    private final float maxDiscardRatio = 0.9f;
 
     /** Validity fuzzing -- if true then save valid inputs that increase valid coverage */
     protected boolean validityFuzzing;
@@ -146,6 +144,9 @@ public class BigFuzzGuidance implements Guidance {
     /** List of runs which have at which new unique failures have been detected. */
     protected List<Long> uniqueFailureRuns = new ArrayList<>();
 
+    /** List of runs at which new coverage has been found. */
+    protected List<Integer> newCoverageRuns = new ArrayList<>();
+
     // ---------- LOGGING / STATS OUTPUT ------------
 
     /** Whether to print log statements to stderr (debug option; manually edit). */
@@ -164,17 +165,11 @@ public class BigFuzzGuidance implements Guidance {
 
     // ------------- FUZZING HEURISTICS ------------
 
-    /** Whether to save inputs that only add new coverage bits (but no new responsibilities). */
-    static final boolean SAVE_NEW_COUNTS = true;
-
     /** Baseline number of mutated children to produce from a given parent input. */
     static final int NUM_CHILDREN_BASELINE = 50;
 
     /** Multiplication factor for number of children to produce for favored inputs. */
     static final int NUM_CHILDREN_MULTIPLIER_FAVORED = 20;
-
-    /** Whether to steal responsibility from old inputs (this increases computation cost). */
-    static final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
 
     protected final File initialInputFile;
     BigFuzzMutation mutation = new IncomeAggregationMutation();
@@ -185,7 +180,7 @@ public class BigFuzzGuidance implements Guidance {
     Set<File> testInputFiles = new HashSet<>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, PrintStream out, File outputDirectory) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory) throws IOException {
 
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
@@ -198,7 +193,6 @@ public class BigFuzzGuidance implements Guidance {
         this.currentInputFile = initialFile;
         this.lastWorkingInputFile = initialFile;
         this.maxTrials = maxTrials;
-        this.out = out;
 
         prepareOutputDirectory();
     }
@@ -210,9 +204,6 @@ public class BigFuzzGuidance implements Guidance {
                 throw new IOException("Could not create output directory" +
                         outputDirectory.getAbsolutePath());
             }
-        } else {
-            // Empty the output directory
-            FileUtils.cleanDirectory(FileUtils.getFile(outputDirectory));
         }
 
         // Make sure we can write to output directory
@@ -236,7 +227,7 @@ public class BigFuzzGuidance implements Guidance {
         }
         this.allInputsDirectory = new File(outputDirectory, "all_inputs");
         if (!this.allInputsDirectory.mkdirs()) {
-            FileUtils.cleanDirectory(FileUtils.getFile(allInputsDirectory));
+            System.out.println("!! Could not create directory: " + allInputsDirectory);
         }
 
         if (LOG_AND_PRINT_STATS) {
@@ -246,8 +237,8 @@ public class BigFuzzGuidance implements Guidance {
             }
         }
         this.logFile = new File(outputDirectory, "fuzz.log");
-        if (!logFile.createNewFile()) {
-            assert logFile.delete();
+        if (!this.logFile.createNewFile()) {
+            System.out.println("!! Could not create file: " + logFile);
         }
 
         if (LOG_AND_PRINT_STATS) {
@@ -256,7 +247,7 @@ public class BigFuzzGuidance implements Guidance {
                     "invalid_inputs, valid_cov");
         }
     }
-
+    
     @Override
     public InputStream getInput() throws IOException {
         // Clear coverage stats for this run
@@ -283,7 +274,7 @@ public class BigFuzzGuidance implements Guidance {
 
         currentInputFile = nextInputFile;
 
-        if (PRINT_METHODNAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
+        if (PRINT_METHOD_NAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
 
         return new ByteArrayInputStream(currentInputFile.getPath().getBytes());
     }
@@ -299,13 +290,15 @@ public class BigFuzzGuidance implements Guidance {
 
     /** Writes a line of text to the log file. */
     protected void infoLog(String str, Object... args) {
-        if (verbose && PRINT_MUTATIONDETAILS) {
+        if (verbose) {
             String line = String.format(str, args);
             if (logFile != null) {
                 appendLineToFile(logFile, line);
 
             } else {
-                System.err.println(line);
+                if (PRINT_MUTATION_DETAILS) {
+                    System.err.println(line);
+                }
             }
         }
     }
@@ -322,7 +315,7 @@ public class BigFuzzGuidance implements Guidance {
         // Stop timeout handling
         this.runStart = null;
 
-        if (PRINT_METHODNAMES) { System.out.println("BigFuzz::handleResult"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("BigFuzz::handleResult"); }
 //        System.out.println("result: " + result);
 
         this.numTrials++;
@@ -347,6 +340,7 @@ public class BigFuzzGuidance implements Guidance {
             this.keepGoing = false;
         }
 
+        float maxDiscardRatio = 0.9f;
         if (numTrials > 10 && ((float) numDiscards)/((float) (numTrials)) > maxDiscardRatio) {
             throw new GuidanceException("Assumption is too strong; too many inputs discarded");
         }
@@ -357,17 +351,17 @@ public class BigFuzzGuidance implements Guidance {
             int nonZeroBefore = totalCoverage.getNonZeroCount();
             int validNonZeroBefore = validCoverage.getNonZeroCount();
 
-            // Compute a list of keys for which this input can assume responsiblity.
+            // Compute a list of keys for which this input can assume responsibility.
             // Newly covered branches are always included.
             // Existing branches *may* be included, depending on the heuristics used.
             // A valid input will steal responsibility from invalid inputs
             Set<Object> responsibilities = computeResponsibilities(valid);
-            if (responsibilities.size() > 0) {
-//                System.out.println("New responsibilities found: " + responsibilities);
+            if (PRINT_COVERAGE_DETAILS && responsibilities.size() > 0) {
+                System.out.println("New responsibilities found: " + responsibilities);
             }
 
             // Update total coverage
-            boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
+            totalCoverage.updateBits(runCoverage);
             if (valid) {
                 validCoverage.updateBits(runCoverage);
             }
@@ -421,6 +415,7 @@ public class BigFuzzGuidance implements Guidance {
                             e.printStackTrace();
                         }
                     }
+                    newCoverageRuns.add((int) numTrials - 1);
                     lastWorkingInputFile = src;
                     testInputFiles.add(des);
                 }
@@ -438,12 +433,7 @@ public class BigFuzzGuidance implements Guidance {
                 currentInputFile = lastWorkingInputFile;
             }
         }else if (result == Result.FAILURE || result == Result.TIMEOUT) {
-//            if (out != null) {
-//                error.printStackTrace(out);
-//            }
-//            this.keepGoing = KEEP_GOING_ON_ERROR;
             String msg = error.getMessage();
-//            System.out.println("msg:" + msg);
 
             //get the root cause
             Throwable rootCause = error;
@@ -461,7 +451,7 @@ public class BigFuzzGuidance implements Guidance {
 //                String how = currentInput.desc;
                 String why = result == Result.FAILURE ? "+crash" : "+hang";
 //                infoLog("Saved - %s %s %s", saveFile.getPath(), how, why);
-                if (PRINT_MUTATIONDETAILS) {
+                if (PRINT_MUTATION_DETAILS) {
                     System.out.println("Unique failure found: " + why + "\n\t" + rootCause);
                 }
 
@@ -499,7 +489,6 @@ public class BigFuzzGuidance implements Guidance {
 
     private void displayStats() {
         PrintStream console = System.out;
-        assert (console != null);
 
         Date now = new Date();
         long intervalMilliseconds = now.getTime() - lastRefreshTime.getTime();
@@ -607,7 +596,7 @@ public class BigFuzzGuidance implements Guidance {
         Collection<Integer> hitBranches = runCoverage.getCounter().getNonZeroIndices();
         int hits = branchesHitCount.getOrDefault(hitBranches, 0);
         branchesHitCount.put(hitBranches, hits + 1);
-        System.out.println("branches hit: " + hitBranches);
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("branches hit: " + hitBranches); }
 
         // This input is responsible for all new coverage
         Collection<?> newCoverage = runCoverage.computeNewCoverage(totalCoverage);
@@ -624,50 +613,20 @@ public class BigFuzzGuidance implements Guidance {
             }
         }
 
-        // Perhaps it can also steal responsibility from other inputs
-        if (STEAL_RESPONSIBILITY) {
-
-        }
-//        System.out.println("Result:" + result);
+        // todo: Perhaps it can also steal responsibility from other inputs
 
         return result;
     }
 
     @Override
     public Consumer<TraceEvent> generateCallBack(Thread thread) {
-
-//        if (appThread != null) {
-//            throw new IllegalStateException(ZestGuidance.class +
-//                    " only supports single-threaded apps at the moment");
-//        }
-//        appThread = thread;
-
         return this::handleEvent;
-
-////        print out the trace events generated during test execution
-//        return (event) -> {
-//            System.out.println(String.format("Thread %s produced event %s",
-//                    thread.getName(), event));
-//        };
     }
 
     /** Handles a trace event generated during test execution */
     protected void handleEvent(TraceEvent e) {
-        // Collect totalCoverage
         runCoverage.handleEvent(e);
-//        System.out.println(runCoverage.getNonZeroCount());
-//        System.out.println(runCoverage.getCovered());
-
-        // Check for possible timeouts every so often
-//        if (this.singleRunTimeoutMillis > 0 &&
-//                this.runStart != null && (++this.branchCount) % 10_000 == 0) {
-//            long elapsed = new Date().getTime() - runStart.getTime();
-//            if (elapsed > this.singleRunTimeoutMillis) {
-//                throw new TimeoutException(elapsed, this.singleRunTimeoutMillis);
-//            }
-//        }
     }
-
 
     /**
      * Returns a reference to the coverage statistics.

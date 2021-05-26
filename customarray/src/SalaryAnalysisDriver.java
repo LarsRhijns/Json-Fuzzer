@@ -7,8 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHODNAMES;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATIONDETAILS;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHOD_NAMES;
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATION_DETAILS;
 
 @RunWith(JQF.class)
 public class SalaryAnalysisDriver {
@@ -19,10 +19,10 @@ public class SalaryAnalysisDriver {
 //        byte[] bs = fileName.getBytes();
 //        System.out.println(Arrays.toString(bs));
 //        byte[] bytes = fileName.getBytes();
-        if (PRINT_METHODNAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
+        if (PRINT_METHOD_NAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
         SalaryAnalysis analysis = new SalaryAnalysis();
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-        if (PRINT_MUTATIONDETAILS) {
+        if (PRINT_MUTATION_DETAILS) {
             System.out.println("fileList size: " + fileList.size());
         }
         analysis.SalaryAnalysis(fileList.get(0));
@@ -32,7 +32,7 @@ public class SalaryAnalysisDriver {
     {
 
         String fileName = "./dataset/conf";
-        if (PRINT_METHODNAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
+        if (PRINT_METHOD_NAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
         SalaryAnalysis analysis = new SalaryAnalysis();
         System.out.println(fileName);
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
