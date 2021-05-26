@@ -101,6 +101,9 @@ public class BigFuzzGuidance implements Guidance {
     /** Number of cycles completed (i.e. how many times we've reset currentParentInputIdx to 0. */
     protected int cyclesCompleted = 0;
 
+    /** Files that still have to be used as inputs before this cycle ends. */
+    protected List<File> pendingInputs = new ArrayList<>();
+
     /** Number of favored inputs in the last cycle. */
     protected int numFavoredLastCycle = 0;
 
@@ -175,9 +178,6 @@ public class BigFuzzGuidance implements Guidance {
     BigFuzzMutation mutation = new IncomeAggregationMutation();
     private File currentInputFile;
     private File lastWorkingInputFile;
-
-    /** Set of files that can be used as input */
-    Set<File> testInputFiles = new HashSet<>();
 
 
     public BigFuzzGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory) throws IOException {
@@ -264,12 +264,18 @@ public class BigFuzzGuidance implements Guidance {
         }
         else
         {
-            // Mutate an input file
-            mutation.mutate(currentInputFile.getPath(), mutationFile.getPath());
-            FileUtils.copyFile(mutationFile, nextInputFile);
-            if (!mutationFile.delete()) {
-                System.out.println("!! Could not delete mutationFile: " + mutationFile);
+            // Start next cycle and refill pendingInputs if cycle is completed.
+            if (pendingInputs.isEmpty()) {
+                cyclesCompleted++;
+                pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
             }
+
+            // Mutate the next file from pendingInputs
+            currentInputFile = pendingInputs.remove(0);
+            mutation.mutate(currentInputFile.getPath(), mutationFile.getPath());
+
+            // Move reference file to correct directory
+            FileUtils.moveFile(mutationFile, nextInputFile);
         }
 
         currentInputFile = nextInputFile;
@@ -417,7 +423,6 @@ public class BigFuzzGuidance implements Guidance {
                     }
                     newCoverageRuns.add((int) numTrials - 1);
                     lastWorkingInputFile = src;
-                    testInputFiles.add(des);
                 }
             }
             else {
@@ -462,7 +467,6 @@ public class BigFuzzGuidance implements Guidance {
                     try {
                         FileUtils.copyFile(src, des);
                         lastWorkingInputFile = src;
-                        testInputFiles.add(des);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
