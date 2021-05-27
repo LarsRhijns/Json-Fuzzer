@@ -49,14 +49,14 @@ public class TabFuzzDriver {
             long startTime = System.currentTimeMillis();
 
             Duration duration = Duration.of(100, ChronoUnit.SECONDS);
-            TabFuzzGuidance guidance = new TabFuzzGuidance("Test1", fileConf, im.getInputs(), 5, duration, System.err, ws);
+            TabFuzzGuidance guidance = new TabFuzzGuidance("Test1", fileConf, im.getInputs(), 20, duration, System.err, ws);
 
             GuidedFuzzing.run("SalaryAnalysisDriver", "testSalaryAnalysis", guidance, System.out);
 
-//            if (Boolean.getBoolean("jqf.logCoverage")) {
-//                System.out.println(String.format("Covered %d edges.",
-//                        guidance.getCoverage().getNonZeroCount()));
-//            }
+            if (Boolean.getBoolean("jqf.logCoverage")) {
+                System.out.println(String.format("Covered %d edges.",
+                        guidance.getCoverage().getNonZeroCount()));
+            }
 
 
             long endTime = System.currentTimeMillis();

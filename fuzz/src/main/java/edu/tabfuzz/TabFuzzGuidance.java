@@ -144,13 +144,6 @@ public class TabFuzzGuidance implements Guidance {
         if (!testInputFiles.isEmpty()) {
             try
             {
-//                mutation.mutate(initialInputFile);//currentInputFile
-//                String fileName = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+".csv'").format(new Date());
-//                currentInputFile = fileName;
-//                mutation.writeFile(fileName);
-
-
-                //String nextInputFile = "fuzz/src/main/java/edu/tabfuzz/generatedConfigurations/" + new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date()) + ".csv";
                 String nextInputFile = initialInputFile + "-mutation_" + numTrials;
                 System.out.println(nextInputFile);
                 mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
@@ -205,7 +198,7 @@ public class TabFuzzGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-
+        System.out.println("current trial: " + numTrials);
         // Stop timeout handling
         this.runStart = null;
 
@@ -228,7 +221,6 @@ public class TabFuzzGuidance implements Guidance {
 
         // Stopping criteria
         if (numTrials >= maxTrials) {
-            System.out.println("current trial: " + numTrials);
             this.keepGoing = false;
             System.out.println("keepGoing: "+keepGoing);
         }

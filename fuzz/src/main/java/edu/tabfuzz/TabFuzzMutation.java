@@ -63,7 +63,7 @@ public class TabFuzzMutation implements BigFuzzMutation {
     public void performRandomMutation(List<String[]> data, String currentFile) {
         int r = (int) (Math.random() * MUTATIONS_AMOUNT);
 //        r = 5;
-        List<String[]> newData= null;
+        List<String[]> newData = data;
         switch (r) {
             case 0:
                 System.out.println("Mutation performed: dataDistributionMutation");
@@ -92,7 +92,8 @@ public class TabFuzzMutation implements BigFuzzMutation {
                 break;
             case 5:
                 ArrayList<Integer> specialValueIndices = findSpecialValueIndices();
-                if (specialValueIndices.size() == 0) {
+                if (specialValueIndices.isEmpty()) {
+                    System.out.println("No special values found: Picked another mutation");
                     performRandomMutation(data, currentFile);
                     break;
                 }

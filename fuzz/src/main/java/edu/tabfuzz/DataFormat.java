@@ -18,16 +18,32 @@ public class DataFormat {
     }
 
     private String[] processRange(String dataType, String range) {
-        if (dataType.equals("String") || dataType.equals("char")) {
+        if (dataType.equals("String")) {
             String[] result = new String[1];
+            if (range.equals("")) {
+                range = ".*";
+            }
             result[0] = range;
             return result;
         }
-        String[] result = range.split(",");
-        for (int i = 0; i < result.length; i++) {
-            result[i] = result[i].trim();
+        if (dataType.equals("char")) {
+            String[] result = new String[1];
+            if (range.equals("")) {
+                range = ".";
+            }
+            result[0] = range;
+            return result;
         }
-        return result;
+        //TODO: Cleanup this method
+        String[] result = range.split(",");
+        ArrayList<String> result1 = new ArrayList<>();
+        for (int i = 0; i < result.length; i++) {
+            if (!result[i].trim().equals("")) {
+                result1.add(result[i].trim());
+            }
+        }
+        String[] result2 = new String[result1.size()];
+        return result1.toArray(result2);
     }
 
     private String[] processSpecialValues(String specialValues) {
@@ -63,9 +79,9 @@ public class DataFormat {
         } else if (dataType.equals("boolean")) {
             int boolSelection = (int) (Math.random() * 2);
             if (boolSelection == 0) {
-                return "True";
+                return "true";
             }
-            return "False";
+            return "false";
         } else if (dataType.contains("array(")) {
             generateArrayInputInRange(5); //TODO: What should array size be?
         }
@@ -107,32 +123,32 @@ public class DataFormat {
 
         public String generateInputOutsideRange() {
         String s = "";
-        if (dataType.equals("String")) {
-            if (range[0].equals("")) {
-                return generateInputInRange();
+            switch (dataType) {
+                case "String":
+                    if (range[0].equals("")) {
+                        return generateInputInRange();
+                    }
+                    RgxGen generator = new RgxGen(range[0]);
+                    s = generator.generateNotMatching();
+                    break;
+                case "char":
+                    return "";
+                //TODO: generate char outside regex
+                case "boolean":
+                    // In case of boolean just generate either true or false;
+                    int boolSelection = (int) (Math.random() * 2);
+                    if (boolSelection == 0) {
+                        return "True";
+                    }
+                    return "False";
+                default:
+                    if (range.length == 0) {
+                        generateIntervalValue(range);
+                    }
+                    s = generateIntervalValue(findReverseIntervals());
+                    //TODO: Default range
+                    break;
             }
-            RgxGen generator = new RgxGen(range[0]);
-            s = generator.generateNotMatching();
-        }
-        else if (dataType.equals("char")) {
-            return "";
-            //TODO: generate char outside regex
-        }
-        else if (dataType.equals("boolean")) {
-            // In case of boolean just generate either true or false;
-            int boolSelection = (int) (Math.random() * 2);
-            if (boolSelection == 0) {
-                return "True";
-            }
-            return "False";
-        }
-        else {
-            if (range.length == 0) {
-                generateIntervalValue(range);
-            }
-            s = generateIntervalValue(findReverseIntervals());
-            //TODO: Default range
-        }
         return s;
     }
 
@@ -533,22 +549,24 @@ public class DataFormat {
     public String toString() {
 
         String rangeString = "[";
-        for (int i = 0; i < range.length; i++) {
-            rangeString += range[i] + ", ";
+        if (getRange().length != 0) {
+            for (int i = 0; i < range.length; i++) {
+                rangeString += range[i] + ", ";
+            }
+            rangeString = rangeString.substring(0, rangeString.length() - 2);
         }
-        rangeString = rangeString.substring(0, rangeString.length()-2);
         rangeString += "]";
 
-        if (getSpecialValues().length == 0) {
-            return "DataType: " + getDataType() + " | Range: " + getRange();
-        }
 
         String specialValuesString = "[";
-        for (int i = 0; i < specialValues.length; i++) {
-            specialValuesString += specialValues[i] + ", ";
+        if (getSpecialValues().length != 0) {
+            for (int i = 0; i < specialValues.length; i++) {
+                specialValuesString += specialValues[i] + ", ";
+            }
+            specialValuesString = specialValuesString.substring(0, specialValuesString.length()-2);
         }
-        specialValuesString = specialValuesString.substring(0, specialValuesString.length()-2);
         specialValuesString += "]";
+
 
         return "ColumnName: " + columnName + " | DataType: " + dataType + " | Range: " + rangeString + " | Special Values: " + specialValuesString;
     }
