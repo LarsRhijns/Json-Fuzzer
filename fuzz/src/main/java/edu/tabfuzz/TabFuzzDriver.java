@@ -16,9 +16,9 @@ public class TabFuzzDriver {
 
         String dataSpecificationInput = "fuzz/src/main/java/edu/tabfuzz/dataset/salaryAnalysisFileFormat";
         File file = new File(dataSpecificationInput);
-        InputManager im = new InputManager(file);
+        WriterSettings ws = new WriterSettings();
+        InputManager im = new InputManager(file, ws);
         System.out.println(im.toString());
-
 
         boolean seed = false;
         // Get the fileConf location:
@@ -29,7 +29,7 @@ public class TabFuzzDriver {
 
         } else {
             // Generate a random seed
-            InputGenerator ig = new InputGenerator(im.getInputs(), new WriterSettings());
+            InputGenerator ig = new InputGenerator(im.getInputs(), ws);
             String fileName = ig.generateInputFile();
             System.out.println("Random seed generated: " + fileName);
             fileConf = "fuzz/src/main/java/edu/tabfuzz/generatedConfigurations/" + fileName + ".csv";
@@ -49,7 +49,7 @@ public class TabFuzzDriver {
             long startTime = System.currentTimeMillis();
 
             Duration duration = Duration.of(100, ChronoUnit.SECONDS);
-            TabFuzzGuidance guidance = new TabFuzzGuidance("Test1", fileConf, im.getInputs(), 5, duration, System.err);
+            TabFuzzGuidance guidance = new TabFuzzGuidance("Test1", fileConf, im.getInputs(), 5, duration, System.err, ws);
 
             GuidedFuzzing.run("SalaryAnalysisDriver", "testSalaryAnalysis", guidance, System.out);
 

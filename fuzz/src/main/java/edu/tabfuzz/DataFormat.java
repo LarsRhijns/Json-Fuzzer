@@ -31,11 +31,16 @@ public class DataFormat {
     }
 
     private String[] processSpecialValues(String specialValues) {
+        //TODO: Cleanup this method
         String[] result = specialValues.split(",");
+        ArrayList<String> result1 = new ArrayList<>();
         for (int i = 0; i < result.length; i++) {
-            result[i] = result[i].trim();
+            if (!result[i].trim().equals("")) {
+                result1.add(result[i].trim());
+            }
         }
-        return result;
+        String[] result2 = new String[result1.size()];
+        return result1.toArray(result2);
     }
     /**
      * Uses the RgxGen library to generate a random input that lies within a range defined by a regular expression.
@@ -114,7 +119,12 @@ public class DataFormat {
             //TODO: generate char outside regex
         }
         else if (dataType.equals("boolean")) {
-            return "";
+            // In case of boolean just generate either true or false;
+            int boolSelection = (int) (Math.random() * 2);
+            if (boolSelection == 0) {
+                return "True";
+            }
+            return "False";
         }
         else {
             if (range.length == 0) {
@@ -529,16 +539,16 @@ public class DataFormat {
         rangeString = rangeString.substring(0, rangeString.length()-2);
         rangeString += "]";
 
+        if (getSpecialValues().length == 0) {
+            return "DataType: " + getDataType() + " | Range: " + getRange();
+        }
+
         String specialValuesString = "[";
         for (int i = 0; i < specialValues.length; i++) {
             specialValuesString += specialValues[i] + ", ";
         }
         specialValuesString = specialValuesString.substring(0, specialValuesString.length()-2);
         specialValuesString += "]";
-
-        if (getSpecialValues() == null) {
-            return "DataType: " + getDataType() + " | Range: " + getRange();
-        }
 
         return "ColumnName: " + columnName + " | DataType: " + dataType + " | Range: " + rangeString + " | Special Values: " + specialValuesString;
     }

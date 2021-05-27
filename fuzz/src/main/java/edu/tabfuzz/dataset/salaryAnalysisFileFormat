@@ -1,7 +1,6 @@
 Column: Zipcode
 Datatype: String
 Range: 900[0-9]{2}
-Special: 90042
 
 Column: Column1
 Datatype: int

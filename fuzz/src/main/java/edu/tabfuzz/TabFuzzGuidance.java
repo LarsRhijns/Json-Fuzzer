@@ -99,8 +99,9 @@ public class TabFuzzGuidance implements Guidance {
     private String currentInputFile;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
+    WriterSettings ws;
 
-    public TabFuzzGuidance(String testName, String initialInputFile, DataFormat[] dataSpecification, long maxTrials, Duration duration, PrintStream out) throws IOException {
+    public TabFuzzGuidance(String testName, String initialInputFile, DataFormat[] dataSpecification, long maxTrials, Duration duration, PrintStream out, WriterSettings ws) throws IOException {
 
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
@@ -113,7 +114,8 @@ public class TabFuzzGuidance implements Guidance {
         this.currentInputFile = initialInputFile;
         this.maxTrials = maxTrials;
         this.out = out;
-        mutation = new TabFuzzMutation(dataSpecification);
+        this.ws = ws;
+        mutation = new TabFuzzMutation(dataSpecification, ws);
     }
 
     private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
