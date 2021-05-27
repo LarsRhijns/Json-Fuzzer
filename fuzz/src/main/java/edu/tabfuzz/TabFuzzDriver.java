@@ -29,7 +29,7 @@ public class TabFuzzDriver {
 
         } else {
             // Generate a random seed
-            InputGenerator ig = new InputGenerator(im.getInputs());
+            InputGenerator ig = new InputGenerator(im.getInputs(), new WriterSettings());
             String fileName = ig.generateInputFile();
             System.out.println("Random seed generated: " + fileName);
             fileConf = "fuzz/src/main/java/edu/tabfuzz/generatedConfigurations/" + fileName + ".csv";

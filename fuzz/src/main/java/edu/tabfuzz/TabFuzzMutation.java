@@ -21,6 +21,7 @@ public class TabFuzzMutation implements BigFuzzMutation {
     private static final String GENERATED_INPUT_FILES_FOLDER = "fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/";
     private int mutationGeneration = 0;
     private DataFormat[] dataSpecification;
+    private WriterSettings ws;
 
     /**
      * String fileName = "InputFile";
@@ -29,6 +30,7 @@ public class TabFuzzMutation implements BigFuzzMutation {
      */
     public TabFuzzMutation(DataFormat[] dataSpecification) {
         this.dataSpecification = dataSpecification;
+        this.ws = new WriterSettings(); //TODO: actually make the programmer input this
     }
 
     public void mutate(List<String[]> data) {
@@ -161,7 +163,7 @@ public class TabFuzzMutation implements BigFuzzMutation {
 
     private String writeMutation(List<String[]> data, String newFilePath) {
         try {
-            CSVWriter writer = new CSVWriter(new FileWriter(newFilePath));
+            CSVWriter writer = new CSVWriter(new FileWriter(newFilePath), ws.getSeparator(), ws.getQuoteChar(), ws.getEscapeChar(), ws.getLineEnd());
             System.out.println(newFilePath);
             for (String[] dataRow : data) {
                 writer.writeNext(dataRow);

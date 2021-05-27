@@ -282,7 +282,7 @@ public class BigFuzzGuidance implements Guidance {
                 // Must be responsible for some branch
                 assert(responsibilities.size() > 0);
                 toSave = true;
-                why = why + "+cov";
+                why = why;
             }
 
             // Save if new valid coverage is found

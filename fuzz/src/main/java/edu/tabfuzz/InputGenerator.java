@@ -14,9 +14,11 @@ public class InputGenerator {
     String generatedInputFilesFolder = "fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/";
     private static final int INPUT_FILE_AMOUNT_OF_LINES = 2;
     private static final int ARRAY_SIZE = 5;
+    private final WriterSettings ws;
 
-    public InputGenerator(DataFormat[] inputSpecification) {
+    public InputGenerator(DataFormat[] inputSpecification, WriterSettings ws) {
         this.inputSpecification = inputSpecification;
+        this.ws = ws;
     }
 
     /**
@@ -29,7 +31,7 @@ public class InputGenerator {
         String filePath = generatedInputFilesFolder + fileName + ".csv";
         try {
 
-            CSVWriter writer = new CSVWriter(new FileWriter(filePath));
+            CSVWriter writer = new CSVWriter(new FileWriter(filePath), ws.getSeparator(), ws.getQuoteChar(), ws.getEscapeChar(), ws.getLineEnd());
             for (int i = 0; i < INPUT_FILE_AMOUNT_OF_LINES; i++) { //TODO: i is the amount of lines; BigFuzz-> generates 1 to 20 lines (randomly chosen)
                 String[] inputData = generateInputData();
                 writer.writeNext(inputData);

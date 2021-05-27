@@ -295,7 +295,7 @@ public class TabFuzzGuidance implements Guidance {
                 File src = new File(currentInputFile);
                 currentInputFile += why;
                 File des = new File(currentInputFile);
-                src.renameTo(des);
+                //src.renameTo(des); TODO: important?
             }
             else {
                 try {
@@ -343,7 +343,7 @@ public class TabFuzzGuidance implements Guidance {
                 File src = new File(currentInputFile);
                 currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + rootCause;
                 File des = new File(currentInputFile);
-                src.renameTo(des);
+                //src.renameTo(des); TODO: important?
             } else {
                 try {
                     mutation.deleteFile(currentInputFile);
