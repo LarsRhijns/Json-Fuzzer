@@ -1,11 +1,11 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.tud.cs.jqf.bigfuzzplus.systematicMutation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static edu.ucla.cs.jqf.bigfuzz.MutationTree.MutationExclusion.*;
-import static edu.ucla.cs.jqf.bigfuzz.MutationTree.MutationType.*;
-import static edu.ucla.cs.jqf.bigfuzz.SystematicMutation.MUTATION_DEPTH;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationType.*;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationExclusion.*;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATION_DEPTH;
 
 //todo add breadth first search
 public class MutationTree {
@@ -186,9 +186,8 @@ public class MutationTree {
 				} else {
 					//otherwise select one random column
 					int randomColumn = SystematicMutation.r.nextInt(columnAmount);
-					nextValue = new MutationPair(MutationType.values()[i], randomColumn);
-					currentValue = new MutationPair(this.mutationType, this.column);
-					if (!this.prevMutations.contains(nextValue) && !nextValue.equals(currentValue)) {
+					MutationType nextType =  MutationType.values()[i];
+					if (this.prevMutations.stream().noneMatch(mutation -> mutation.getMutationType() == nextType) && !nextType.equals(this.mutationType)) {
 						this.addChild(new Mutation(this, MutationType.values()[i], randomColumn));
 					}
 				}

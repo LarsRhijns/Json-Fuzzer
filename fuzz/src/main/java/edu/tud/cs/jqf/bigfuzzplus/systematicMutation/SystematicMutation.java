@@ -1,7 +1,8 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.tud.cs.jqf.bigfuzzplus.systematicMutation;
 
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
-import edu.ucla.cs.jqf.bigfuzz.MutationTree.Mutation;
+import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.Mutation;
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class SystematicMutation implements BigFuzzMutation {
 	//maximum depth of tree
 	public static final int MUTATION_DEPTH = 4;
 	//apply mutations to all columns
-	public static boolean MUTATE_COLUMNS = true;
+	public static boolean MUTATE_COLUMNS = false;
 	//print level and mutation type for every mutation
 	public static final boolean EVALUATE = false;
 

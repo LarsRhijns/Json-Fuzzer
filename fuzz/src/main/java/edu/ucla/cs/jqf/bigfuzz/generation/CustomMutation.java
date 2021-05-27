@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class CustomMutation implements BigFuzzMutation {
+public class CustomMutation implements BigFuzzMutation{
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
@@ -177,7 +177,6 @@ public class CustomMutation implements BigFuzzMutation {
         }*/
     }
 
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
 
     }

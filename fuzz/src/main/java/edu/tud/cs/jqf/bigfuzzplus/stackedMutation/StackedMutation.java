@@ -2,7 +2,7 @@
  * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
  */
 
-package edu.tud.cs.jgf.bigfuzzplus.stackedMutation;
+package edu.tud.cs.jqf.bigfuzzplus.stackedMutation;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -15,8 +15,8 @@ import java.nio.file.Paths;
 import java.util.*;
 
 
-import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
-import static edu.tud.cs.jgf.bigfuzzplus.stackedMutation.HighOrderMutation.*;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
+import static edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation.*;
 
 public class StackedMutation implements BigFuzzMutation {
     private final Random r = new Random();
@@ -87,7 +87,6 @@ public class StackedMutation implements BigFuzzMutation {
         bw.close();
     }
 
-    @Override
     public void mutateFile(String inputFile, int index) throws IOException {
 
     }
@@ -448,7 +447,6 @@ public class StackedMutation implements BigFuzzMutation {
         return rowElements;
     }
 
-    @Override
     public void randomDuplicateRows(ArrayList<String> rows) {
         int ind = r.nextInt(rows.size());
         int duplicatedTimes = r.nextInt(maxDuplicatedTimes) + 1;
@@ -459,7 +457,6 @@ public class StackedMutation implements BigFuzzMutation {
         }
     }
 
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes) + 1;
         for (int i = 0; i < generatedTimes; i++) {
@@ -477,21 +474,6 @@ public class StackedMutation implements BigFuzzMutation {
                 rows.add(RandomStringUtils.randomNumeric(3));
             }
         }
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
     }
 
     @Override
@@ -523,7 +505,6 @@ public class StackedMutation implements BigFuzzMutation {
         }
     }
 
-    @Override
     public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
         this.stackedMutationMethod = stackedMutationMethod;
     }
@@ -566,8 +547,6 @@ public class StackedMutation implements BigFuzzMutation {
     public long getRandomizationSeed() {
         return randomizationSeed;
     }
-
-
 
     public ArrayList<HighOrderMutationMethod> getMutationMethodTracker() {
         return mutationMethodTracker;

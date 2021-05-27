@@ -3,7 +3,7 @@ package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 //import org.apache.commons.lang.ArrayUtils;
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -51,11 +51,6 @@ public class FindSalaryMutation implements BigFuzzMutation {
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException
@@ -206,11 +201,6 @@ public class FindSalaryMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         for(int i=0;i<generatedTimes;i++)
@@ -230,21 +220,6 @@ public class FindSalaryMutation implements BigFuzzMutation {
                 rows.add(RandomStringUtils.randomNumeric(3));
             }
         }
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
     }
 
     @Override
@@ -270,11 +245,6 @@ public class FindSalaryMutation implements BigFuzzMutation {
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
         del.delete();
-    }
-
-    @Override
-    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
-
     }
 
 }

@@ -1,11 +1,11 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.tud.cs.jqf.bigfuzzplus.systematicMutation;
 
-import static edu.ucla.cs.jqf.bigfuzz.MutationTree.MutationType;
-import static edu.ucla.cs.jqf.bigfuzz.MutationTree.MutationType.ChangeDelimiter;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.*;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationType.*;
 
 public class MutationPair {
 
-	private final MutationType mutationType;
+	private final MutationTree.MutationType mutationType;
 	private final int column;
 
 	/**
