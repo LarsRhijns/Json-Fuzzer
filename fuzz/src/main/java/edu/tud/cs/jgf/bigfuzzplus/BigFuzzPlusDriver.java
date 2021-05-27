@@ -90,6 +90,7 @@ public class BigFuzzPlusDriver {
         ArrayList<ArrayList<String>> methods = new ArrayList();
         ArrayList<ArrayList<String>> columns = new ArrayList();
         ArrayList<ArrayList<String>> mutationStacks = new ArrayList();
+
         ArrayList<Long> errorInputCount = new ArrayList();
         ArrayList<Long> validInputCount = new ArrayList();
         ArrayList<Long> durations = new ArrayList();
@@ -167,11 +168,11 @@ public class BigFuzzPlusDriver {
      * @param methods              List of summed HighOrderMutation methods applied per iteration
      * @param columns              List of count per column how many times mutation was applied to said column
      * @param durations            List of iteration durations
-     * @param mutationStacks
+     * @param mutationStackCountPerIteration
      * @param errorInputCount
      * @param validInputCount
      */
-    private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<ArrayList<String>> mutationStacks, ArrayList<Long> errorInputCount, ArrayList<Long> validInputCount) {
+    private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods, ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<ArrayList<String>> mutationStackCountPerIteration, ArrayList<Long> errorInputCount, ArrayList<Long> validInputCount) {
         summarized_results.append("\n#********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\n#CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
@@ -180,43 +181,16 @@ public class BigFuzzPlusDriver {
         }
 
         // --------------- INPUTS --------------
-        summarized_results.append("\n\n#APPLIED MUTATIONS PER ITERATION");
-        for (int i = 0; i < inputs.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + " [");
-            for (int j = 0; j < inputs.get(i).size(); j++) {
-                if (j != 0) {
-                    summarized_results.append(", ");
-                }
-                summarized_results.append("\"" + inputs.get(i).get(j) + "\"");
-            }
-            summarized_results.append("]");
-        }
+        summarized_results.append("\n\n#MUTATION RESULTS PER ITERATION");
+        summarized_results.append(dataPerIterationListToLog(inputs));
 
         // --------------- MUTATION COUNTER --------------
         summarized_results.append("\n\n #MUTATED INPUTS PER ITERATION");
-        for (int i = 0; i < methods.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + "= [");
-            for (int j = 0; j < methods.get(i).size(); j++) {
-                if (j != 0) {
-                    summarized_results.append(", ");
-                }
-                summarized_results.append("(" + methods.get(i).get(j) + ")");
-            }
-            summarized_results.append("]");
-        }
+        summarized_results.append(dataPerIterationListToLog(methods));
 
         // --------------- COLUMN COUNTER --------------
         summarized_results.append("\n\n MUTATIONS APPLIED ON COLUMN PER ITERATION");
-        for (int i = 0; i < columns.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + "= [");
-            for (int j = 0; j < columns.get(i).size(); j++) {
-                if (j != 0) {
-                    summarized_results.append(", ");
-                }
-                summarized_results.append("\"" + columns.get(i).get(j) + "\"");
-            }
-            summarized_results.append("]");
-        }
+        summarized_results.append(dataPerIterationListToLog(columns));
 
         // --------------- DURATION --------------
         summarized_results.append("\n\n #DURATION PER ITERATION");
@@ -226,19 +200,10 @@ public class BigFuzzPlusDriver {
         }
 
         // --------------- MUTATION STACK ---------------------
-        summarized_results.append("\n\n #STACKED MUTATION COUNT PER ITERATION");
-        for (int i = 0; i < mutationStacks.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + "= [");
-            for (int j = 0; j < mutationStacks.get(i).size(); j++) {
-                if (j != 0) {
-                    summarized_results.append(", ");
-                }
-                summarized_results.append("\"" + mutationStacks.get(i).get(j) + "\"");
-            }
-            summarized_results.append("]");
-        }
+        summarized_results.append("\n\n #STACKED COUNT PER MUTATION PER ITERATION");
+        summarized_results.append(dataPerIterationListToLog(mutationStackCountPerIteration));
 
-        // --------------- INPUTS ---------------------
+        // --------------- ERRORS ---------------------
         summarized_results.append("\n\n #ERROR/VALID COUNT PER ITERATION");
         summarized_results.append("\ntotal_errors= " + errorInputCount);
         for (int i = 0; i < errorInputCount.size(); i++) {
@@ -250,9 +215,23 @@ public class BigFuzzPlusDriver {
             summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
         }
 
-
         System.out.println(summarized_results);
 
+    }
+
+    private static StringBuilder dataPerIterationListToLog(ArrayList<ArrayList<String>> lists) {
+        StringBuilder res = new StringBuilder();
+        for (int i = 0; i < lists.size(); i++) {
+            res.append("\nRun_" + (i + 1) + " [");
+            for (int j = 0; j < lists.get(i).size(); j++) {
+                if (j != 0) {
+                    res.append(", ");
+                }
+                res.append("\"" + lists.get(i).get(j) + "\"");
+            }
+            res.append("]");
+        }
+        return res;
     }
 
     /**
@@ -423,8 +402,32 @@ public class BigFuzzPlusDriver {
         e_log.append("\n\tTotal coverage: " + totalCov);
         e_log.append("\n\tValid coverage: " + validCov);
         e_log.append("\n\tPercent valid coverage: " + (float) validCov / totalCov * 100 + "%");
+
+        e_log.append(printUniqueFailuresAndMutations(guidance));
+
+
+
+
+
         System.out.println(e_log);
         iteration_results.append(e_log);
 
+    }
+
+    private static StringBuilder printUniqueFailuresAndMutations(BigFuzzPlusGuidance guidance) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n\n # Error triggering mutations");
+        for (int i = 0; i < guidance.uniqueFailureRuns.size(); i++) {
+            sb.append( "\nError triggered at " + guidance.uniqueFailureRuns.get(i) + " triggered by mutation(s):  \n\t # \t column \t mutation");
+            int inputIndexOfErrorOccurrence = Math.toIntExact(guidance.uniqueFailureRuns.get(i));
+            for (int j = 0; j < guidance.mutationsPerRun.get(inputIndexOfErrorOccurrence).size(); j++) {
+                // Add one to the column nr to make it not 0 indexed
+                int columnNr = guidance.mutationsPerRun.get(inputIndexOfErrorOccurrence).get(j).getElementId() + 1;
+                String mutation = String.valueOf(guidance.mutationsPerRun.get(inputIndexOfErrorOccurrence).get(j).getMutation());
+                sb.append("\n\tM_" +j + ": " + columnNr + "\t - \t" + mutation);
+            }
+            sb.append("\n");
+        }
+        return sb;
     }
 }

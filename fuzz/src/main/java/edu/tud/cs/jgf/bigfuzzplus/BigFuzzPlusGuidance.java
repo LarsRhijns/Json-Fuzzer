@@ -5,6 +5,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
@@ -106,6 +107,7 @@ public class BigFuzzPlusGuidance implements Guidance {
      * List of runs which have at which new unique failures have been detected.
      */
     protected List<Long> uniqueFailureRuns = new ArrayList<>();
+    protected ArrayList<ArrayList<MutationPair>> mutationsPerRun = new ArrayList<>();
     protected ArrayList<String> inputs = new ArrayList();
 
     // ---------- LOGGING / STATS OUTPUT ------------
@@ -259,6 +261,10 @@ public class BigFuzzPlusGuidance implements Guidance {
             }
         }
         testInputFiles.add(currentInputFile);
+
+        if(mutation instanceof StackedMutation) {
+            mutationsPerRun.add(((StackedMutation)mutation).getAppliedMutations());
+        }
 
         if (PRINT_METHOD_NAMES) {
             System.out.println("BigFuzzGuidance::getInput: " + numTrials + ": " + currentInputFile);

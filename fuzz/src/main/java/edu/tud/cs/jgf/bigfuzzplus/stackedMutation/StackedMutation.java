@@ -43,7 +43,7 @@ public class StackedMutation implements BigFuzzMutation {
     @SuppressWarnings({"rawtypes"})
     ArrayList<Integer> mutationColumnTracker = new ArrayList();
     ArrayList<Integer> mutationStackTracker = new ArrayList();
-    ArrayList<MutationPair> appliedmutations = new ArrayList();
+    ArrayList<MutationPair> appliedMutations = new ArrayList();
 
     public StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
 
@@ -62,7 +62,7 @@ public class StackedMutation implements BigFuzzMutation {
         String fileToMutate = fileList.get(n);
 
         // Empty applied mutations, as it is only containing the mutations performed in this cycle
-        appliedmutations.clear();
+        appliedMutations = new ArrayList<>();
 
         // Mutate selected input file
         mutateFile(fileToMutate);
@@ -431,6 +431,7 @@ public class StackedMutation implements BigFuzzMutation {
                 break;
         }
 
+
         saveMutation(elementId, method);
 
         return mutationResult;
@@ -662,6 +663,8 @@ public class StackedMutation implements BigFuzzMutation {
     }
 
     private void saveMutation(int rowElementId, HighOrderMutationMethod method) {
+        appliedMutations.add(new MutationPair(rowElementId, method));
+        // TODO below lists become redundant
         mutationColumnTracker.add(rowElementId);
         mutationMethodTracker.add(method);
     }
@@ -691,5 +694,9 @@ public class StackedMutation implements BigFuzzMutation {
 
     public ArrayList<Integer> getMutationStackTracker() {
         return mutationStackTracker;
+    }
+
+    public ArrayList<MutationPair> getAppliedMutations() {
+        return appliedMutations;
     }
 }
