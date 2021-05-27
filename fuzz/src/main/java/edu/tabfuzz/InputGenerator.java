@@ -1,7 +1,6 @@
 package edu.tabfuzz;
 
 import com.opencsv.CSVWriter;
-import com.opencsv.ICSVWriter;
 
 import java.io.FileWriter;
 import java.io.IOException;

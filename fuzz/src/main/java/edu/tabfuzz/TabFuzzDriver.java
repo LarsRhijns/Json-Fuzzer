@@ -1,15 +1,12 @@
 package edu.tabfuzz;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
 
 public class TabFuzzDriver {
     public static void main(String[] args) {
@@ -22,7 +19,7 @@ public class TabFuzzDriver {
 
         boolean seed = false;
         // Get the fileConf location:
-        String fileConf = "";
+        String fileConf;
         if (seed) {
             // TODO: Make sure the tested input files go to a separate directory
             fileConf = "fuzz/src/main/java/edu/tabfuzz/dataset/configuration";
@@ -52,13 +49,7 @@ public class TabFuzzDriver {
             TabFuzzGuidance guidance = new TabFuzzGuidance("Test1", fileConf, im.getInputs(), 20, duration, System.err, ws);
 
             GuidedFuzzing.run("SalaryAnalysisDriver", "testSalaryAnalysis", guidance, System.out);
-
-            if (Boolean.getBoolean("jqf.logCoverage")) {
-                System.out.println(String.format("Covered %d edges.",
-                        guidance.getCoverage().getNonZeroCount()));
-            }
-
-
+            
             long endTime = System.currentTimeMillis();
             System.out.println("*********Running Time：" + (endTime - startTime) + "ms");
 

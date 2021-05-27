@@ -7,13 +7,11 @@ public class WriterSettings {
     private char separator;
     private char quoteChar;
     private char escapeChar;
-    private String lineEnd;
 
     public WriterSettings () {
         this.separator = CSVWriter.DEFAULT_SEPARATOR;
         this.quoteChar = Character.MIN_VALUE;
         this.escapeChar = Character.MIN_VALUE;
-        lineEnd = CSVWriter.DEFAULT_LINE_END;
     }
 
     public char getSeparator() {
@@ -29,7 +27,7 @@ public class WriterSettings {
     }
 
     public String getLineEnd() {
-        return lineEnd;
+        return CSVWriter.DEFAULT_LINE_END;
     }
 
     public void setSeparator(char separator) {
