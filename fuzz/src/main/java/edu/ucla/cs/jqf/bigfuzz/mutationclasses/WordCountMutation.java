@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz.mutations;
+package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -7,6 +7,7 @@ package edu.ucla.cs.jqf.bigfuzz.mutations;
  */
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -54,6 +55,11 @@ public class WordCountMutation implements BigFuzzMutation {
             bw.flush();
         }
         bw.close();
+    }
+
+    @Override
+    public void mutateFile(String inputFile, int index) throws IOException {
+
     }
 
     public void mutateFile(String inputFile) throws IOException
@@ -153,7 +159,8 @@ public class WordCountMutation implements BigFuzzMutation {
         return instr;
     }
 
-    private void randomDuplicateRows(ArrayList<String> rows) {
+    @Override
+    public void randomDuplicateRows(ArrayList<String> rows) {
         int ind = r.nextInt(rows.size());
         int duplicatedTimes = r.nextInt(maxDuplicatedTimes)+1;
         String duplicatedValue = rows.get(ind);
@@ -167,6 +174,21 @@ public class WordCountMutation implements BigFuzzMutation {
 
     @Override
     public void randomGenerateRows(ArrayList<String> rows) {
+
+    }
+
+    @Override
+    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
+
+    }
+
+    @Override
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+
+    }
+
+    @Override
+    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 
@@ -193,6 +215,11 @@ public class WordCountMutation implements BigFuzzMutation {
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+
     }
 
 }

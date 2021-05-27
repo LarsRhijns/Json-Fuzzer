@@ -70,6 +70,10 @@
             <version>2.5</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-instrument</artifactId>
+        </dependency>
     </dependencies>
 
 

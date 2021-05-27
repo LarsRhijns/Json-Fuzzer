@@ -1,21 +1,26 @@
-package edu.ucla.cs.jqf.bigfuzz.generation;
+package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 
+//import org.apache.commons.lang.ArrayUtils;
+
+/*
+ mutation for I3: it contains infinite symbolic states
+ */
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
-public class MutationTemplate implements BigFuzzMutation {
+public class NumberSeriesMutation implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
+    int maxGenerateTimes = 5;
 
 
     public void mutate(String inputFile, String nextInputFile) throws IOException
@@ -30,6 +35,8 @@ public class MutationTemplate implements BigFuzzMutation {
         writeFile(fileName);
 
         String path = System.getProperty("user.dir")+"/"+fileName;
+//        System.out.println(path);
+//        System.out.println(fileList);
 
         delete = path;
         // write next input config
@@ -45,6 +52,11 @@ public class MutationTemplate implements BigFuzzMutation {
             bw.flush();
         }
         bw.close();
+    }
+
+    @Override
+    public void mutateFile(String inputFile, int index) throws IOException {
+
     }
 
     public void mutateFile(String inputFile) throws IOException
@@ -70,24 +82,29 @@ public class MutationTemplate implements BigFuzzMutation {
 
         br.close();
 
-        mutate(rows);
+        int method =(int)(Math.random() * 2);
+        if(method == 0){
+            ArrayList<String> tempRows = new ArrayList<String>();
+            randomGenerateRows(tempRows);
+            System.out.println("rows: " + tempRows);
+            rows = tempRows;
+
+            int next =(int)(Math.random() * 2);
+            if(next == 0){
+                mutate(rows);
+            }
+        }else{
+            mutate(rows);
+        }
 
         fileRows = rows;
     }
 
     public static String[] removeOneElement(String[] input, int index) {
-        List result = new LinkedList();
-
-        for(int i=0;i<input.length;i++)
-        {
-            if(i==index)
-            {
-                continue;
-            }
-            result.add(input[i]);
-        }
-
-        return (String [])result.toArray(input);
+        List<String> list1 = Arrays.asList(input);
+        List<String> arrList = new ArrayList<String>(list1);
+        arrList.remove(input[index]);
+        return arrList.toArray(new String[arrList.size()]);
     }
     public static String[] AddOneElement(String[] input, String value, int index) {
         List result = new LinkedList();
@@ -114,32 +131,29 @@ public class MutationTemplate implements BigFuzzMutation {
         // 1: random change into float
         // 2: random insert
         // 3: random delete one column
-        // 4: random add one coumn
-        String[] columns = list.get(lineNum).split("$del$");
-        int method = r.nextInt(5);
-        int columnID = r.nextInt(Integer.parseInt("$cols$"));
-        System.out.println("Mutation *** "+method+" "+lineNum+" "+columnID);
-        if(method == 0){
-            columns[columnID] = Integer.toString(r.nextInt());
+        String[] columns = list.get(lineNum).split(",");
+        int method = r.nextInt(2);
+        int columnID = r.nextInt(columns.length);
+        System.out.println("NumberSeriesMutation *** "+method+" "+lineNum+" "+columnID);
+//        if(method == 0){
+//            columns[columnID] = Integer.toString((int)(Math.random()*256));
+//        }
+        if(method==0) {
+            String r = RandomStringUtils.randomAscii((int)(Math.random() * 5));
+            columns[1] = r;
         }
+//        else if(method==2) {
+//            char temp = (char)r.nextInt(255);
+//            int pos = r.nextInt(columns[columnID].length());
+//            columns[columnID] = columns[columnID].substring(0, pos)+temp+columns[columnID].substring(pos);
+//        }
         else if(method==1) {
-            int value = 0;
-            value = Integer.parseInt(columns[columnID]);
-            float v = (float)value + r.nextFloat();
-            columns[columnID] = Float.toString(v);
-        }
-        else if(method==2) {
-            char temp = (char)r.nextInt(255);
-            int pos = r.nextInt(columns[columnID].length());
-            columns[columnID] = columns[columnID].substring(0, pos)+temp+columns[columnID].substring(pos);
-        }
-        else if(method==3) {
             columns = removeOneElement(columns, columnID);
+            System.out.println("Remove***********" + columns.length);
+//            System.out.println("Press Any Key To Continue...");
+//            new java.util.Scanner(System.in).nextLine();
         }
-        else if(method==4) {
-            String one = Integer.toString(r.nextInt(10000));
-            columns = AddOneElement(columns, one, columnID);
-        }
+
         String line = "";
         for(int j=0;j<columns.length;j++) {
             if(j==0)
@@ -178,7 +192,36 @@ public class MutationTemplate implements BigFuzzMutation {
     }
 
     @Override
+    public void randomDuplicateRows(ArrayList<String> rows) {
+
+    }
+
+    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
+        int generatedTimes = r.nextInt(maxGenerateTimes)+1;
+        for(int i=0;i<generatedTimes;i++)
+        {
+            String numberAsString = new String();
+            String first= RandomStringUtils.randomAscii((int)(Math.random() * 3));
+            //Integer second = (int)(Math.random()*256);
+            Integer second = r.nextInt(1001) - 500;
+            numberAsString = first + "," + second;
+            rows.add(numberAsString);
+        }
+    }
+
+    @Override
+    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
+
+    }
+
+    @Override
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+
+    }
+
+    @Override
+    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 
@@ -205,6 +248,11 @@ public class MutationTemplate implements BigFuzzMutation {
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+
     }
 
 }

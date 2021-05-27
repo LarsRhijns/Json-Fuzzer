@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz.mutations;
+package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -7,6 +7,7 @@ package edu.ucla.cs.jqf.bigfuzz.mutations;
  */
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -149,6 +150,11 @@ public class AgeAnalysisMutation implements BigFuzzMutation {
         del.delete();
     }
 
+    @Override
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+
+    }
+
     public void mutate(String inputFile, String nextInputFile) throws IOException
     {
         List<String> fileList = Files.readAllLines(Paths.get(inputFile));
@@ -178,6 +184,11 @@ public class AgeAnalysisMutation implements BigFuzzMutation {
             bw.flush();
         }
         bw.close();
+    }
+
+    @Override
+    public void mutateFile(String inputFile, int index) throws IOException {
+
     }
 
     public void mutateFile(String inputFile) throws IOException

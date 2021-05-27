@@ -1,12 +1,10 @@
-package edu.ucla.cs.jqf.bigfuzz.mutations;
+package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 
 //import org.apache.commons.lang.ArrayUtils;
 
-/*
- mutation for I2: One DF
- */
-
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -16,11 +14,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class OneDFMutation implements BigFuzzMutation {
+public class FindSalaryMutation implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
+    int maxGenerateTimes = 10;
 
 
     public void mutate(String inputFile, String nextInputFile) throws IOException
@@ -54,6 +53,11 @@ public class OneDFMutation implements BigFuzzMutation {
         bw.close();
     }
 
+    @Override
+    public void mutateFile(String inputFile, int index) throws IOException {
+
+    }
+
     public void mutateFile(String inputFile) throws IOException
     {
 
@@ -77,7 +81,20 @@ public class OneDFMutation implements BigFuzzMutation {
 
         br.close();
 
-        mutate(rows);
+        int method =(int)(Math.random() * 2);
+        if(method == 0){
+            ArrayList<String> tempRows = new ArrayList<String>();
+            randomGenerateRows(tempRows);
+            System.out.println("rows: " + tempRows);
+            rows = tempRows;
+
+            int next =(int)(Math.random() * 2);
+            if(next == 0){
+                mutate(rows);
+            }
+        }else{
+            mutate(rows);
+        }
 
         fileRows = rows;
     }
@@ -117,36 +134,40 @@ public class OneDFMutation implements BigFuzzMutation {
         System.out.println("mutate size: " + list.size());
         int lineNum = r.nextInt(list.size());
         System.out.println("mutate linenum: " + list.get(lineNum));
-        // 0: random change value
-        // 1: random change into float
-        // 2: random insert
+//        // 0: random change value
+        // 1: random change into string
+//        // 2: random insert
         // 3: random delete one column
         // 4: random add one coumn
         String[] columns = list.get(lineNum).split(",");
-        int method = r.nextInt(5);
+        int method = r.nextInt(2);
         int columnID = r.nextInt(Integer.parseInt("1"));
-        System.out.println("OneDFMutation *** "+method+" "+lineNum+" "+columnID);
-        if(method == 0){
-            columns[columnID] = Integer.toString(r.nextInt());
+
+        if(method==0) {
+            if( columns[columnID] == "") return;
+
+            int next = r.nextInt(2);
+            if(next == 0){
+                columns[columnID] = "$" + RandomStringUtils.randomAscii((int)(Math.random() * 10));
+            } else{
+                columns[columnID] = RandomStringUtils.randomAscii((int)(Math.random() * 10));
+            }
+//            if(columns[columnID].charAt(0)=='$')
+//            {
+//                columns[columnID] = "$" + RandomStringUtils.randomAscii((int)(Math.random() * 10));
+//            }
+//            else
+//            {
+//                columns[columnID] = RandomStringUtils.randomAscii((int)(Math.random() * 6));
+//            }
         }
         else if(method==1) {
-            int value = 0;
-            value = Integer.parseInt(columns[columnID]);
-            float v = (float)value + r.nextFloat();
-            columns[columnID] = Float.toString(v);
-        }
-        else if(method==2) {
-            char temp = (char)r.nextInt(255);
-            int pos = r.nextInt(columns[columnID].length());
-            columns[columnID] = columns[columnID].substring(0, pos)+temp+columns[columnID].substring(pos);
-        }
-        else if(method==3) {
             columns = removeOneElement(columns, columnID);
         }
-        else if(method==4) {
-            String one = Integer.toString(r.nextInt(10000));
-            columns = AddOneElement(columns, one, columnID);
-        }
+//        else if(method==2) {
+//            String one = Integer.toString(r.nextInt(10000));
+//            columns = AddOneElement(columns, one, columnID);
+//        }
         String line = "";
         for(int j=0;j<columns.length;j++) {
             if(j==0)
@@ -185,7 +206,44 @@ public class OneDFMutation implements BigFuzzMutation {
     }
 
     @Override
+    public void randomDuplicateRows(ArrayList<String> rows) {
+
+    }
+
+    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
+        int generatedTimes = r.nextInt(maxGenerateTimes)+1;
+        for(int i=0;i<generatedTimes;i++)
+        {
+            int bits = (int)(Math.random()*6);
+            String tempRow = RandomStringUtils.randomNumeric(bits);
+            int method =(int)(Math.random() * 2);
+            if(method == 0){
+                int next = (int)(Math.random()*2);
+                if(next == 0) {
+                    rows.add("$" + tempRow);
+                }else {
+                    rows.add(tempRow);
+                }
+            }
+            else{
+                rows.add(RandomStringUtils.randomNumeric(3));
+            }
+        }
+    }
+
+    @Override
+    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
+
+    }
+
+    @Override
+    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+
+    }
+
+    @Override
+    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 
@@ -212,6 +270,11 @@ public class OneDFMutation implements BigFuzzMutation {
     public void deleteFile(String currentFile) throws IOException {
         File del = new File(delete);
         del.delete();
+    }
+
+    @Override
+    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
+
     }
 
 }
