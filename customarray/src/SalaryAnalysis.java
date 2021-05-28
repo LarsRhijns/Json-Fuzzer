@@ -13,7 +13,6 @@ import java.util.Map;
 public class SalaryAnalysis {
 
     public void SalaryAnalysis(String inputFile) throws IOException {
-
         File file=new File(inputFile);
         ArrayList<String> list;
         if(file.exists())
