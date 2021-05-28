@@ -6,7 +6,6 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.ucla.cs.jqf.bigfuzz.IncomeAggregationMutation;
 //import org.apache.commons.io.FileUtils;
 
 import java.io.*;

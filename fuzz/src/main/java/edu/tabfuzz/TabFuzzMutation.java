@@ -237,7 +237,6 @@ public class TabFuzzMutation implements BigFuzzMutation {
         mutateFile(inputFile, nextInputFile);
     }
 
-    @Override
     public void mutateFile(String inputFile, int index) {
         System.err.println("Don't think this is used?");
     }
@@ -248,30 +247,25 @@ public class TabFuzzMutation implements BigFuzzMutation {
 
     }
 
-    @Override
     public void randomDuplicateRows(ArrayList<String> rows) {
         System.err.println("This should never be run");
     }
 
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         System.err.println("This should never be run");
 
     }
 
-    @Override
     public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
         System.err.println("This should never be run");
 
     }
 
-    @Override
     public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
         System.err.println("This should never be run");
 
     }
 
-    @Override
     public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
         System.err.println("This should never be run");
 
