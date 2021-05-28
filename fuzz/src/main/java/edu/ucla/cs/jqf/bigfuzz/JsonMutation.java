@@ -255,32 +255,12 @@ public class JsonMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-        // Not necessary
-    }
-
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         JsonValueGenerator<?> gen = GeneratorFactory.getGenerator(jsonSchema);
         for (int i = 0; i < generatedTimes; i++) {
             rows.add(gen.generate().toString());
         }
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-        // Not necessary
-    }
-
-    @Override
-    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-        // Not necessary
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-        // Not necessary
     }
 
     @Override
@@ -308,5 +288,25 @@ public class JsonMutation implements BigFuzzMutation {
         if (!del.delete()) {
             throw new IOException("Deletion not successful");
         }
+    }
+
+    @Override
+    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
+        // Not necessary
+    }
+
+    @Override
+    public void randomDuplacteOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+        // Not necessary
+    }
+
+    @Override
+    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
+        // Not necessary
+    }
+
+    @Override
+    public void randomDuplicateRows(ArrayList<String> rows) {
+        // Not necessary
     }
 }
