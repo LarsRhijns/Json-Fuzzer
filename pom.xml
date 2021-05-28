@@ -77,6 +77,7 @@
         <module>examples</module>
         <module>maven-plugin</module>
         <module>transformer</module>
+        <module>customarray</module>
     </modules>
 
     <dependencyManagement>
@@ -108,12 +109,17 @@
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
-                <artifactId>jqf-fuzz</artifactId>
+                <artifactId>bigfuzz-guidance</artifactId>
                 <version>1.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-instrument</artifactId>
+                <version>1.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.berkeley.cs.jqf</groupId>
+                <artifactId>bigfuzz-dfcoverage</artifactId>
                 <version>1.2-SNAPSHOT</version>
             </dependency>
         </dependencies>
