@@ -7,6 +7,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -133,7 +134,10 @@ public class BigFuzzGuidance implements Guidance {
     protected Coverage validCoverage = new Coverage();
 
     /** Map which tracks the amount of times each known branch is covered */
-    protected Map<Collection<Integer>, Integer> branchesHitCount = new HashMap<>();
+    protected Map<Set<Integer>, Integer> branchesHitCount = new HashMap<>();
+
+    /** Map which is used to point to the initial File that discovered the combination of branches. */
+    protected Map<Set<Integer>, File> coverageFilePointer = new HashMap<>();
 
     /** The maximum number of keys covered by any single input found so far. */
     protected int maxCoverage = 0;
@@ -361,7 +365,7 @@ public class BigFuzzGuidance implements Guidance {
             // Newly covered branches are always included.
             // Existing branches *may* be included, depending on the heuristics used.
             // A valid input will steal responsibility from invalid inputs
-            Set<Object> responsibilities = computeResponsibilities(valid);
+            Set<Integer> responsibilities = computeResponsibilities();
             if (PRINT_COVERAGE_DETAILS && responsibilities.size() > 0) {
                 System.out.println("New responsibilities found: " + responsibilities);
             }
@@ -383,7 +387,7 @@ public class BigFuzzGuidance implements Guidance {
             boolean toSave = false;
             String why = "";
 
-            // Save if new total coverage found
+            // Save if new combination of branches is found
             if (nonZeroAfter > nonZeroBefore) {
                 // Must be responsible for some branch
                 assert(responsibilities.size() > 0);
@@ -411,7 +415,7 @@ public class BigFuzzGuidance implements Guidance {
 
                 // Change current input file name
                 File src = currentInputFile;
-                File des = new File(coverageInputsDirectory, currentInputFile.getName());
+                File des = new File(coverageInputsDirectory, "branches_" + (numTrials - 1));
                 // save the file if it increased coverage
                 if (why.contains("+cov")) {
                     if (!des.exists()) {
@@ -423,6 +427,7 @@ public class BigFuzzGuidance implements Guidance {
                     }
                     newCoverageRuns.add((int) numTrials - 1);
                     lastWorkingInputFile = src;
+                    coverageFilePointer.put(responsibilities, des);
                 }
             }
             else {
@@ -593,33 +598,18 @@ public class BigFuzzGuidance implements Guidance {
     }
 
     // Compute a set of branches for which the current input may assume responsibility
-    private Set<Object> computeResponsibilities(boolean valid) {
-        Set<Object> result = new HashSet<>();
+    private Set<Integer> computeResponsibilities() {
 
         // add hit branches to counter
-        Collection<Integer> hitBranches = runCoverage.getCounter().getNonZeroIndices();
+        Collection<Integer> nonZeroIndices = runCoverage.getCounter().getNonZeroIndices();
+        Set<Integer> hitBranches = new HashSet<>(nonZeroIndices);
         int hits = branchesHitCount.getOrDefault(hitBranches, 0);
         branchesHitCount.put(hitBranches, hits + 1);
         if (PRINT_COVERAGE_DETAILS) { System.out.println("branches hit: " + hitBranches); }
 
-        // This input is responsible for all new coverage
-        Collection<?> newCoverage = runCoverage.computeNewCoverage(totalCoverage);
-        if (newCoverage.size() > 0) {
-//            System.out.println("coverage increased");
-            result.addAll(newCoverage);
-        }
-
-        // If valid, this input is responsible for all new valid coverage
-        if (valid) {
-            Collection<?> newValidCoverage = runCoverage.computeNewCoverage(validCoverage);
-            if (newValidCoverage.size() > 0) {
-                result.addAll(newValidCoverage);
-            }
-        }
-
         // todo: Perhaps it can also steal responsibility from other inputs
 
-        return result;
+        return hitBranches;
     }
 
     @Override
