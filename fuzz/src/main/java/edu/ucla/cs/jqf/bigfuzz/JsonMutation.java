@@ -241,16 +241,20 @@ public class JsonMutation implements BigFuzzMutation {
         }
     }
 
+
+    /**
+     * @param newSchema The schema of the property that needs to be updated
+     * @param property The string of the key of the property that needs to be updated
+     */
     private void updateJsonSchema(Schema newSchema, String property) {
-        // TODO
-        if (newSchema instanceof ArraySchema) {
-
-        } else if (newSchema instanceof NumberSchema) {
-
-        } else if (newSchema instanceof ObjectSchema) {
-
-        } else if (newSchema instanceof StringSchema) {
-
+        ObjectSchema.Builder builder = new ObjectSchema.Builder();
+        Map<String, Schema> propertySchemas = jsonSchema.getPropertySchemas();
+        for (String key : propertySchemas.keySet()) {
+            if (key.equals(property)) {
+                builder.addPropertySchema(key, newSchema);
+            } else {
+                builder.addPropertySchema(key, propertySchemas.get(key));
+            }
         }
     }
 
