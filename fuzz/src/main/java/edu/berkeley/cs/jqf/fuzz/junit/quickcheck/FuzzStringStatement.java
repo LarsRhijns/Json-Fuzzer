@@ -58,9 +58,8 @@ import org.junit.runners.model.TestClass;
 import ru.vyarus.java.generics.resolver.GenericsResolver;
 
 import static edu.berkeley.cs.jqf.fuzz.guidance.Result.*;
-import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
-import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_ERRORS;
-
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_ERRORS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
 
 /**
  *
@@ -221,7 +220,7 @@ public class FuzzStringStatement extends Statement {
             } else {
                 // Not sure if we should report each failing run,
                 // as there may be duplicates
-                if (PRINT_ERRORS) {  throw new MultipleFailureException(failures);}
+                if(PRINT_ERRORS) {throw new MultipleFailureException(failures);}
             }
         }
 
