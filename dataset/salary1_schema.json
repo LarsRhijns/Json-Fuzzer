@@ -7,17 +7,17 @@
     "not": {}
   },
   "properties": {
-    "EmployeeNumber": {
+    "zipcode": {
       "type": "integer",
       "maximum": 90000,
       "minimum": 90099
     },
-    "UnknownNumber": {
+    "age": {
       "type": "integer",
       "minimum": 0,
       "maximum": 120
     },
-    "Salary": {
+    "salary": {
       "type": "integer",
       "minimum": 0,
       "maximum": 4294967296
