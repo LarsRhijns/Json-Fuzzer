@@ -1,4 +1,4 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,7 +6,8 @@ package edu.ucla.cs.jqf.bigfuzz;
  mutation for I5: unsupported DF operator
  */
 
-import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -18,7 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class IncomeAggregationMutation implements BigFuzzMutation{
+public class IncomeAggregationMutation implements BigFuzzMutation {
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;
@@ -89,12 +90,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         }
     }
 
-    @Override
-    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    public void randomDuplacteOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
+    public void randomDuplicateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows)
     {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         ArrayList<String> tempRows = new ArrayList<String>(rows);
@@ -154,11 +150,6 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         del.delete();
     }
 
-    @Override
-    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
-
-    }
-
     public void mutate(String inputFile, String nextInputFile) throws IOException
     {
         List<String> fileList = Files.readAllLines(Paths.get(inputFile));
@@ -188,11 +179,6 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException

@@ -7,8 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
-import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 
 @RunWith(JQF.class)
 public class SalaryAnalysisDriver {

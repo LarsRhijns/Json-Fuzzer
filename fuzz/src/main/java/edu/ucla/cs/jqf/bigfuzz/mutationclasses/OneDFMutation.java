@@ -7,7 +7,7 @@ package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
  */
 
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -53,11 +53,6 @@ public class OneDFMutation implements BigFuzzMutation {
             bw.flush();
         }
         bw.close();
-    }
-
-    @Override
-    public void mutateFile(String inputFile, int index) throws IOException {
-
     }
 
     public void mutateFile(String inputFile) throws IOException
@@ -191,27 +186,7 @@ public class OneDFMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void randomDuplicateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
     public void randomGenerateRows(ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomGenerateOneColumn(int columnID, int minV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void randomDuplicateOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
-
-    }
-
-    @Override
-    public void improveOneColumn(int columnID, int intV, int maxV, ArrayList<String> rows) {
 
     }
 
@@ -239,10 +214,4 @@ public class OneDFMutation implements BigFuzzMutation {
         File del = new File(delete);
         del.delete();
     }
-
-    @Override
-    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
-
-    }
-
 }

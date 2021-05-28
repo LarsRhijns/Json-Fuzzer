@@ -2,7 +2,7 @@
  * Created by Melchior Oudemans for the bachelors research project at the TUDelft. Code has been created by extending on the BigFuzz framework in collaboration with 4 other students at the TU Delft.
  */
 
-package edu.tud.cs.jgf.bigfuzzplus.stackedMutation;
+package edu.tud.cs.jqf.bigfuzzplus.stackedMutation;
 
 public class StackedMutationEnum {
 

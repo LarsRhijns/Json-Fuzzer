@@ -38,7 +38,7 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEventVisitor;
 import edu.ucla.cs.bigfuzz.dataflow.*;
 
-import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
 
 /**
  * Utility class to collect branch and function coverage
