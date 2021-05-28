@@ -15,7 +15,7 @@ import java.util.*;
 public class JsonMutation implements BigFuzzMutation {
 
     Random r = new Random();
-    ArrayList<String> fileRows = new ArrayList<String>();
+    ArrayList<String> fileRows = new ArrayList<>();
     String delete;
     ObjectSchema jsonSchema; // TODO Also support Arrays
     int maxGenerateTimes = 20;
@@ -76,7 +76,7 @@ public class JsonMutation implements BigFuzzMutation {
             throw new IOException("File does not exist!");
         }
         String jsonString = new String(Files.readAllBytes(Paths.get(inputFile)));
-        ArrayList<String> rows = new ArrayList<String>();
+        ArrayList<String> rows = new ArrayList<>();
         rows.add(jsonString);
 
         // 50/50 chance of generating extra rows
@@ -274,11 +274,11 @@ public class JsonMutation implements BigFuzzMutation {
 
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 
-        for (int i = 0; i < fileRows.size(); i++) {
-            if(fileRows.get(i) == null) {
+        for (String fileRow : fileRows) {
+            if (fileRow == null) {
                 continue;
             }
-            bw.write(fileRows.get(i));
+            bw.write(fileRow);
             bw.newLine();
         }
 
