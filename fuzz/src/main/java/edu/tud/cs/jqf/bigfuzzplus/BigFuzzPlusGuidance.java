@@ -5,6 +5,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
@@ -64,7 +65,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     protected final long maxTrials;
     private final PrintStream out;
-    private long numDiscards = 0;
+    protected long numDiscards = 0;
     // Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
     private final float maxDiscardRatio = 0.9f;
 
@@ -102,11 +103,13 @@ public class BigFuzzPlusGuidance implements Guidance {
      * The set of unique failures found so far.
      */
     protected Set<List<StackTraceElement>> uniqueFailures = new HashSet<>();
+    protected HashMap<ArrayList<StackTraceElement>, Long> uniqueFailuresWithTrial = new HashMap<ArrayList<StackTraceElement>, Long>();
 
     /**
      * List of runs which have at which new unique failures have been detected.
      */
     protected List<Long> uniqueFailureRuns = new ArrayList<>();
+    protected ArrayList<ArrayList<MutationPair>> mutationsPerRun = new ArrayList<>();
     protected ArrayList<String> inputs = new ArrayList();
 
     // ---------- LOGGING / STATS OUTPUT ------------
@@ -166,23 +169,17 @@ public class BigFuzzPlusGuidance implements Guidance {
         this.maxTrials = maxTrials;
         this.out = out;
 
-        setMutation(mutationMethodClassName, initialInputFile);
+        setMutation(mutationMethodClassName);
     }
 
     /**
      * Set the mutation class to the passed mutationMethodClassName. If the class name is not implemented in this function the program will terminate
      * @param mutationMethodClassName String of mutation method class name.
-     * @param initialInputFile path of seed file
      */
-    private void setMutation(String mutationMethodClassName, String initialInputFile) {
+    private void setMutation(String mutationMethodClassName) {
         switch (mutationMethodClassName) {
             case "StackedMutation":
                 mutation = new StackedMutation();
-                // TODO: set mutation settings stacked
-                break;
-            case "SystematicMutation":
-                mutation = new SystematicMutation(initialInputFile);
-                // TODO: set mutation settings systematic
                 break;
             case "IncomeAggregationMutation":
                 mutation = new IncomeAggregationMutation();
@@ -220,6 +217,7 @@ public class BigFuzzPlusGuidance implements Guidance {
             default:
                 System.err.println("could not match the provided mutation class to an existing class. Provided mutation class: " + mutationMethodClassName);
                 System.exit(0);
+                break;
         }
     }
 
@@ -265,6 +263,10 @@ public class BigFuzzPlusGuidance implements Guidance {
             }
         }
         testInputFiles.add(currentInputFile);
+
+        if(mutation instanceof StackedMutation) {
+            mutationsPerRun.add(((StackedMutation)mutation).getAppliedMutations());
+        }
 
         if (PRINT_METHOD_NAMES) {
             System.out.println("BigFuzzGuidance::getInput: " + numTrials + ": " + currentInputFile);
@@ -485,7 +487,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
 
-            if (uniqueFailures.add(testProgramTraceElements)) {
+            if(!uniqueFailuresWithTrial.containsKey(testProgramTraceElements)) {
+                uniqueFailures.add(testProgramTraceElements);
+                uniqueFailuresWithTrial.put(testProgramTraceElements, numTrials);
                 int crashIdx = uniqueFailures.size() - 1;
                 uniqueFailureRuns.add(numTrials);
 
@@ -554,21 +558,6 @@ public class BigFuzzPlusGuidance implements Guidance {
             coverage = new Coverage();
         }
         return coverage;
-    }
-
-//    public void setStackedMutationMethod(StackedMutationEnum.StackedMutationMethod stackedMutationMethod) {
-//        mutation.setStackedMutationMethod(stackedMutationMethod);
-//    }
-    /**
-     * Field setter for the mutation class. Is only applied if the mutation class is MutationTemplate
-     *
-     * @param intMutationStackCount The max amount of mutations that should be applied to the input seed.
-     */
-
-    public void setMutationStackCount(int intMutationStackCount) {
-        if (mutation instanceof StackedMutation) {
-            ((StackedMutation) mutation).setMutationStackCount(intMutationStackCount);
-        }
     }
 
     /**

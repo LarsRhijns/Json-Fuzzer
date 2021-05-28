@@ -32,14 +32,14 @@ import edu.berkeley.cs.jqf.fuzz.JQF;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.instrument.tracing.SingleSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.TraceLogger;
-import edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusGuidance;
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusGuidance;
 import org.junit.internal.TextListener;
 import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.*;
 
 import java.io.PrintStream;
 
-import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
 
 public class GuidedFuzzing {
 
