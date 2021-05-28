@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -74,6 +75,10 @@ public class BigFuzzGuidance implements Guidance {
 
     /** The directory where fuzzing results are written. */
     protected final File outputDirectory;
+
+    /** A percentage indicating how often the less frequent branches preferring method is applied over
+     * the baseline input selection method */
+    private final double favorRate;
 
     /** The directory where saved inputs are written. */
     protected File coverageInputsDirectory;
@@ -184,11 +189,12 @@ public class BigFuzzGuidance implements Guidance {
     private File lastWorkingInputFile;
 
 
-    public BigFuzzGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, double favorRate) throws IOException {
 
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
         this.outputDirectory = outputDirectory;
+        this.favorRate = favorRate;
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
         }
@@ -274,8 +280,42 @@ public class BigFuzzGuidance implements Guidance {
                 pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
             }
 
+            // Determine which input selection method to use.
+            double r = new Random().nextDouble();
+            if (r <= favorRate) { // Use favored input selection method
+                int totalBranchCombinationCount = 0;
+                for (int i : branchesHitCount.values()) {
+                    totalBranchCombinationCount += i;
+                }
+
+                // Calculate chances in which the least explored branches are preferred
+                Map<Collection<Integer>, Double> chancesAfterPref = new HashMap<>();
+                for (Set<Integer> branchCombi : branchesHitCount.keySet()) {
+                    int occurrences = branchesHitCount.get(branchCombi);
+                    double chance = (double) 1 / occurrences * totalBranchCombinationCount;
+                    chancesAfterPref.put(branchCombi, chance);
+                }
+
+                double totalChance = 0;
+                for (double d : chancesAfterPref.values()) {
+                    totalChance += d;
+                }
+
+                // Randomly select an input file using the preferred chances
+                double selectedChance = new Random().nextDouble() * totalChance;
+                double totalCheckedDoubles = 0;
+                for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
+                    totalCheckedDoubles += entry.getValue();
+                    if (totalCheckedDoubles >= selectedChance) {
+                        currentInputFile = coverageFilePointer.get(entry.getKey());
+                    }
+                }
+            }
+            else { // Use baseline input selection method
+                currentInputFile = pendingInputs.remove(0);
+            }
+
             // Mutate the next file from pendingInputs
-            currentInputFile = pendingInputs.remove(0);
             mutation.mutate(currentInputFile.getPath(), mutationFile.getPath());
 
             // Move reference file to correct directory
