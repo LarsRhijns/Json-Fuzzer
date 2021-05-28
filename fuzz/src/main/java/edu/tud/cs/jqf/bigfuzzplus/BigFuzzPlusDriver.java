@@ -422,7 +422,7 @@ public class BigFuzzPlusDriver {
             ArrayList<MutationPair> mutationPerformedAtTrial =guidance.mutationsPerRun.get(Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)));
 
             sb.append("\n*** UNIQUE FAILURE #" + counter + " ***");
-            sb.append("\n-- failure triggered at trial " + mutationPerformedAtTrial + " --");
+            sb.append("\n-- failure triggered at trial " + Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)) + " --");
             String headerRow = "\n#\t\t";
             String classRow = "\nFile\t";
             String methodRow = "\nMethod\t";
