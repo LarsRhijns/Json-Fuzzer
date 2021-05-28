@@ -102,6 +102,7 @@ public class BigFuzzPlusGuidance implements Guidance {
      * The set of unique failures found so far.
      */
     protected Set<List<StackTraceElement>> uniqueFailures = new HashSet<>();
+    protected HashMap<ArrayList<StackTraceElement>, Long> uniqueFailuresWithTrial = new HashMap<ArrayList<StackTraceElement>, Long>();
 
     /**
      * List of runs which have at which new unique failures have been detected.
@@ -485,7 +486,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
 
-            if (uniqueFailures.add(testProgramTraceElements)) {
+            if(!uniqueFailuresWithTrial.containsKey(testProgramTraceElements)) {
+                uniqueFailures.add(testProgramTraceElements);
+                uniqueFailuresWithTrial.put(testProgramTraceElements, numTrials);
                 int crashIdx = uniqueFailures.size() - 1;
                 uniqueFailureRuns.add(numTrials);
 

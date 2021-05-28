@@ -4,6 +4,7 @@ package edu.tud.cs.jgf.bigfuzzplus;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.HighOrderMutation;
+import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jgf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
@@ -403,31 +404,63 @@ public class BigFuzzPlusDriver {
         e_log.append("\n\tValid coverage: " + validCov);
         e_log.append("\n\tPercent valid coverage: " + (float) validCov / totalCov * 100 + "%");
 
-        e_log.append(printUniqueFailuresAndMutations(guidance));
-
-
-
-
+        e_log.append(printUniqueFailuresWithMutations(guidance));
 
         System.out.println(e_log);
         iteration_results.append(e_log);
-
     }
 
-    private static StringBuilder printUniqueFailuresAndMutations(BigFuzzPlusGuidance guidance) {
+    private static StringBuilder printUniqueFailuresWithMutations(BigFuzzPlusGuidance guidance) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n\n # Error triggering mutations");
-        for (int i = 0; i < guidance.uniqueFailureRuns.size(); i++) {
-            sb.append( "\nError triggered at " + guidance.uniqueFailureRuns.get(i) + " triggered by mutation(s):  \n\t # \t column \t mutation");
-            int inputIndexOfErrorOccurrence = Math.toIntExact(guidance.uniqueFailureRuns.get(i));
-            for (int j = 0; j < guidance.mutationsPerRun.get(inputIndexOfErrorOccurrence).size(); j++) {
-                // Add one to the column nr to make it not 0 indexed
-                int columnNr = guidance.mutationsPerRun.get(inputIndexOfErrorOccurrence).get(j).getElementId() + 1;
-                String mutation = String.valueOf(guidance.mutationsPerRun.get(inputIndexOfErrorOccurrence).get(j).getMutation());
-                sb.append("\n\tM_" +j + ": " + columnNr + "\t - \t" + mutation);
+        sb.append("\n\n # Unique errors");
+        Iterator<List<StackTraceElement>> uFailuresIterator = guidance.uniqueFailures.iterator();
+        int counter = 1;
+        while(uFailuresIterator.hasNext()) {
+            List<StackTraceElement> e = uFailuresIterator.next();
+            ArrayList<MutationPair> mutationPerformedAtTrial =guidance.mutationsPerRun.get(Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)));
+
+            sb.append("\n*** UNIQUE FAILURE #" + counter + " ***");
+            sb.append("\n-- failure triggered at trial " + mutationPerformedAtTrial + " --");
+            String headerRow = "\n#\t\t";
+            String classRow = "\nFile\t";
+            String methodRow = "\nMethod\t";
+            String lineRow = "\nLine\t";
+            for (int i = 0; i < e.size(); i++) {
+                // Usually the filename and method name are much longer than the line number. Use this amount to create tabs
+                int maxLengthColumn = Math.max(e.get(i).getFileName().length(), e.get(i).getMethodName().length());
+                headerRow += i + getAmountOfSpaces(maxLengthColumn, i+"");
+                classRow += e.get(i).getFileName() + getAmountOfSpaces(maxLengthColumn, e.get(i).getFileName());
+                methodRow += e.get(i).getMethodName() + getAmountOfSpaces(maxLengthColumn, e.get(i).getMethodName());
+                lineRow += e.get(i).getLineNumber() + getAmountOfSpaces(maxLengthColumn, e.get(i).getLineNumber() + "");
             }
-            sb.append("\n");
+            sb.append(headerRow).append(classRow).append(methodRow).append(lineRow);
+            counter ++;
+
+            sb.append("\nMutation(s) triggering the error: ");
+            sb.append(generateMutationLog(mutationPerformedAtTrial));
+
         }
         return sb;
+    }
+
+    private static StringBuilder generateMutationLog(ArrayList<MutationPair> mutationPerformedAtTrial) {
+        StringBuilder sb = new StringBuilder();
+        sb.append( " \n\t # \t column \t mutation");
+        for (int j = 0; j < mutationPerformedAtTrial.size(); j++) {
+            // Add one to the column nr to make it not 0 indexed
+            int columnNr = mutationPerformedAtTrial.get(j).getElementId() + 1;
+            String mutation = String.valueOf(mutationPerformedAtTrial.get(j).getMutation());
+            sb.append("\n\tM_" +j + ": " + columnNr + "\t\t - \t" + mutation);
+        }
+        return sb;
+    }
+
+    private static String getAmountOfSpaces(int maxLengthColumn, String s) {
+        String res = "\t";
+        int diff = maxLengthColumn - s.length();
+        for (int i = 0; i < Math.ceil(diff/4.0); i++) {
+            res += "\t";
+        }
+        return res;
     }
 }
