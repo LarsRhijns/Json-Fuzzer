@@ -53,5 +53,6 @@
     <orderEntry type="library" name="Maven: com.google.re2j:re2j:1.1" level="project" />
     <orderEntry type="library" name="Maven: com.github.LarsRhijns:json-generator:v1.0" level="project" />
     <orderEntry type="library" name="Maven: com.github.curious-odd-man:rgxgen:1.3" level="project" />
+    <orderEntry type="library" name="Maven: com.googlecode.json-simple:json-simple:1.1.1" level="project" />
   </component>
 </module>

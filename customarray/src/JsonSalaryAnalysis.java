@@ -1,9 +1,9 @@
 import edu.ucla.cs.bigfuzz.customarray.CustomArray;
 
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.mortbay.util.ajax.JSON;
 
@@ -23,7 +23,7 @@ public class JsonSalaryAnalysis {
             System.out.println("File does not exist!");
             return;
         }
-        
+
         JSONArray jsonArray = parseJSON(inputFile);
         JSONArray results1 = map1(jsonArray);
         JSONArray results2 = filter1(results1, 90024);
@@ -38,7 +38,7 @@ public class JsonSalaryAnalysis {
         try {
             FileReader reader = new FileReader(inputFile);
             Object obj = parser.parse(reader);
-            return (JSONArray) obj;
+            return (org.json.simple.JSONArray) obj;
         } catch (Exception e) {
             throw new IOException("File read/parse exception for JSON file.");
         }
@@ -70,8 +70,8 @@ public class JsonSalaryAnalysis {
 
             JSONObject jsonObject = (JSONObject) obj;
 
-            if ((int) jsonObject.get("zipcode") == zipcode) {
-                filtered.put(jsonObject);
+            if ((long) jsonObject.get("zipcode") == zipcode) {
+                filtered.add(jsonObject);
             }
         }
         return filtered;
@@ -92,7 +92,7 @@ public class JsonSalaryAnalysis {
             }
 
             JSONObject jsonObject = (JSONObject) obj;
-            int age = (int) jsonObject.get("age"); // TODO Age should be a string value
+            long age = (long) jsonObject.get("age"); // TODO Age should be a string value
             jsonObject.remove("age");
 
             if (age < 20) {
@@ -104,7 +104,7 @@ public class JsonSalaryAnalysis {
             } else {
                 jsonObject.put("age", ">65");
             }
-            mappedLines.put(jsonObject);
+            mappedLines.add(jsonObject);
         }
         return mappedLines;
     }
@@ -123,7 +123,7 @@ public class JsonSalaryAnalysis {
 
             JSONObject jsonObject = (JSONObject) obj;
             jsonObject.put("count", 1);
-            mappedLines.put(jsonObject);
+            mappedLines.add(jsonObject);
         }
         return mappedLines;
     }
@@ -145,7 +145,7 @@ public class JsonSalaryAnalysis {
             JSONObject jsonObject = (JSONObject) obj;
 
             String ageRange = (String) jsonObject.get("age");
-            if (!aggregateObject.has("ageRange")) {
+            if (!aggregateObject.containsKey("ageRange")) {
                 // ageRange property is not yet in this aggregate, thus add it as a JSON Object
                 JSONObject range = new JSONObject();
                 range.put("incomeSum", jsonObject.get("salary"));
@@ -155,16 +155,16 @@ public class JsonSalaryAnalysis {
                 // If ageRange is already in the aggregate, then update its values
                 JSONObject range = (JSONObject) aggregateObject.get(ageRange);
 
-                int incomeSum = (int) range.get("incomeSum");
+                long incomeSum = (long) range.get("incomeSum");
                 range.remove("incomeSum");
-                range.put("incomeSum", (int) jsonObject.get("salary") + incomeSum);
+                range.put("incomeSum", (long) jsonObject.get("salary") + incomeSum);
 
                 int occurrences = (int) range.get("occurrences");
                 range.remove("occurrences");
                 range.put("occurrences", (int) jsonObject.get("count") + occurrences);
             }
         }
-        reducedLine.put(aggregateObject);
+        reducedLine.add(aggregateObject);
         return reducedLine;
     }
 
@@ -183,10 +183,11 @@ public class JsonSalaryAnalysis {
 
             JSONObject jsonObject = (JSONObject) obj;
 
-            for (String key : jsonObject.keySet()) {
+            for (Object k : jsonObject.keySet()) {
+                String key = (String) k;
                 JSONObject aggr = (JSONObject) jsonObject.get(key);
                 JSONObject newAggr = new JSONObject();
-                int incomeSum = (int) aggr.get("incomeSum");
+                long incomeSum = (long) aggr.get("incomeSum");
                 int occurences = (int) aggr.get("occurrences");
                 newAggr.put("occurences", occurences);
                 newAggr.put("averageIncome", ((double) incomeSum) / ((double) occurences));
@@ -194,7 +195,7 @@ public class JsonSalaryAnalysis {
                 jsonObject.put(key, newAggr);
             }
 
-            mappedLines.put(jsonObject);
+            mappedLines.add(jsonObject);
         }
 
         return mappedLines;
