@@ -81,7 +81,7 @@ public class PropertyInvestmentMutation implements BigFuzzMutation {
         if(method == 0){
             ArrayList<String> tempRows = new ArrayList<String>();
             randomGenerateRows(tempRows);
-            System.out.println("rows: " + tempRows);
+//            System.out.println("rows: " + tempRows);
             rows = tempRows;
 
             int next =(int)(Math.random() * 2);
@@ -119,9 +119,9 @@ public class PropertyInvestmentMutation implements BigFuzzMutation {
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println("mutate size: " + list.size());
+//        System.out.println("mutate size: " + list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println("mutate linenum: " + list.get(lineNum));
+//        System.out.println("mutate linenum: " + list.get(lineNum));
         // 0: random change value
         // 1: random change into float
         // 2: random insert
@@ -130,7 +130,7 @@ public class PropertyInvestmentMutation implements BigFuzzMutation {
         String[] columns = list.get(lineNum).split(",");
         int method = r.nextInt(2);
         int columnID = (int)(Math.random() * columns.length);
-        System.out.println("PropertyInvestmentMutation *** "+method+" "+lineNum+" "+columnID);
+//        System.out.println("PropertyInvestmentMutation *** "+method+" "+lineNum+" "+columnID);
 //        if(method == 0){
 //            columns[columnID] = Integer.toString(r.nextInt());
 //        }

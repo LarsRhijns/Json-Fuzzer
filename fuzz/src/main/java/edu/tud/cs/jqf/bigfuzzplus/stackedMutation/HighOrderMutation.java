@@ -13,11 +13,11 @@ import static edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation.HighO
 
 public class HighOrderMutation {
     // For each HighOrderMutationMethod enum, a set of other enums is provided to indicate which mutations can NOT be applied after the mutation of the list is applied.
-    private static final HighOrderMutation.HighOrderMutationMethod[] changeValueStackExcludeRule = {RemoveElement, EmptyColumn, ChangeValue};
-    private static final HighOrderMutation.HighOrderMutationMethod[] changeTypeStackExcludeRule = {RemoveElement, EmptyColumn, ChangeType};
-    private static final HighOrderMutation.HighOrderMutationMethod[] removeElementStackExcludeRule = {ChangeValue, ChangeType, AddElement};
+    private static final HighOrderMutation.HighOrderMutationMethod[] changeValueStackExcludeRule = {RemoveElement, EmptyColumn, ChangeValue, RandomCharacter};
+    private static final HighOrderMutation.HighOrderMutationMethod[] changeTypeStackExcludeRule = {RemoveElement, EmptyColumn, ChangeType, RandomCharacter};
+    private static final HighOrderMutation.HighOrderMutationMethod[] removeElementStackExcludeRule = {ChangeValue, ChangeType, RemoveElement, RandomCharacter, EmptyColumn};
     private static final HighOrderMutation.HighOrderMutationMethod[] addElementStackExcludeRule = {AddElement, RemoveElement};
-    private static final HighOrderMutation.HighOrderMutationMethod[] emptyColumnStackExcludeRule = {ChangeValue, ChangeType, RemoveElement, AddElement, EmptyColumn};
+    private static final HighOrderMutation.HighOrderMutationMethod[] emptyColumnStackExcludeRule = {ChangeValue, ChangeType, RemoveElement, AddElement, EmptyColumn, RandomCharacter};
     private static final HighOrderMutation.HighOrderMutationMethod[] changeDelimiterStackExcludeRule = {ChangeDelimiter};
     private static final HighOrderMutation.HighOrderMutationMethod[] RandomCharacterStackExcludeRule = {RemoveElement, EmptyColumn};
 
@@ -30,8 +30,31 @@ public class HighOrderMutation {
     private static final boolean emptyColumnActive = true;
     private static final boolean changeDelimiterActive = true;
     private static final boolean randomCharacterActive = true;
-    private static HighOrderMutationMethod[] activeMutations;
+    private static ArrayList<HighOrderMutationMethod> activeMutations;
 
+    // Indicates a bias towards the mutation method
+    private static final boolean biasEnabled = false;
+    private static final float changeValueBias = 1f;
+    private static final float changeTypeBias = 1f;
+    private static final float removeElementBias = 1f;
+    private static final float addElementBias = 1f;
+    private static final float emptyColumnBias = 1f;
+    private static final float changeDelimiterBias = 1f;
+    private static final float randomCharacterBias = 1f;
+
+    /**
+     * List of High-order mutations. Indicated with corresponding label from BigFuzz paper when applicable.
+     */
+    public enum HighOrderMutationMethod {
+        NoMutation,
+        ChangeValue,    // (M1) TODO: Change naming -> distribution?
+        ChangeType,     // (M2)
+        ChangeDelimiter,// (M3)
+        RandomCharacter,// (M4)
+        RemoveElement,  // (M5)
+        EmptyColumn,     // (M6)
+        AddElement     // Opposite of (M5)
+    }
 
     /**
      * Get random active mutation.
@@ -42,8 +65,85 @@ public class HighOrderMutation {
         if (r == null) {
             r = new Random();
         }
-        int range = getActiveHighOrderMutationMethodList().length;
-        return intToHighOrderMutationMethod(r.nextInt(range));
+
+        HighOrderMutationMethod m = selectWeightedMutation(r, getActiveHighOrderMutationMethodList());
+        return m;
+    }
+
+    /**
+     * Select a random mutation depending on the bias defined in the class
+     * @param r Random object from which the selection should be done
+     * @param mutationList
+     * @return a random weighted mutation
+     */
+    private static HighOrderMutationMethod selectWeightedMutation(Random r, ArrayList<HighOrderMutationMethod> mutationList) {
+        // If bias is not enabled, return a random index of the mutation list (for performance reasons)
+        if(!biasEnabled) {
+            return mutationList.get(r.nextInt(mutationList.size()));
+        }
+
+        float[] biasWeights = new float[mutationList.size()];
+        float total = 0;
+        for (int i = 0; i < mutationList.size(); i++) {
+            float f = getMutationMethodBias(mutationList.get(i));
+            biasWeights[i] = f;
+            total += f;
+        }
+
+        // If there is no weight found, either all mutations are set to 0 or the passed mutation list is empty. No mutation can be selected
+        if(total == 0) {
+            return NoMutation;
+        }
+
+        float randomFloatMultiple = r.nextFloat();
+        float randomFloat = randomFloatMultiple * total;
+        float sumFloat = 0;
+        for (int i = 0; i < mutationList.size(); i++) {
+            sumFloat += biasWeights[i];
+            if(sumFloat >= randomFloat) {
+                return mutationList.get(i);
+            }
+        }
+
+        //Code should not reach this part
+        System.err.println("Something went wrong in selecting a weighted mutation: " + mutationList);
+        return NoMutation;
+    }
+
+
+    /**
+     * Return the defined bias of the passed MutationMethod
+     * @param highOrderMutationMethod MutationMethod from which the bias should be selected
+     * @return float containing the bias of the method
+     */
+    private static float getMutationMethodBias(HighOrderMutationMethod highOrderMutationMethod) {
+        float res= 1;
+
+        // Identify which exclusion rules list need to be used
+        switch (highOrderMutationMethod) {
+            case ChangeValue:
+                res = changeValueBias;
+                break;
+            case ChangeType:
+                res = changeTypeBias;
+                break;
+            case RemoveElement:
+                res = removeElementBias;
+                break;
+            case AddElement:
+                res = addElementBias;
+                break;
+            case EmptyColumn:
+                res = emptyColumnBias;
+                break;
+            case ChangeDelimiter:
+                res = changeDelimiterBias;
+                break;
+            case RandomCharacter:
+                res = randomCharacterBias;
+                break;
+        }
+        return res;
     }
 
     /**
@@ -67,8 +167,8 @@ public class HighOrderMutation {
         }
 
         // Select a random mutation from the available mutations.
-        int randomMutationSelection = r.nextInt(availableMutations.size());
-        return availableMutations.get(randomMutationSelection);
+        HighOrderMutationMethod m = selectWeightedMutation(r, availableMutations);
+        return m;
     }
 
     /**
@@ -78,7 +178,7 @@ public class HighOrderMutation {
      */
     private static ArrayList<HighOrderMutationMethod> getMutationListFromAppliedMutations(ArrayList<HighOrderMutationMethod> highOrderMutationMethods) {
         // Create a list of all available mutations. This list will be reduced by the exclusion rules.
-        ArrayList<HighOrderMutationMethod> res = new ArrayList<>(Arrays.asList(getActiveHighOrderMutationMethodList()));
+        ArrayList<HighOrderMutationMethod> res = new ArrayList(getActiveHighOrderMutationMethodList());
 
         // Loop over every used mutation and apply the exclusion rules on it
         for (HighOrderMutationMethod usedMethod :
@@ -134,37 +234,29 @@ public class HighOrderMutation {
     }
 
     /**
-     * List of High-order mutations. Indicated with corresponding label from BigFuzz paper when applicable.
-     */
-    public enum HighOrderMutationMethod {
-        NoMutation,
-        ChangeValue,    // (M1) TODO: Change naming -> distribution?
-        ChangeType,     // (M2)
-        ChangeDelimiter,// (M3)
-        RandomCharacter,// (M4)
-        RemoveElement,  // (M5)
-        EmptyColumn,     // (M6)
-        AddElement     // Opposite of (M5)
-
-    }
-
-    /**
      * Returns a list of (active) mutations that can be applied to input.
      *
      * @return list of active mutations
      */
-    public static HighOrderMutationMethod[] getActiveHighOrderMutationMethodList() {
-        // Mutation active status does not change once the program started. When first time called, create the active mutation list
+    public static ArrayList<HighOrderMutationMethod> getActiveHighOrderMutationMethodList() {
         if (activeMutations == null) {
-            createActiveMutations();
+            activeMutations = createActiveMutations();
+            // Mutation active status does not change once the program started. When first time called, create the active mutation list
+            if (activeMutations.size() == 0) {
+                System.err.println("No active mutations found");
+                System.exit(0);
+            }
         }
+
+
         return activeMutations;
     }
 
     /**
      * Instantiate the list of activeMutations using the mutation activity booleans defined in this class.
+     * @return
      */
-    private static void createActiveMutations() {
+    private static ArrayList<HighOrderMutationMethod> createActiveMutations() {
         ArrayList<HighOrderMutationMethod> holder = new ArrayList<>();
 
         // For Every mutation defined in the enum. Check if the mutation has been enables and ad it to the mutation list
@@ -205,19 +297,15 @@ public class HighOrderMutation {
                     if(randomCharacterActive) {
                         holder.add(h);
                     }
+                    break;
             }
         }
-        // Transform arraylist to an array and assign it to the active mutations
-        HighOrderMutationMethod[] res = new HighOrderMutationMethod[holder.size()];
-        for (int i = 0; i < holder.size(); i++) {
-            res[i] = holder.get(i);
-        }
-        activeMutations = res;
+        return holder;
     }
 
 
     /**
-     * Returns a HighOrderMutationMethod depending on the passses parameter:
+     * Returns a HighOrderMutationMethod depending on the passed parameter:
      * 0: ChangeValue
      * 1: ChangeType
      * 2: ChangeDelimiter
@@ -247,6 +335,40 @@ public class HighOrderMutation {
                 return AddElement;
             default:
                 return HighOrderMutationMethod.NoMutation;
+        }
+    }
+
+    /**
+     * Returns a int depending on the passed parameter:
+     *  ChangeValue     - 0
+     *  ChangeType      - 1
+     *  ChangeDelimiter - 2
+     *  RandomCharacter - 3
+     *  RemoveElement   - 4
+     *  EmptyColumn     - 5
+     *  AddElement      - 6
+     *
+     * @param m HighOrderMutationMethod
+     * @return Integer that matched the passed highordermutationmethod
+     */
+    public static int highOrderMutationMethodToInt(HighOrderMutationMethod m) {
+        switch (m) {
+            case ChangeValue:
+                return 0;
+            case ChangeType:
+                return 1;
+            case ChangeDelimiter:
+                return 2;
+            case RandomCharacter:
+                return 3;
+            case RemoveElement:
+                return 4;
+            case EmptyColumn:
+                return 5;
+            case AddElement:
+                return 6;
+            default:
+                return -1;
         }
     }
 }

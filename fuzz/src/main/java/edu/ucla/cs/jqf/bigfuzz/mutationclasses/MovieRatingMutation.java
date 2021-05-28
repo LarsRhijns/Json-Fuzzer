@@ -126,12 +126,12 @@ public class MovieRatingMutation implements BigFuzzMutation {
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println("mutate size: " + list.size());
+//        System.out.println("mutate size: " + list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println("mutate linenum: " + list.get(lineNum));
+//        System.out.println("mutate linenum: " + list.get(lineNum));
 
         int method =(int)(Math.random() * 3);
-        System.out.println("select method:" + method);
+//        System.out.println("select method:" + method);
         if(method == 0){
             String[] columns = list.get(lineNum).split(":");
 
@@ -149,7 +149,7 @@ public class MovieRatingMutation implements BigFuzzMutation {
                     line = line+":"+columns[j];
                 }
             }
-            System.out.println("::::::::::::: " + line);
+//            System.out.println("::::::::::::: " + line);
             list.set(lineNum, line);
         }
         else if(method ==1){
@@ -169,7 +169,7 @@ public class MovieRatingMutation implements BigFuzzMutation {
                     line = line+","+columns[j];
                 }
             }
-            System.out.println(",,,,,,,,,,,, " + line);
+//            System.out.println(",,,,,,,,,,,, " + line);
             list.set(lineNum, line);
         }
         else{
@@ -187,7 +187,7 @@ public class MovieRatingMutation implements BigFuzzMutation {
                 }else{
                     columns[columnID] = "_" + rr;
                 }
-                System.out.println("column: " + columns[columnID]);
+//                System.out.println("column: " + columns[columnID]);
             }
             String line = first[0]+":";
             for(int j=0;j<columns.length;j++) {

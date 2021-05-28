@@ -77,7 +77,7 @@ public class StudentGradeMutation implements BigFuzzMutation {
         if(method == 0){
             ArrayList<String> tempRows = new ArrayList<String>();
             randomGenerateRows(tempRows);
-            System.out.println("rows: " + tempRows);
+//            System.out.println("rows: " + tempRows);
             rows = tempRows;
 
             int next =(int)(Math.random() * 2);
@@ -115,9 +115,9 @@ public class StudentGradeMutation implements BigFuzzMutation {
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println("mutate size: " + list.size());
+//        System.out.println("mutate size: " + list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println("mutate linenum: " + list.get(lineNum));
+//        System.out.println("mutate linenum: " + list.get(lineNum));
 
         if(list.get(lineNum).isEmpty()) return;
         int method =(int)(Math.random() * 3);
@@ -150,7 +150,7 @@ public class StudentGradeMutation implements BigFuzzMutation {
                 }
             }
 
-            System.out.println("deleting column,,,,,,,,," + line);
+//            System.out.println("deleting column,,,,,,,,," + line);
             list.set(lineNum, line);
         }
         else if(method == 1){
@@ -178,7 +178,7 @@ public class StudentGradeMutation implements BigFuzzMutation {
                 }
             }
 
-            System.out.println("random change column ,,,,,,,,," + line);
+//            System.out.println("random change column ,,,,,,,,," + line);
             list.set(lineNum, line);
         }
         else if(method == 2){
@@ -209,7 +209,7 @@ public class StudentGradeMutation implements BigFuzzMutation {
                     line = line+","+first[j];
                 }
             }
-            System.out.println("random empty column ,,,,,,,,,,,,,,,," + line);
+//            System.out.println("random empty column ,,,,,,,,,,,,,,,," + line);
             list.set(lineNum, line);
         }
     }

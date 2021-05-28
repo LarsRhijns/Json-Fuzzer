@@ -36,7 +36,6 @@ public class BigFuzzPlusDriver {
      * @param args program arguments
      */
     public static void main(String[] args) {
-
         // LOAD PROGRAM ARGUMENTS
         if (args.length < 3) {
             System.err.println("Usage: java " + BigFuzzPlusDriver.class + " TEST_CLASS TEST_METHOD MUTATION_CLASS [MAX_TRIALS]");
@@ -115,7 +114,7 @@ public class BigFuzzPlusDriver {
                 long endTime = System.currentTimeMillis();
 
                 // Evaluate the results
-//                evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
+                evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
                 writeToLists(guidance, maxTrials, inputs, uniqueFailureResults, methods, columns, uniqueFailures);
                 durations.add(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");
@@ -169,10 +168,10 @@ public class BigFuzzPlusDriver {
 
         summarized_results.append("********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
-//        summarized_results.append("\nCUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
-//        for (int i = 0; i < uniqueFailureResults.size(); i++) {
-//            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailureResults.get(i));
-//        }
+        summarized_results.append("\nCUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
+        for (int i = 0; i < uniqueFailureResults.size(); i++) {
+            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailureResults.get(i));
+        }
 
         // --------------- INPUTS --------------
         summarized_results.append("\n\nAPPLIED MUTATIONS PER ITERATION");
@@ -248,43 +247,50 @@ public class BigFuzzPlusDriver {
             runFoundUniqueFailureCumulative.add(cumulative);
         }
         // Methods and columns
-//        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
-//        ArrayList<Integer> columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
-//        HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
-//        HashMap<Integer, Integer> columnMap = new HashMap();
-//        for (int i = 0; i < methodTracker.size(); i++) {
-//            HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
-//            int column = columnTracker.get(i);
-//            if (methodMap.containsKey(method)) {
-//                methodMap.put(method, methodMap.get(method) + 1);
-//            } else {
-//                methodMap.put(method, 1);
-//            }
-//            if (columnMap.containsKey(column)) {
-//                columnMap.put(column, columnMap.get(column) + 1);
-//            } else {
-//                columnMap.put(column, 1);
-//            }
-//        }
-//        Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
-//        ArrayList<String> methodStringList = new ArrayList();
-//        while (it.hasNext()) {
-//            Map.Entry e = it.next();
-//            methodStringList.add(e.getKey() + ": " + e.getValue());
-//        }
-//
-//        Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
-//        ArrayList<String> columnStringList = new ArrayList();
-//        while (it2.hasNext()) {
-//            Map.Entry e = it2.next();
-//            columnStringList.add(e.getKey() + ": " + e.getValue());
-//        }
-//
-//        methods.add(methodStringList);
-//        columns.add(columnStringList);
+        if(guidance.mutation instanceof StackedMutation) {
+            ArrayList<String> methodStringList = new ArrayList();
+            ArrayList<String> columnStringList = new ArrayList();
+            combineUsedMethodsAndColumns(methodStringList, columnStringList, guidance);
+            methods.add(methodStringList);
+            columns.add(columnStringList);
+        }
+
         inputs.add(guidance.inputs);
         uniqueFailureResults.add(runFoundUniqueFailureCumulative);
         uniqueFailures.add(cumulative);
+    }
+
+    private static void combineUsedMethodsAndColumns(ArrayList<String> methodStringList, ArrayList<String> columnStringList, BigFuzzPlusGuidance guidance) {
+        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
+        ArrayList<Integer> columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
+
+        HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
+        HashMap<Integer, Integer> columnMap = new HashMap();
+        for (int i = 0; i < methodTracker.size(); i++) {
+            HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
+            int column = columnTracker.get(i);
+            if (methodMap.containsKey(method)) {
+                methodMap.put(method, methodMap.get(method) + 1);
+            } else {
+                methodMap.put(method, 1);
+            }
+            if (columnMap.containsKey(column)) {
+                columnMap.put(column, columnMap.get(column) + 1);
+            } else {
+                columnMap.put(column, 1);
+            }
+        }
+        Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry e = it.next();
+            methodStringList.add(e.getKey() + ": " + e.getValue());
+        }
+
+        Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
+        while (it2.hasNext()) {
+            Map.Entry e = it2.next();
+            columnStringList.add(e.getKey() + ": " + e.getValue());
+        }
     }
 
     /**
