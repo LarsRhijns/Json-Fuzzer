@@ -38,6 +38,8 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEventVisitor;
 import edu.ucla.cs.bigfuzz.dataflow.*;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+
 /**
  * Utility class to collect branch and function coverage
  *
@@ -91,38 +93,38 @@ public class Coverage implements TraceEventVisitor {
     @Override
     public void visitBranchEvent(BranchEvent b) {
         counter.increment1(b.getIid(), b.getArm());
-//        System.out.println("Coverage::visitBranchEvent");
+//        if (PRINT_METHODNAMES) { System.out.println("Coverage::visitBranchEvent"); }
     }
 
     @Override
     public void visitCallEvent(CallEvent e) {
         counter.increment(e.getIid());
-//        System.out.println("Coverage::visitCallEvent");
+//        if (PRINT_METHODNAMES) { System.out.println("Coverage::visitCallEvent"); }
     }
 
     public void visitMapEvent(MapEvent e) {
         counter.increment(e.getIid());
-        System.out.println("Coverage: visitMap");
+        if (PRINT_METHOD_NAMES) { System.out.println("Coverage: visitMap"); }
     }
 
     public void visitReduceEvent(ReduceEvent e) {
         counter.increment(e.getIid());
-        System.out.println("Coverage: visitReduce");
+        if (PRINT_METHOD_NAMES) { System.out.println("Coverage: visitReduce"); }
     }
 
     public void visitReduceByKeyEvent(ReduceByKeyEvent e) {
         counter.increment(e.getIid());
-        System.out.println("Coverage::visitReduceByKeyEvent");
+        if (PRINT_METHOD_NAMES) { System.out.println("Coverage::visitReduceByKeyEvent"); }
     }
 
     public void visitFilterEvent(FilterEvent e) {
         counter.increment1(e.getIid(), e.getArm());
-        System.out.println("Coverage::visitFilterEvent");
+        if (PRINT_METHOD_NAMES) { System.out.println("Coverage::visitFilterEvent"); }
     }
 
     public void visitMapValuesEvent(MapValuesEvent e) {
         counter.increment(e.getIid());
-        System.out.println("Coverage::visitMapValuesEvent");
+        if (PRINT_METHOD_NAMES) { System.out.println("Coverage::visitMapValuesEvent"); }
     }
 
     /**

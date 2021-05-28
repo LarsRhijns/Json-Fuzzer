@@ -28,18 +28,18 @@
  */
 package edu.berkeley.cs.jqf.fuzz.junit;
 
-import java.io.PrintStream;
-
-import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.JQF;
+import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.instrument.tracing.SingleSnoop;
+import edu.berkeley.cs.jqf.instrument.tracing.TraceLogger;
+import edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusGuidance;
 import org.junit.internal.TextListener;
 import org.junit.internal.runners.ErrorReportingRunner;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Request;
-import org.junit.runner.Result;
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
+import org.junit.runner.*;
+
+import java.io.PrintStream;
+
+import static edu.tud.cs.jgf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
 
 public class GuidedFuzzing {
 
@@ -155,9 +155,15 @@ public class GuidedFuzzing {
             throw new IllegalArgumentException(testClass.getName() + " is not annotated with @RunWith(JQF.class)");
         }
 
+        // Unset guidance and reset TraceLogger singleton such that the program can be run a second time
+        unsetGuidance();
+        TraceLogger.resetSingleton();
 
         // Set the static guided instance
+        unsetGuidance();
         setGuidance(guidance);
+
+        TraceLogger.resetSingleton();
 
         // Register callback
         SingleSnoop.setCallbackGenerator(guidance::generateCallBack);
@@ -172,8 +178,15 @@ public class GuidedFuzzing {
             throw new IllegalArgumentException(String.format("Could not instantiate a Junit runner for method %s#%s.", testClass.getName(), testMethod));
         }
 
+        // If the guidance method is of type BigFuzzGuidance, the test entryMethod can be specified more specifically using the testName.
+        // This allows for multiple times running the program
+        String holder = "";
+        if(guidance instanceof BigFuzzPlusGuidance) {
+            holder = "#" +((BigFuzzPlusGuidance) guidance).testName;
+        }
+
         // Start tracing for the test method
-        SingleSnoop.startSnooping(testClass.getName() + "#" + testMethod);
+        SingleSnoop.startSnooping(testClass.getName() + "#" + testMethod + holder);
 
         // Run the test and make sure to de-register the guidance before returning
         try {
@@ -181,7 +194,7 @@ public class GuidedFuzzing {
             if (out != null) {
                 junit.addListener(new TextListener(out));
             }
-            System.out.println("GuidedFuzz:Test");
+            if (PRINT_METHOD_NAMES) { System.out.println("GuidedFuzz:Test"); }
             return junit.run(testRunner);
         } finally {
             unsetGuidance();

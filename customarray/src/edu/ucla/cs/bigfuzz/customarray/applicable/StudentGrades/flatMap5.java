@@ -6,7 +6,7 @@ public class flatMap5 {
    }
   static final String[] apply(String line){
   String arr[]=line.split(",");
-  System.out.println(arr[0]);
+//  System.out.println(arr[0]);
   return (arr);
 }
 }
