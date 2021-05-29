@@ -334,7 +334,7 @@ public class BigFuzzGuidance implements Guidance {
             }
 
             // Mutate the next file from pendingInputs
-            mutation.mutate(currentInputFile.getPath(), mutationFile.getPath());
+            mutation.mutate(currentInputFile, mutationFile);
 
             // Move reference file to correct directory
             FileUtils.moveFile(mutationFile, nextInputFile);

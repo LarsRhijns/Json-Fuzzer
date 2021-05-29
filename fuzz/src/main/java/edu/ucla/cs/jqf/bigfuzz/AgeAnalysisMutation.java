@@ -148,9 +148,9 @@ public class AgeAnalysisMutation implements BigFuzzMutation{
         del.delete();
     }
 
-    public void mutate(String inputFile, String nextInputFile) throws IOException
+    public void mutate(File inputFile, File nextInputFile) throws IOException
     {
-        List<String> fileList = Files.readAllLines(Paths.get(inputFile));
+        List<String> fileList = Files.readAllLines(inputFile.toPath());
         Random random = new Random();
         int n = random.nextInt(fileList.size());
         String fileToMutate = fileList.get(n);

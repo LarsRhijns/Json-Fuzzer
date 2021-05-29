@@ -1,5 +1,6 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -8,9 +9,10 @@ public interface BigFuzzMutation {
     /**
      * mutate on an csv file
      * @param inputFile
+     * @param nextInputFile
      * @throws IOException
      */
-    public void mutate(String inputFile, String nextInputFile) throws IOException;
+    public void mutate(File inputFile, File nextInputFile) throws IOException;
 
     /**
      * mutate file based on index (support multiple data-specific mutations)

@@ -7,7 +7,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.*;
 
 public class MovieRatingMutation implements BigFuzzMutation{
@@ -18,9 +17,9 @@ public class MovieRatingMutation implements BigFuzzMutation{
     int maxGenerateTimes = 5;
 
 
-    public void mutate(String inputFile, String nextInputFile) throws IOException
+    public void mutate(File inputFile, File nextInputFile) throws IOException
     {
-        List<String> fileList = Files.readAllLines(Paths.get(inputFile));
+        List<String> fileList = Files.readAllLines(inputFile.toPath());
         Random random = new Random();
         int n = random.nextInt(fileList.size());
         String fileToMutate = fileList.get(n);
