@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -258,26 +259,43 @@ public class BigFuzzGuidance implements Guidance {
         }
     }
     
+    @SuppressWarnings("SuspiciousMethodCalls")
     @Override
     public InputStream getInput() throws IOException {
         // Clear coverage stats for this run
         runCoverage.clear();
 
-        File nextInputFile = new File(allValidInputsDirectory, "input_" + this.numTrials);
-        File mutationFile = new File(allInputsDirectory, "mutation_" + this.numTrials);
-
-        File[] possibleInputs = allValidInputsDirectory.listFiles();
-        if (Objects.requireNonNull(possibleInputs).length == 0)
-        {
-            // Copy the initial input/configuration file
+        File nextInputFile;
+        if (Objects.requireNonNull(allInputsDirectory.listFiles()).length == 0)
+        { // Copy initial input files if no input exists yet.
+            // todo: remove these 2 lines when direct file usage is implemented instead of refs.
+            nextInputFile = new File(allValidInputsDirectory, "input_" + this.numTrials);
             FileUtils.copyFile(initialInputFile, nextInputFile);
+
+            Scanner sc = new Scanner(initialInputFile);
+            int countInitFiles = 0;
+            while (sc.hasNextLine()) {
+                File initInput = new File(sc.nextLine());
+                File des = new File(allInputsDirectory, "init_" + countInitFiles++);
+                FileUtils.copyFile(initInput, des);
+            }
+            currentInputFile = Objects.requireNonNull(allInputsDirectory.listFiles())[0];
         }
         else
-        {
+        { // Mutate an existing input
+            nextInputFile = new File(allValidInputsDirectory, "input_" + this.numTrials);
+            File mutationFile = new File(allInputsDirectory, "mutation_" + this.numTrials);
+
             // Start next cycle and refill pendingInputs if cycle is completed.
             if (pendingInputs.isEmpty()) {
-                cyclesCompleted++;
-                pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
+                // Add all Files from allValidInputsDir to pendingInputs if no coverage input is known.
+                if (Objects.requireNonNull(coverageInputsDirectory.listFiles()).length == 0) {
+                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allInputsDirectory.listFiles())));
+                }
+                else { // Add all coverage discovering files to pendingInputs if any are known.
+                    cyclesCompleted++;
+                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
+                }
             }
 
             // Determine which input selection method to use.
