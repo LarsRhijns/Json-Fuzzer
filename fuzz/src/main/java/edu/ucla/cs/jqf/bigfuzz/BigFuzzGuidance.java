@@ -88,10 +88,10 @@ public class BigFuzzGuidance implements Guidance {
     protected File uniqueFailuresDirectory;
 
     /** The directory where all inputs are written. */
-    protected File allValidInputsDirectory;
+    protected File allInputsDirectory;
 
     /** The directory where all mutations are written. */
-    protected File allInputsDirectory;
+    protected File allValidInputsDirectory;
 
     /** Set of saved inputs to fuzz. */
     protected ArrayList<ZestGuidance.Input> savedInputs = new ArrayList<>();
@@ -232,13 +232,13 @@ public class BigFuzzGuidance implements Guidance {
         if (!this.uniqueFailuresDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + uniqueFailuresDirectory);
         }
-        this.allValidInputsDirectory = new File(outputDirectory, "all_valid_inputs");
-        if (!this.allValidInputsDirectory.mkdirs()) {
-            System.out.println("!! Could not create directory: " + allValidInputsDirectory);
-        }
         this.allInputsDirectory = new File(outputDirectory, "all_inputs");
         if (!this.allInputsDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + allInputsDirectory);
+        }
+        this.allValidInputsDirectory = new File(outputDirectory, "all_valid_inputs");
+        if (!this.allValidInputsDirectory.mkdirs()) {
+            System.out.println("!! Could not create directory: " + allValidInputsDirectory);
         }
 
         if (LOG_AND_PRINT_STATS) {
@@ -266,31 +266,31 @@ public class BigFuzzGuidance implements Guidance {
         runCoverage.clear();
 
         File nextInputFile;
-        if (Objects.requireNonNull(allInputsDirectory.listFiles()).length == 0)
+        if (Objects.requireNonNull(allValidInputsDirectory.listFiles()).length == 0)
         { // Copy initial input files if no input exists yet.
-            nextInputFile = new File(allInputsDirectory, "init_0");
+            nextInputFile = new File(allValidInputsDirectory, "init_0");
             Scanner sc = new Scanner(initialInputFile);
             int countInitFiles = 0;
             while (sc.hasNextLine()) {
                 File initInput = new File(sc.nextLine());
-                nextInputFile = new File(allInputsDirectory, "init_" + countInitFiles);
-                File alsoValid = new File(allValidInputsDirectory, "input_" + countInitFiles);
+                nextInputFile = new File(allValidInputsDirectory, "init_" + countInitFiles);
+                File alsoValid = new File(allInputsDirectory, "input_" + countInitFiles);
                 FileUtils.copyFile(initInput, nextInputFile);
                 FileUtils.copyFile(initInput, alsoValid);
                 countInitFiles++;
             }
-            currentInputFile = Objects.requireNonNull(allInputsDirectory.listFiles())[0];
+            currentInputFile = Objects.requireNonNull(allValidInputsDirectory.listFiles())[0];
         }
         else
         { // Mutate an existing input
-            nextInputFile = new File(allValidInputsDirectory, "input_" + this.numTrials);
-            File mutationFile = new File(allInputsDirectory, "mutation_" + this.numTrials);
+            nextInputFile = new File(allInputsDirectory, "input_" + this.numTrials);
+            File mutationFile = new File(allValidInputsDirectory, "mutation_" + this.numTrials);
 
             // Start next cycle and refill pendingInputs if cycle is completed.
             if (pendingInputs.isEmpty()) {
                 // Add all Files from allValidInputsDir to pendingInputs if no coverage input is known.
                 if (Objects.requireNonNull(coverageInputsDirectory.listFiles()).length == 0) {
-                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allInputsDirectory.listFiles())));
+                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allValidInputsDirectory.listFiles())));
                 }
                 else { // Add all coverage discovering files to pendingInputs if any are known.
                     cyclesCompleted++;
