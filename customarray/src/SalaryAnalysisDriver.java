@@ -2,6 +2,7 @@ import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -15,17 +16,14 @@ public class SalaryAnalysisDriver {
 
     @Fuzz
     public void testSalaryAnalysis(String fileName) throws IOException {
-//        System.out.println(fileName);
-//        byte[] bs = fileName.getBytes();
-//        System.out.println(Arrays.toString(bs));
-//        byte[] bytes = fileName.getBytes();
+        File inputFile = new File(fileName);
         if (PRINT_METHOD_NAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
         SalaryAnalysis analysis = new SalaryAnalysis();
-        List<String> fileList = Files.readAllLines(Paths.get(fileName));
+        List<String> fileList = Files.readAllLines(inputFile.toPath());
         if (PRINT_MUTATION_DETAILS) {
             System.out.println("fileList size: " + fileList.size());
         }
-        analysis.SalaryAnalysis(fileList.get(0));
+        analysis.SalaryAnalysis(inputFile.getPath()); // todo: should it always return the first?
     }
 
     public static void main(String[] args) throws IOException

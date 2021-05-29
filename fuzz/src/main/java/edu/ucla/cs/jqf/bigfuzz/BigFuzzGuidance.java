@@ -268,16 +268,16 @@ public class BigFuzzGuidance implements Guidance {
         File nextInputFile;
         if (Objects.requireNonNull(allInputsDirectory.listFiles()).length == 0)
         { // Copy initial input files if no input exists yet.
-            // todo: remove these 2 lines when direct file usage is implemented instead of refs.
-            nextInputFile = new File(allValidInputsDirectory, "input_" + this.numTrials);
-            FileUtils.copyFile(initialInputFile, nextInputFile);
-
+            nextInputFile = new File(allInputsDirectory, "init_0");
             Scanner sc = new Scanner(initialInputFile);
             int countInitFiles = 0;
             while (sc.hasNextLine()) {
                 File initInput = new File(sc.nextLine());
-                File des = new File(allInputsDirectory, "init_" + countInitFiles++);
-                FileUtils.copyFile(initInput, des);
+                nextInputFile = new File(allInputsDirectory, "init_" + countInitFiles);
+                File alsoValid = new File(allValidInputsDirectory, "input_" + countInitFiles);
+                FileUtils.copyFile(initInput, nextInputFile);
+                FileUtils.copyFile(initInput, alsoValid);
+                countInitFiles++;
             }
             currentInputFile = Objects.requireNonNull(allInputsDirectory.listFiles())[0];
         }
@@ -337,7 +337,7 @@ public class BigFuzzGuidance implements Guidance {
             mutation.mutate(currentInputFile, mutationFile);
 
             // Move reference file to correct directory
-            FileUtils.moveFile(mutationFile, nextInputFile);
+            FileUtils.copyFile(mutationFile, nextInputFile);
         }
 
         currentInputFile = nextInputFile;
@@ -494,10 +494,6 @@ public class BigFuzzGuidance implements Guidance {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                File src2 = currentInputFile;
-                if (!src2.delete()) {
-                    System.out.println("!! Could not delete File " + src2);
-                }
                 currentInputFile = lastWorkingInputFile;
             }
         }else if (result == Result.FAILURE || result == Result.TIMEOUT) {
@@ -540,10 +536,6 @@ public class BigFuzzGuidance implements Guidance {
                     mutation.deleteFile(currentInputFile.getPath());
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-                File src2 = currentInputFile;
-                if (!src2.delete()) {
-                    System.out.println("!! Could not delete File " + src2);
                 }
                 currentInputFile = lastWorkingInputFile;
             }

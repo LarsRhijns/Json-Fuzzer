@@ -12,13 +12,12 @@ import java.util.Map;
 
 public class SalaryAnalysis {
 
-    public void SalaryAnalysis(String inputFile) throws IOException {
-
-        File file=new File(inputFile);
+    public void SalaryAnalysis(String input) throws IOException {
+        File file=new File(input);
         ArrayList<String> list;
         if(file.exists())
         {
-            list = CustomArray.read(inputFile);
+            list = CustomArray.read(input);
             /*for(String line : list)
             {
                 System.out.println(line);

@@ -3,6 +3,7 @@ package edu.ucla.cs.jqf.bigfuzz;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public interface BigFuzzMutation {
 
@@ -14,14 +15,9 @@ public interface BigFuzzMutation {
      */
     public void mutate(File inputFile, File nextInputFile) throws IOException;
 
-    /**
-     * mutate file based on index (support multiple data-specific mutations)
-     * @param inputFile, index
-     * @throws IOException
-     * */
-    public void mutateFile(String inputFile, int index) throws IOException;
+	ArrayList<String> mutateFile(File inputFile) throws IOException;
 
-    /**
+	/**
      * mutate on rows of an input file
      * @param rows
      */
@@ -52,6 +48,6 @@ public interface BigFuzzMutation {
      * @param outputFile
      * @throws IOException
      */
-    public void writeFile(String outputFile) throws IOException;
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException;
     public void deleteFile(String currentFile) throws IOException;
 }

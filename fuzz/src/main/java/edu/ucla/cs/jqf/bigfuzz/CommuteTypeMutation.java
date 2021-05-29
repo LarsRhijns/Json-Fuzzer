@@ -3,74 +3,31 @@ package edu.ucla.cs.jqf.bigfuzz;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 public class CommuteTypeMutation implements BigFuzzMutation {
 
     Random r = new Random();
-    ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
     int maxGenerateTimes = 20;
 
-    @Override
-    public void mutate(File inputFile, File nextInputFile) throws IOException {
-        List<String> fileList = Files.readAllLines(inputFile.toPath());
-        Random random = new Random();
-        int n = random.nextInt(fileList.size());
-        String fileToMutate = fileList.get(n);
-        mutateFile(fileToMutate, n);
-
-        String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/')+1);
-        writeFile(fileName);
-
-        String path = System.getProperty("user.dir")+"/"+fileName;
-//        System.out.println(path);
-//        System.out.println(fileList);
-
-        delete = path;
-        // write next input config
-        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
-
-        for(int i = 0; i < fileList.size(); i++)
-        {
-            if(i == n)
-                bw.write(path);
-            else
-                bw.write(fileList.get(i));
-            bw.newLine();
-            bw.flush();
-        }
-        bw.close();
-    }
-
-    public void mutateFile(String inputFile, int index) throws IOException{
-        switch(index)
-        {
-            case 0 :
-                mutateFile(inputFile);
-                break;
-
-            case 1 :
-                mutateFile1(inputFile);
-                break;
-            default :
-                mutateFile(inputFile);
-        }
-    }
-
-    public void mutateFile(String inputFile) throws IOException
+    public void mutate(File inputFile, File nextInputFile) throws IOException
     {
+        ArrayList<String> mutatedInput = mutateFile(inputFile);
+        if (mutatedInput != null) {
+            writeFile(nextInputFile, mutatedInput);
+        }
+        delete = nextInputFile.getPath();
+    }
 
-        File file=new File(inputFile);
-
-        ArrayList<String> rows = new ArrayList<String>();
+    public ArrayList<String> mutateFile(File inputFile) throws IOException
+    {
+        ArrayList<String> rows = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
-        if(file.exists())
+        if(inputFile.exists())
         {
-            String readLine = null;
+            String readLine;
             while((readLine = br.readLine()) != null){
                 rows.add(readLine);
             }
@@ -78,12 +35,12 @@ public class CommuteTypeMutation implements BigFuzzMutation {
         else
         {
             System.out.println("File does not exist!");
-            return;
+            return null;
         }
 
         int method =(int)(Math.random() * 2);
         if(method == 0){
-            ArrayList<String> tempRows = new ArrayList<String>();
+            ArrayList<String> tempRows = new ArrayList<>();
             randomGenerateRows(tempRows);
             System.out.println("rows: " + tempRows);
             rows = tempRows;
@@ -96,20 +53,17 @@ public class CommuteTypeMutation implements BigFuzzMutation {
             mutate(rows);
         }
 
-        fileRows = rows;
+        return rows;
     }
 
-    public void mutateFile1(String inputFile) throws IOException
+    public ArrayList<String> mutateFile1(File inputFile) throws IOException
     {
-
-        File file=new File(inputFile);
-
-        ArrayList<String> rows = new ArrayList<String>();
+        ArrayList<String> rows = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
-        if(file.exists())
+        if(inputFile.exists())
         {
-            String readLine = null;
+            String readLine;
             while((readLine = br.readLine()) != null){
                 rows.add(readLine);
             }
@@ -117,12 +71,12 @@ public class CommuteTypeMutation implements BigFuzzMutation {
         else
         {
             System.out.println("File does not exist!");
-            return;
+            return null;
         }
 
         int method =(int)(Math.random() * 2);
         if(method == 0){
-            ArrayList<String> tempRows = new ArrayList<String>();
+            ArrayList<String> tempRows = new ArrayList<>();
             randomGenerateRows1(tempRows);
             System.out.println("rows: " + tempRows);
             rows = tempRows;
@@ -135,7 +89,7 @@ public class CommuteTypeMutation implements BigFuzzMutation {
             mutate1(rows);
         }
 
-        fileRows = rows;
+        return rows;
     }
 
     @Override
@@ -252,7 +206,7 @@ public class CommuteTypeMutation implements BigFuzzMutation {
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         for(int i=0;i<generatedTimes;i++) {
-            String numberAsString = new String();
+            String numberAsString;
             Integer index = i + 1;
             String zip1 = "9" + "0" + "0" + r.nextInt(10) + r.nextInt(10);
             String zip2 = "9" + "0" + "0" + r.nextInt(10) + r.nextInt(10);
@@ -267,7 +221,7 @@ public class CommuteTypeMutation implements BigFuzzMutation {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
         for(int i=0;i<generatedTimes;i++)
         {
-            String numberAsString = new String();
+            String numberAsString;
             String zip = "9" + "0"+ "0" + r.nextInt(10) + r.nextInt(10);
             String name = RandomStringUtils.randomAlphabetic((int)(Math.random() * 5));
             numberAsString = zip + "," + name;
@@ -291,17 +245,16 @@ public class CommuteTypeMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void writeFile(String outputFile) throws IOException {
-        File fout = new File(outputFile);
-        FileOutputStream fos = new FileOutputStream(fout);
-
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+        FileOutputStream fos = new FileOutputStream(outputFile);
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-        for (int i = 0; i < fileRows.size(); i++) {
-            bw.write(fileRows.get(i));
+        for (String fileRow : fileRows) {
+            if (fileRow == null) {
+                continue;
+            }
+            bw.write(fileRow);
             bw.newLine();
         }
-
         bw.close();
         fos.close();
     }
