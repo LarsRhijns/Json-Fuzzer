@@ -7,7 +7,6 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -86,6 +85,9 @@ public class BigFuzzGuidance implements Guidance {
 
     /** The directory where saved inputs are written. */
     protected File uniqueFailuresDirectory;
+
+    /** The directory in which only the initial inputs are saved. */
+    protected File initialInputsDirectory;
 
     /** The directory where all inputs are written. */
     protected File allInputsDirectory;
@@ -232,6 +234,10 @@ public class BigFuzzGuidance implements Guidance {
         if (!this.uniqueFailuresDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + uniqueFailuresDirectory);
         }
+        this.initialInputsDirectory = new File(outputDirectory, "init_inputs");
+        if (!this.initialInputsDirectory.mkdirs()) {
+            System.out.println("!! Could not create directory: " + initialInputsDirectory);
+        }
         this.allInputsDirectory = new File(outputDirectory, "all_inputs");
         if (!this.allInputsDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + allInputsDirectory);
@@ -262,84 +268,85 @@ public class BigFuzzGuidance implements Guidance {
     @SuppressWarnings("SuspiciousMethodCalls")
     @Override
     public InputStream getInput() throws IOException {
+        System.out.println("--Current trial: " + numTrials);
         // Clear coverage stats for this run
         runCoverage.clear();
 
-        File nextInputFile;
-        if (Objects.requireNonNull(allValidInputsDirectory.listFiles()).length == 0)
-        { // Copy initial input files if no input exists yet.
-            nextInputFile = new File(allValidInputsDirectory, "init_0");
-            Scanner sc = new Scanner(initialInputFile);
+        File nextInputFile = new File(allInputsDirectory, "input_" + numTrials);
+        if (numTrials == 0) { // Copy initial input files if no input exists yet.
+            // Handle initially declared inputs
             int countInitFiles = 0;
+            Scanner sc = new Scanner(initialInputFile);
             while (sc.hasNextLine()) {
-                File initInput = new File(sc.nextLine());
-                nextInputFile = new File(allValidInputsDirectory, "init_" + countInitFiles);
-                File alsoValid = new File(allInputsDirectory, "input_" + countInitFiles);
-                FileUtils.copyFile(initInput, nextInputFile);
-                FileUtils.copyFile(initInput, alsoValid);
+                File nextInitInput = new File(sc.nextLine());
+                File initInput = new File(initialInputsDirectory, "init_" + countInitFiles);
+                File nextAllInput = new File(allInputsDirectory, "input_" + countInitFiles);
+                File nextValidInput = new File(allValidInputsDirectory, "init_" + countInitFiles);
+                FileUtils.copyFile(nextInitInput, initInput);
+                FileUtils.copyFile(nextInitInput, nextValidInput);
+                FileUtils.copyFile(nextInitInput, nextAllInput);
                 countInitFiles++;
             }
-            currentInputFile = Objects.requireNonNull(allValidInputsDirectory.listFiles())[0];
-        }
-        else
-        { // Mutate an existing input
-            nextInputFile = new File(allInputsDirectory, "input_" + this.numTrials);
-            File mutationFile = new File(allValidInputsDirectory, "mutation_" + this.numTrials);
+            sc.close();
 
-            // Start next cycle and refill pendingInputs if cycle is completed.
-            if (pendingInputs.isEmpty()) {
-                // Add all Files from allValidInputsDir to pendingInputs if no coverage input is known.
-                if (Objects.requireNonNull(coverageInputsDirectory.listFiles()).length == 0) {
-                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allValidInputsDirectory.listFiles())));
-                }
-                else { // Add all coverage discovering files to pendingInputs if any are known.
-                    cyclesCompleted++;
-                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
-                }
-            }
-
-            // Determine which input selection method to use.
-            double r = new Random().nextDouble();
-            if (r <= favorRate) { // Use favored input selection method
-                int totalBranchCombinationCount = 0;
-                for (int i : branchesHitCount.values()) {
-                    totalBranchCombinationCount += i;
-                }
-
-                // Calculate chances in which the least explored branches are preferred
-                Map<Collection<Integer>, Double> chancesAfterPref = new HashMap<>();
-                for (Set<Integer> branchCombi : branchesHitCount.keySet()) {
-                    int occurrences = branchesHitCount.get(branchCombi);
-                    double chance = (double) 1 / occurrences * totalBranchCombinationCount;
-                    chancesAfterPref.put(branchCombi, chance);
-                }
-
-                double totalChance = 0;
-                for (double d : chancesAfterPref.values()) {
-                    totalChance += d;
-                }
-
-                // Randomly select an input file using the preferred chances
-                double selectedChance = new Random().nextDouble() * totalChance;
-                double totalCheckedDoubles = 0;
-                for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
-                    totalCheckedDoubles += entry.getValue();
-                    if (totalCheckedDoubles >= selectedChance) {
-                        currentInputFile = coverageFilePointer.get(entry.getKey());
-                    }
-                }
-            }
-            else { // Use baseline input selection method
-                currentInputFile = pendingInputs.remove(0);
-            }
-
-            // Mutate the next file from pendingInputs
-            mutation.mutate(currentInputFile, mutationFile);
-
-            // Move reference file to correct directory
-            FileUtils.copyFile(mutationFile, nextInputFile);
+            pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allInputsDirectory.listFiles())));
         }
 
+        // Select initial inputs first and don't mutate them.
+        int initLength = Objects.requireNonNull(initialInputsDirectory.listFiles()).length;
+        if (numTrials < initLength) {
+            currentInputFile = pendingInputs.remove(0);
+            return new ByteArrayInputStream(currentInputFile.getPath().getBytes());
+        }
+
+        // Start next cycle and refill pendingInputs if cycle is completed.
+        if (pendingInputs.isEmpty()) {
+            cyclesCompleted++;
+            pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
+        }
+
+        // Determine which input selection method to use.
+        double r = new Random().nextDouble();
+        if (r > favorRate) { // Use baseline input selection method
+            currentInputFile = pendingInputs.remove(0);
+        }
+        else { // Use favored input selection method
+            int totalBranchCombinationCount = 0;
+            for (int i : branchesHitCount.values()) {
+                totalBranchCombinationCount += i;
+            }
+
+            // Calculate chances in which the least explored branches are preferred
+            Map<Collection<Integer>, Double> chancesAfterPref = new HashMap<>();
+            for (Set<Integer> branchCombi : branchesHitCount.keySet()) {
+                int occurrences = branchesHitCount.get(branchCombi);
+                double chance = (double) 1 / occurrences * totalBranchCombinationCount;
+                chancesAfterPref.put(branchCombi, chance);
+            }
+
+            double totalChance = 0;
+            for (double d : chancesAfterPref.values()) {
+                totalChance += d;
+            }
+
+            // Randomly select an input file using the preferred chances
+            double selectedChance = new Random().nextDouble() * totalChance;
+            double totalCheckedDoubles = 0;
+            for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
+                totalCheckedDoubles += entry.getValue();
+                if (totalCheckedDoubles >= selectedChance) {
+                    currentInputFile = coverageFilePointer.get(entry.getKey());
+                    break;
+                }
+            }
+        }
+
+        // Mutate the next file from pendingInputs
+        File mutationFile = new File(allValidInputsDirectory, "mutation_" + numTrials);
+        mutation.mutate(currentInputFile, mutationFile);
+        FileUtils.copyFile(mutationFile, nextInputFile);
+
+        // Move reference file to correct directory
         currentInputFile = nextInputFile;
 
         if (PRINT_METHOD_NAMES) { System.out.println("BigFuzzGuidance::getInput: "+numTrials+": "+currentInputFile ); }
@@ -379,15 +386,13 @@ public class BigFuzzGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-        System.out.println("--Current trial: " + numTrials);
         // Stop timeout handling
         this.runStart = null;
 
         if (PRINT_METHOD_NAMES) { System.out.println("BigFuzz::handleResult"); }
 //        System.out.println("result: " + result);
 
-        this.numTrials++;
-
+        this.numTrials++; // todo: inc numTrials at end of handleInput
         boolean valid = result == Result.SUCCESS;
 
         if (valid) {
@@ -478,6 +483,7 @@ public class BigFuzzGuidance implements Guidance {
                 if (why.contains("+cov")) {
                     if (!des.exists()) {
                         try {
+                            if (PRINT_COVERAGE_DETAILS) { System.out.println(des + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
                         } catch (IOException e) {
                             e.printStackTrace();
