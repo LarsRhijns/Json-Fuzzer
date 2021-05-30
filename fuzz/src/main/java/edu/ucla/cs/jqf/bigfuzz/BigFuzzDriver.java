@@ -2,11 +2,11 @@ package edu.ucla.cs.jqf.bigfuzz;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 
 public class BigFuzzDriver {
 
@@ -18,6 +18,7 @@ public class BigFuzzDriver {
     public static boolean PRINT_METHOD_NAMES = false;
     public static boolean PRINT_MUTATION_DETAILS = false;
     public static boolean PRINT_COVERAGE_DETAILS = false;
+    public static boolean PRINT_INPUT_SELECTION_DETAILS = false;
     public static boolean LOG_AND_PRINT_STATS = false;
 
     public static void main(String[] args) {

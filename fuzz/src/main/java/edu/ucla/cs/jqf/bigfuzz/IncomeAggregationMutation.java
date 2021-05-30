@@ -154,10 +154,6 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
 
     public ArrayList<String> mutateFile(File inputFile) throws IOException
     {
-        if (PRINT_MUTATION_DETAILS) {
-            System.out.println("mutate file: " + inputFile.getPath());
-        }
-
         ArrayList<String> rows = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
