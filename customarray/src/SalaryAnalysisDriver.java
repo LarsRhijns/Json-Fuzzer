@@ -17,20 +17,16 @@ public class SalaryAnalysisDriver {
     @Fuzz
     public void testSalaryAnalysis(String fileName) throws IOException {
         File inputFile = new File(fileName);
-        if (PRINT_METHOD_NAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] SalaryAnalysisDriver::testSalaryAnalysis"); }
         SalaryAnalysis analysis = new SalaryAnalysis();
-        List<String> fileList = Files.readAllLines(inputFile.toPath());
-        if (PRINT_MUTATION_DETAILS) {
-            System.out.println("fileList size: " + fileList.size());
-        }
-        analysis.SalaryAnalysis(inputFile.getPath()); // todo: should it always return the first?
+        analysis.SalaryAnalysis(inputFile.getPath());
     }
 
     public static void main(String[] args) throws IOException
     {
 
         String fileName = "./dataset/conf";
-        if (PRINT_METHOD_NAMES) { System.out.println("SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] SalaryAnalysisDriver::testSalaryAnalysis: "+fileName); }
         SalaryAnalysis analysis = new SalaryAnalysis();
         System.out.println(fileName);
         List<String> fileList = Files.readAllLines(Paths.get(fileName));

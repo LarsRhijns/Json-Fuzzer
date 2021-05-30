@@ -104,27 +104,27 @@ public class Coverage implements TraceEventVisitor {
 
     public void visitMapEvent(MapEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("Coverage: visitMap"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage: visitMap"); }
     }
 
     public void visitReduceEvent(ReduceEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("Coverage: visitReduce"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage: visitReduce"); }
     }
 
     public void visitReduceByKeyEvent(ReduceByKeyEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("Coverage::visitReduceByKeyEvent"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage::visitReduceByKeyEvent"); }
     }
 
     public void visitFilterEvent(FilterEvent e) {
         counter.increment1(e.getIid(), e.getArm());
-        if (PRINT_METHOD_NAMES) { System.out.println("Coverage::visitFilterEvent"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage::visitFilterEvent"); }
     }
 
     public void visitMapValuesEvent(MapValuesEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("Coverage::visitMapValuesEvent"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage::visitMapValuesEvent"); }
     }
 
     /**

@@ -2,17 +2,22 @@ package edu.ucla.cs.jqf.bigfuzz;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import org.apache.commons.io.FileUtils;
+import org.scalatest.Entry;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class BigFuzzDriver {
 
     // ---------- LOGGING / STATS OUTPUT ------------
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
-    public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = true;
+    public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
 
     // These booleans are for debugging purposes only, toggle them if you want to see the information
     public static boolean PRINT_METHOD_NAMES = false;
@@ -80,6 +85,7 @@ public class BigFuzzDriver {
      * @param endTime end time of the program
      * @param guidance guidance class which is used to perform the BigFuzz testing
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration duration, long startTime, long endTime, BigFuzzGuidance guidance) {
         // Print configuration
         System.out.println("---CONFIGURATION---");
@@ -98,11 +104,6 @@ public class BigFuzzDriver {
         System.out.println("Total Failures: " + guidance.totalFailures);
         System.out.println("Unique Failures: " + guidance.uniqueFailures.size());
         System.out.println("Unique Failures found at: " + guidance.uniqueFailureRuns);
-//        List<Boolean> runFoundUniqueFailure = new ArrayList<>();
-//        for (long i = 0; i < maxTrials; i++) {
-//            runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
-//        }
-//        System.out.println("Unique Failure found per run: " + runFoundUniqueFailure);
 
         // Run time
         long totalDuration = endTime - startTime;
@@ -120,7 +121,11 @@ public class BigFuzzDriver {
         System.out.println("Valid coverage: " + validCov);
         System.out.println("Percent valid coverage: " + (float) validCov / totalCov * 100 + "%");
         System.out.println("New Coverage found at: " + guidance.newCoverageRuns);
-        System.out.println("Branches hit count: " + guidance.branchesHitCount);
+        List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
+        for (Map.Entry<Set<Integer>, Integer> entry : guidance.branchesHitCount.entrySet()) {
+            fileHits.add(new Entry<>(guidance.coverageFilePointer.get(entry.getKey()).getName(), entry.getValue()));
+        }
+        System.out.println("Branches hit count: " + fileHits);
         System.out.println("Number of Seed inputs: " + guidance.newCoverageRuns.size());
     }
 }

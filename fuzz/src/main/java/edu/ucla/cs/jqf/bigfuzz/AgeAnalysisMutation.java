@@ -155,10 +155,6 @@ public class AgeAnalysisMutation implements BigFuzzMutation{
 
     public ArrayList<String> mutateFile(File inputFile) throws IOException
     {
-        if (PRINT_MUTATION_DETAILS) {
-            System.out.println("mutate file: " + inputFile.getPath());
-        }
-
         ArrayList<String> rows = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
@@ -179,9 +175,7 @@ public class AgeAnalysisMutation implements BigFuzzMutation{
         if(method == 0){
             ArrayList<String> tempRows = new ArrayList<>();
             randomGenerateRows(tempRows);
-            if (PRINT_MUTATION_DETAILS) {
-                System.out.println("rows: " + tempRows);
-            }
+            if (PRINT_MUTATION_DETAILS) { System.out.println("[MUTATE] rows: " + tempRows); }
             rows = tempRows;
 
             int next =(int)(Math.random() * 2);

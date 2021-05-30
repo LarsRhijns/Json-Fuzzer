@@ -175,9 +175,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         if(method == 0){
             ArrayList<String> tempRows = new ArrayList<>();
             randomGenerateRows(tempRows);
-            if (PRINT_MUTATION_DETAILS) {
-                System.out.println("rows: " + tempRows);
-            }
+            if (PRINT_MUTATION_DETAILS) { System.out.println("[MUTATE] rows: " + tempRows); }
             rows = tempRows;
 
             int next =(int)(Math.random() * 2);
@@ -234,9 +232,8 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
         int method = (int)(Math.random() * 2);
         int columnID = r.nextInt(columns.length);
         if (PRINT_MUTATION_DETAILS) {
-            System.out.println("IncomeAggregationMutation *** "+method+" "+lineNum+" "+columnID);
-            System.out.println("mutate size: " + list.size());
-            System.out.println("mutate linenum: " + list.get(lineNum));
+            System.out.println("[MUTATE] rows size: " + list.size());
+            System.out.println("[MUTATE] row to mutate: " + list.get(lineNum));
         }
 //        if(method == 0){
 //            columns[columnID] = Integer.toString(r.nextInt());

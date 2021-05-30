@@ -183,7 +183,7 @@ public class GuidedFuzzing {
             if (out != null) {
                 junit.addListener(new TextListener(out));
             }
-            if (PRINT_METHOD_NAMES) { System.out.println("GuidedFuzz:Test"); }
+            if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] GuidedFuzz:Test"); }
             return junit.run(testRunner);
         } finally {
             unsetGuidance();

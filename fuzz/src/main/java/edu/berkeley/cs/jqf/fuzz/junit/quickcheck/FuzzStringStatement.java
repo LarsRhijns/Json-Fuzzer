@@ -84,7 +84,7 @@ public class FuzzStringStatement extends Statement {
 
     public FuzzStringStatement(FrameworkMethod method, TestClass testClass,
                          GeneratorRepository generatorRepository) {
-        if (PRINT_METHOD_NAMES) { System.out.println("FuzzStringStatement:FuzzStringStatement()"); }
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] FuzzStringStatement:FuzzStringStatement"); }
         this.method = method;
         this.testClass = testClass;
         this.typeVariables =
