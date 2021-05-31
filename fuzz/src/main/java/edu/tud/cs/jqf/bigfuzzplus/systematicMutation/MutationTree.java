@@ -187,6 +187,7 @@ public class MutationTree {
 					//otherwise select one random column
 					int randomColumn = SystematicMutation.r.nextInt(columnAmount);
 					MutationType nextType =  MutationType.values()[i];
+					// TODO: debug this method
 					if (this.prevMutations.stream().noneMatch(mutation -> mutation.getMutationType() == nextType) && !nextType.equals(this.mutationType)) {
 						this.addChild(new Mutation(this, MutationType.values()[i], randomColumn));
 					}

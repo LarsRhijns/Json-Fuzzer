@@ -349,7 +349,11 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-        System.out.print("\r Trial " + numTrials + " / " + maxTrials);
+        //progress bar
+        if (!SystematicMutation.EVALUATE && numTrials % (maxTrials / 20) == 0) {
+            System.out.print("\rCompleted trials: " + numTrials * 100 / maxTrials + "%");
+        }
+
         // Stop timeout handling
         this.runStart = null;
 

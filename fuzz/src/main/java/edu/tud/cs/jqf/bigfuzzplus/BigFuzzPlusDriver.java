@@ -25,13 +25,21 @@ public class BigFuzzPlusDriver {
     public static StringBuilder summarized_results = new StringBuilder();
 
     /**
-     * Run the BigFuzzPlus program with the following parameters:
+     * Run the BigFuzzPlus program with the following parameters for StackedMutation:
      * [0] - test class
      * [1] - test method
-     * [2] - mutation method
+     * [2] - mutation method           (StackedMutation)
      * [3] - max Trials                (default = Long.MAXVALUE)
      * [4] - stacked mutation method   (default = disabled)
      * [5] - max mutation stack        (default = 2)
+     *
+     * * Run the BigFuzzPlus program with the following parameters for SystematicMutation:
+     * [0] - test class
+     * [1] - test method
+     * [2] - mutation method           (SystematicMutation)
+     * [3] - max Trials                (default = Long.MAXVALUE)
+     * [4] - mutate columns            (default = disabled)
+     * [5] - max mutation depth        (default = 6)
      *
      * @param args program arguments
      */
@@ -49,14 +57,26 @@ public class BigFuzzPlusDriver {
         Long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
         System.out.println("maxTrials: " + maxTrials);
 
-        int intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
-        StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
-        System.out.println("stackedMutationMethod: " + stackedMutationMethod);
+        int intStackedMutationMethod;
+        StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
+        if (mutationMethodClassName.equalsIgnoreCase("stackedmutation")) {
+            intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
+            stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
+            System.out.println("stackedMutationMethod: " + stackedMutationMethod);
+        }
+        boolean mutateColumns = true;
+        int mutationDepth = 6;
+        if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
+            mutateColumns = Boolean.parseBoolean(args[4]);
+            System.out.println("Mutate columns: " + mutateColumns);
+            mutationDepth = Integer.parseInt(args[5]);
+            System.out.println("Mutation depth: " + mutationDepth);
+        }
 
         // This variable is used for the stackedMutationMethod: Smart_mutate
         // If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
         int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
-        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
+//        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
 
         // **************
 
@@ -67,8 +87,14 @@ public class BigFuzzPlusDriver {
         program_configuration.append("\n\tTest class: " + testClassName);
         program_configuration.append("\n\tTest method: " + testMethodName);
         program_configuration.append("\n\tTest method: " + mutationMethodClassName);
-        program_configuration.append("\n\tTest stackedMutation method: " + stackedMutationMethod);
-        program_configuration.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
+        if (mutationMethodClassName.equalsIgnoreCase("StackedMutation")) {
+            program_configuration.append("\n\tTest stackedMutation method: " + stackedMutationMethod);
+            program_configuration.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
+        }
+        if (mutationMethodClassName.equals("SystematicMutation")) {
+            program_configuration.append("\n\tTest mutate columns: " + mutateColumns);
+            program_configuration.append("\n\tTest tree depth: " + mutationDepth);
+        }
 
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
@@ -114,7 +140,7 @@ public class BigFuzzPlusDriver {
                 long endTime = System.currentTimeMillis();
 
                 // Evaluate the results
-                evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
+//                evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
                 writeToLists(guidance, maxTrials, inputs, uniqueFailureResults, methods, columns, uniqueFailures);
                 durations.add(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");
@@ -124,9 +150,6 @@ public class BigFuzzPlusDriver {
         }
         summarizeProgramIterations(uniqueFailureResults, inputs, methods, columns, durations, uniqueFailures);
         writeLogToFile(outputDir);
-
-        // --------------- SYSTEMATIC CONFIGURATION --------------
-//        System.out.println();("\n\n")
     }
 
     /**
