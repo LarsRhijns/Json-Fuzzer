@@ -54,7 +54,7 @@ public class BigFuzzPlusDriver {
         String testMethodName = args[1];
         String mutationMethodClassName = args[2];
 
-        Long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
+        long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
         System.out.println("maxTrials: " + maxTrials);
 
         int intStackedMutationMethod;
@@ -109,11 +109,11 @@ public class BigFuzzPlusDriver {
             System.exit(0);
         }
 
-        ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList();
-        ArrayList<ArrayList<String>> inputs = new ArrayList();
-        ArrayList<ArrayList<String>> methods = new ArrayList();
-        ArrayList<ArrayList<String>> columns = new ArrayList();
-        ArrayList<Long> durations = new ArrayList();
+        ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
+        ArrayList<ArrayList<String>> inputs = new ArrayList<>();
+        ArrayList<ArrayList<String>> methods = new ArrayList<>();
+        ArrayList<ArrayList<String>> columns = new ArrayList<>();
+        ArrayList<Long> durations = new ArrayList<>();
         ArrayList<Integer> uniqueFailures = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             int atIteration = i + 1;
@@ -190,6 +190,7 @@ public class BigFuzzPlusDriver {
      * @param columns   List of count per column how many times mutation was applied to said column
      * @param durations List of iteration durations
      */
+    @SuppressWarnings("DuplicatedCode")
     private static void summarizeProgramIterations(ArrayList<ArrayList<Integer>> uniqueFailureResults, ArrayList<ArrayList<String>> inputs, ArrayList<ArrayList<String>> methods,
                                                    ArrayList<ArrayList<String>> columns, ArrayList<Long> durations, ArrayList<Integer> uniqueFailures) {
 
@@ -275,8 +276,8 @@ public class BigFuzzPlusDriver {
         }
         // Methods and columns
         if(guidance.mutation instanceof StackedMutation) {
-            ArrayList<String> methodStringList = new ArrayList();
-            ArrayList<String> columnStringList = new ArrayList();
+            ArrayList<String> methodStringList = new ArrayList<>();
+            ArrayList<String> columnStringList = new ArrayList<>();
             combineUsedMethodsAndColumns(methodStringList, columnStringList, guidance);
             methods.add(methodStringList);
             columns.add(columnStringList);
@@ -287,12 +288,13 @@ public class BigFuzzPlusDriver {
         uniqueFailures.add(cumulative);
     }
 
+    @SuppressWarnings("rawtypes")
     private static void combineUsedMethodsAndColumns(ArrayList<String> methodStringList, ArrayList<String> columnStringList, BigFuzzPlusGuidance guidance) {
         ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
         ArrayList<Integer> columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
 
-        HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
-        HashMap<Integer, Integer> columnMap = new HashMap();
+        HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap<>();
+        HashMap<Integer, Integer> columnMap = new HashMap<>();
         for (int i = 0; i < methodTracker.size(); i++) {
             HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
             int column = columnTracker.get(i);
@@ -307,15 +309,11 @@ public class BigFuzzPlusDriver {
                 columnMap.put(column, 1);
             }
         }
-        Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry e = it.next();
+        for (Map.Entry e : methodMap.entrySet()) {
             methodStringList.add(e.getKey() + ": " + e.getValue());
         }
 
-        Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
-        while (it2.hasNext()) {
-            Map.Entry e = it2.next();
+        for (Map.Entry e : columnMap.entrySet()) {
             columnStringList.add(e.getKey() + ": " + e.getValue());
         }
     }
