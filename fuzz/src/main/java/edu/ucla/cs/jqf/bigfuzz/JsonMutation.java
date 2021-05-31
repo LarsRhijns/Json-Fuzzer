@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.xml.bind.SchemaOutputResolver;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,9 +19,18 @@ public class JsonMutation implements BigFuzzMutation {
 
     Random r = new Random();
     ArrayList<String> fileRows = new ArrayList<>();
+    JSONArray jsonRows = null;
     String delete;
-    ObjectSchema jsonSchema; // TODO Also support Arrays
+    ArraySchema jsonSchema;
     int maxGenerateTimes = 20;
+
+    public void setJsonRows(JSONArray array) {
+        jsonRows = array;
+    }
+
+    public JSONArray getJsonRows() {
+        return jsonRows;
+    }
 
     @Override
     public void mutate(String inputFile, String nextInputFile) throws IOException {
@@ -60,10 +70,10 @@ public class JsonMutation implements BigFuzzMutation {
         List<String> fileList = Files.readAllLines(Paths.get(inputFile));
         String file = fileList.get(0);
         String schemaFile = file.substring(0, file.lastIndexOf('.')) + "_schema.json";
-        String schemaPath = "dataset/" + schemaFile;
+        String schemaPath = schemaFile.substring(2);
         try {
             GeneratorConfig generatorConfig = GeneratorConfig.fromSchemaPath(schemaPath);
-            jsonSchema = (ObjectSchema)generatorConfig.getSchema();
+            jsonSchema = (ArraySchema) generatorConfig.getSchema();
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("Schema file not found. Please make sure there is also a json schema file present for the used input file");
         }
@@ -83,33 +93,44 @@ public class JsonMutation implements BigFuzzMutation {
         ArrayList<String> rows = new ArrayList<>();
         rows.add(jsonString);
 
+        JSONParser p = new JSONParser();
+        try {
+            JSONArray arr = (JSONArray) p.parse(jsonString);
+            setJsonRows(arr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         // 50/50 chance of generating extra rows
         if (r.nextBoolean()) {
             randomGenerateRows(rows);
-            System.out.println("rows: " + rows);
+//            System.out.println("rows: " + rows);
         }
         mutate(rows);
         fileRows = rows;
     }
 
     @Override
-    public void mutate(ArrayList<String> objects) { // objects == rows
+    public void mutate(ArrayList<String> rows) { // array only has 1 array in it with all the objects in that array.
         r.setSeed(System.currentTimeMillis());
-        System.out.println(objects.size());
+        JSONArray objects = getJsonRows();
+
+//        System.out.println(objects.size());
 
         // Choose the object (row) to mutate
-        int objNum = r.nextInt(objects.size());
-        String objectToMutate = objects.get(objNum); // objectToMutate == colums from MutationTemplate
-        System.out.println(objects.get(objNum));
-
-        // Choose the property (column) to mutate
+        int objNum = r.nextInt(objects.size()); // objectToMutate == colums from MutationTemplate
+        String obj = objects.get(objNum).toString();
         JSONParser p = new JSONParser();
         JSONObject jsonToMutate = null;
         try {
-            jsonToMutate = (JSONObject) p.parse(objectToMutate);
+            jsonToMutate = (JSONObject) p.parse(obj);
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
+//        System.out.println(jsonToMutate);
+
+        // Choose the property (column) to mutate
 //        JSONObject jsonToMutate = new JSONObject(objectToMutate);
         int propertyIndexToMutate = r.nextInt(jsonToMutate.keySet().size()); // propertyIndexToMutate == columnID
         Iterator<String> keyIterator = jsonToMutate.keySet().iterator();
@@ -119,7 +140,8 @@ public class JsonMutation implements BigFuzzMutation {
         String propertyToMutate = keyIterator.next();
 
         int method = r.nextInt(6);
-        Schema valueSchema = jsonSchema.getPropertySchemas().get(propertyToMutate);
+        ObjectSchema objectSchema = (ObjectSchema) jsonSchema.getItemSchemas().get(0);
+        Schema valueSchema = objectSchema.getPropertySchemas().get(propertyToMutate);
         switch (method) {
 //        Mutation options:
 //        0: random change value   (M1)                     --> Generate new value of same type
@@ -171,7 +193,12 @@ public class JsonMutation implements BigFuzzMutation {
             }
         }
 
-
+        // Update the rows variable since something was mutated
+        jsonRows.remove(objNum);
+        jsonRows.add(jsonToMutate);
+        setJsonRows(jsonRows);
+        rows.clear();
+        rows.add(jsonRows.toString());
     }
 
     private String insertCharacter(JSONObject jsonToMutate, String propertyToMutate) {
@@ -191,7 +218,7 @@ public class JsonMutation implements BigFuzzMutation {
             builder.minItems(null);
             builder.allItemSchema(itemSchemas);
             ArraySchema newSchema = builder.build();
-            updateJsonSchema(newSchema, property);
+//            updateJsonSchema(newSchema, property);
             return new JSONArray().add(GeneratorFactory.getGenerator(newSchema).generate());
         } else if (valueSchema instanceof BooleanSchema) {
             // Simply generate a new boolean
@@ -215,7 +242,7 @@ public class JsonMutation implements BigFuzzMutation {
             builder.multipleOf(null);
             builder.requiresInteger(reqInteger);
             NumberSchema newSchema = builder.build();
-            updateJsonSchema(newSchema, property);
+//            updateJsonSchema(newSchema, property);
             return GeneratorFactory.getGenerator(newSchema).generate();
         } else if (valueSchema instanceof ObjectSchema) {
             // Remove min and max properties, keep all property schemas
@@ -230,7 +257,7 @@ public class JsonMutation implements BigFuzzMutation {
                 builder.addPropertySchema(key, propertySchemas.get(key));
             }
             ObjectSchema newSchema = builder.build();
-            updateJsonSchema(newSchema, property);
+//            updateJsonSchema(newSchema, property);
             String gen = GeneratorFactory.getGenerator(newSchema).generate().toString();
             JSONParser p = new JSONParser();
             JSONObject newObject = null;
@@ -253,7 +280,7 @@ public class JsonMutation implements BigFuzzMutation {
             builder.maxLength(null);
             builder.pattern(pattern);
             StringSchema newSchema = builder.build();
-            updateJsonSchema(newSchema, property);
+//            updateJsonSchema(newSchema, property);
             return GeneratorFactory.getGenerator(newSchema).generate();
         } else {
             throw new IllegalStateException("Schema of value to mutate is invalid. Please check schema.");
@@ -261,29 +288,35 @@ public class JsonMutation implements BigFuzzMutation {
     }
 
 
-    /**
-     * @param newSchema The schema of the property that needs to be updated
-     * @param property The string of the key of the property that needs to be updated
-     */
-    private void updateJsonSchema(Schema newSchema, String property) {
-        ObjectSchema.Builder builder = new ObjectSchema.Builder();
-        Map<String, Schema> propertySchemas = jsonSchema.getPropertySchemas();
-        for (String key : propertySchemas.keySet()) {
-            if (key.equals(property)) {
-                builder.addPropertySchema(key, newSchema);
-            } else {
-                builder.addPropertySchema(key, propertySchemas.get(key));
-            }
-        }
-    }
+//    /**
+//     * @param newSchema The schema of the property that needs to be updated
+//     * @param property The string of the key of the property that needs to be updated
+//     */
+//    private void updateJsonSchema(Schema newSchema, String property) {
+//        ObjectSchema.Builder builder = new ObjectSchema.Builder();
+//        Map<String, Schema> propertySchemas = jsonSchema.getPropertySchemas();
+//        for (String key : propertySchemas.keySet()) {
+//            if (key.equals(property)) {
+//                builder.addPropertySchema(key, newSchema);
+//            } else {
+//                builder.addPropertySchema(key, propertySchemas.get(key));
+//            }
+//        }
+//    }
 
     @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
-        JsonValueGenerator<?> gen = GeneratorFactory.getGenerator(jsonSchema);
+        JsonValueGenerator<?> gen = GeneratorFactory.getGenerator(jsonSchema.getItemSchemas().get(0));
+        JSONArray newArray = getJsonRows();
         for (int i = 0; i < generatedTimes; i++) {
-            rows.add(gen.generate().toString());
+            newArray.add(gen.generate());
         }
+
+        // Update the rows variable since it has generated new ones
+        setJsonRows(newArray);
+        rows.clear();
+        rows.add(newArray.toString());
     }
 
     @Override
@@ -307,9 +340,9 @@ public class JsonMutation implements BigFuzzMutation {
 
     @Override
     public void deleteFile(String currentFile) throws IOException {
-        File del = new File(delete);
-        if (!del.delete()) {
-            throw new IOException("Deletion not successful");
+        if (delete != null) {
+            File del = new File(delete);
+            del.delete();
         }
     }
 
