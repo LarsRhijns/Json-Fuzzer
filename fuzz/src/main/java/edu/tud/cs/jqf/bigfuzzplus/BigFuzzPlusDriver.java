@@ -66,7 +66,8 @@ public class BigFuzzPlusDriver {
         // **************
 
         long programStartTime = System.currentTimeMillis();
-        File outputDir = new File("output/" + programStartTime);
+        File allOutputDir = new File("output");
+        File outputDir = new File(allOutputDir, "" + programStartTime);
 
         program_configuration.append("Program started with the following parameters: ");
         program_configuration.append("\n\tTest class: " + testClassName);
@@ -79,8 +80,11 @@ public class BigFuzzPlusDriver {
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
 
-        boolean newOutputDirCreated = outputDir.mkdir();
-        if (!newOutputDirCreated) {
+        if (!allOutputDir.mkdir()) {
+            System.err.println("Something went wrong with making the output directory for all runs");
+            System.exit(0);
+        }
+        if (!outputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run");
             System.exit(0);
         }
