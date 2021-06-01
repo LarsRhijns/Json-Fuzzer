@@ -9,26 +9,26 @@ import java.io.*;
 import java.time.Duration;
 import java.util.*;
 
+@SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusLog {
 
     private static BigFuzzPlusLog INSTANCE;
 
-    private File outputDir;
 
-    private StringBuilder program_configuration = new StringBuilder();
-    private StringBuilder iteration_results = new StringBuilder();
-    private StringBuilder summarized_results = new StringBuilder();
+    private final StringBuilder program_configuration = new StringBuilder();
+    private final StringBuilder iteration_results = new StringBuilder();
+    private final StringBuilder summarized_results = new StringBuilder();
 
 
-    private ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList();
-    private ArrayList<ArrayList<String>> inputs = new ArrayList();
-    private ArrayList<ArrayList<String>> methods = new ArrayList();
-    private ArrayList<ArrayList<String>> columns = new ArrayList();
-    private ArrayList<ArrayList<String>> mutationStacks = new ArrayList();
+    private final ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
+    private final ArrayList<ArrayList<String>> inputs = new ArrayList<>();
+    private final ArrayList<ArrayList<String>> methods = new ArrayList<>();
+    private final ArrayList<ArrayList<String>> columns = new ArrayList<>();
+    private final ArrayList<ArrayList<String>> mutationStacks = new ArrayList<>();
 
-    private ArrayList<Long> errorInputCount = new ArrayList();
-    private ArrayList<Long> validInputCount = new ArrayList();
-    private ArrayList<Long> durations = new ArrayList();
+    private final ArrayList<Long> errorInputCount = new ArrayList<>();
+    private final ArrayList<Long> validInputCount = new ArrayList<>();
+    private final ArrayList<Long> durations = new ArrayList<>();
 
 
     private BigFuzzPlusLog() {}
@@ -40,26 +40,32 @@ public class BigFuzzPlusLog {
         return INSTANCE;
     }
 
-    public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, StackedMutationEnum.StackedMutationMethod stackedMutationMethod, int intMutationStackCount, File outputDir, long programStartTime) {
-        program_configuration.append("Program started with the following parameters: ");
+    public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
+        program_configuration.append("PROGRAM CONFIGURATION");
+        program_configuration.append("\nOutput directory is set to: " + outputDir);
+        program_configuration.append("\nProgram is started at: " + programStartTime);
+        program_configuration.append("\n\nProgram started with the following parameters: ");
         program_configuration.append("\n\tTest class: " + testClassName);
         program_configuration.append("\n\tTest method: " + testMethodName);
         program_configuration.append("\n\tMutation class: " + mutationMethodClassName);
-        if(mutationMethodClassName.equals("StackedMutation")) {
-            program_configuration.append("\n\tTest stackedMutation method: " + stackedMutationMethod);
-            program_configuration.append("\n\tTest maximal stacked mutations: " + intMutationStackCount);
-        }
+    }
+
+    public void logProgramArgumentsStackedMutation(String testClassName, String testMethodName, String mutationMethodClassName, StackedMutationEnum.StackedMutationMethod stackedMutationMethod, int intMutationStackCount, File outputDir, long programStartTime) {
+        logProgramArguments(testClassName,testMethodName,mutationMethodClassName, outputDir, programStartTime);
+        program_configuration.append("\n\tStackedMutation method: " + stackedMutationMethod);
+        program_configuration.append("\n\tMaximal stacked mutations: " + intMutationStackCount);
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
+    }
 
+    public void logProgramArgumentsSystematicMutation(String testClassName, String testMethodName, String mutationMethodClassName, boolean mutateColumns, int mutationDepth, File outputDir, long programStartTime) {
+        logProgramArguments(testClassName,testMethodName,mutationMethodClassName, outputDir, programStartTime);
+        program_configuration.append("\n\tMutate columns: " + mutateColumns);
+        program_configuration.append("\n\tMutate depth: " + mutationDepth);
     }
 
     public void printProgramArguments() {
         System.out.println(program_configuration);
-    }
-
-    public void setOutputFolder(File outputDir) {
-        this.outputDir = outputDir;
     }
 
     public void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials) {
@@ -76,13 +82,13 @@ public class BigFuzzPlusLog {
         // Methods and columns
         if (guidance.mutation instanceof StackedMutation) {
 
-            ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker = new ArrayList<>();
-            ArrayList<Integer> columnTracker = new ArrayList<>();
+            ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker;
+            ArrayList<Integer> columnTracker;
             methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
             columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
 
-            HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap();
-            HashMap<Integer, Integer> columnMap = new HashMap();
+            HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap<>();
+            HashMap<Integer, Integer> columnMap = new HashMap<>();
             for (int i = 0; i < methodTracker.size(); i++) {
                 HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
                 int column = columnTracker.get(i);
@@ -98,17 +104,17 @@ public class BigFuzzPlusLog {
                 }
             }
             Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
-            ArrayList<String> methodStringList = new ArrayList();
+            ArrayList<String> methodStringList = new ArrayList<>();
             while (it.hasNext()) {
-                Map.Entry e = it.next();
+                Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer> e = it.next();
                 methodStringList.add(e.getKey() + ": " + e.getValue());
             }
 
 
             Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
-            ArrayList<String> columnStringList = new ArrayList();
+            ArrayList<String> columnStringList = new ArrayList<>();
             while (it2.hasNext()) {
-                Map.Entry e = it2.next();
+                Map.Entry<Integer, Integer> e = it2.next();
                 columnStringList.add(e.getKey() + ": " + e.getValue());
             }
             methods.add(methodStringList);
@@ -122,18 +128,18 @@ public class BigFuzzPlusLog {
         if (guidance.mutation instanceof StackedMutation) {
             ArrayList<Integer> stackCountList = ((StackedMutation) guidance.mutation).getMutationStackTracker();
             // Create a hashmap of the count and how many times it occured
-            HashMap<Integer,Integer> stackCount = new HashMap();
-            for (int i = 0; i < stackCountList.size(); i++) {
-                if (stackCount.containsKey(stackCountList.get(i))) {
-                    stackCount.put(stackCountList.get(i), stackCount.get(stackCountList.get(i)) + 1);
+            HashMap<Integer,Integer> stackCount = new HashMap<>();
+            for (Integer integer : stackCountList) {
+                if (stackCount.containsKey(integer)) {
+                    stackCount.put(integer, stackCount.get(integer) + 1);
                 } else {
-                    stackCount.put(stackCountList.get(i), 1);
+                    stackCount.put(integer, 1);
                 }
             }
             Iterator<Map.Entry<Integer, Integer>> it = stackCount.entrySet().iterator();
-            ArrayList<String> mutationStackStringList = new ArrayList();
+            ArrayList<String> mutationStackStringList = new ArrayList<>();
             while (it.hasNext()) {
-                Map.Entry e = it.next();
+                Map.Entry<Integer, Integer> e = it.next();
                 mutationStackStringList.add(e.getKey() + ": " + e.getValue());
             }
 
@@ -220,17 +226,17 @@ public class BigFuzzPlusLog {
 
             sb.append("\n*** UNIQUE FAILURE #" + counter + " ***");
             sb.append("\n-- failure triggered at trial " + Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)) + " --");
-            String headerRow = "\n#\t\t";
-            String classRow = "\nFile\t";
-            String methodRow = "\nMethod\t";
-            String lineRow = "\nLine\t";
+            StringBuilder headerRow = new StringBuilder("\n#\t\t");
+            StringBuilder classRow = new StringBuilder("\nFile\t");
+            StringBuilder methodRow = new StringBuilder("\nMethod\t");
+            StringBuilder lineRow = new StringBuilder("\nLine\t");
             for (int i = 0; i < e.size(); i++) {
                 // Usually the filename and method name are much longer than the line number. Use this amount to create tabs
                 int maxLengthColumn = Math.max(e.get(i).getFileName().length(), e.get(i).getMethodName().length());
-                headerRow += i + getAmountOfSpaces(maxLengthColumn, i+"");
-                classRow += e.get(i).getFileName() + getAmountOfSpaces(maxLengthColumn, e.get(i).getFileName());
-                methodRow += e.get(i).getMethodName() + getAmountOfSpaces(maxLengthColumn, e.get(i).getMethodName());
-                lineRow += e.get(i).getLineNumber() + getAmountOfSpaces(maxLengthColumn, e.get(i).getLineNumber() + "");
+                headerRow.append(i).append(getAmountOfSpaces(maxLengthColumn, i + ""));
+                classRow.append(e.get(i).getFileName()).append(getAmountOfSpaces(maxLengthColumn, e.get(i).getFileName()));
+                methodRow.append(e.get(i).getMethodName()).append(getAmountOfSpaces(maxLengthColumn, e.get(i).getMethodName()));
+                lineRow.append(e.get(i).getLineNumber()).append(getAmountOfSpaces(maxLengthColumn, e.get(i).getLineNumber() + ""));
             }
             sb.append(headerRow).append(classRow).append(methodRow).append(lineRow);
             counter ++;
@@ -255,12 +261,12 @@ public class BigFuzzPlusLog {
     }
 
     private static String getAmountOfSpaces(int maxLengthColumn, String s) {
-        String res = "\t";
+        StringBuilder res = new StringBuilder("\t");
         int diff = maxLengthColumn - s.length();
         for (int i = 0; i < Math.ceil(diff/4.0); i++) {
-            res += "\t";
+            res.append("\t");
         }
-        return res;
+        return res.toString();
     }
 
     public void addDuration(long l) {
@@ -375,4 +381,5 @@ public class BigFuzzPlusLog {
         System.out.println(e_log);
         iteration_results.append(e_log);
     }
+
 }

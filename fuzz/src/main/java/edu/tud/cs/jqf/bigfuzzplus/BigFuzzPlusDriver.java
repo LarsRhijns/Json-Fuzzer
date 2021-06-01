@@ -3,15 +3,12 @@ package edu.tud.cs.jqf.bigfuzzplus;
 //import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
 import java.io.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
 
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusDriver {
@@ -87,17 +84,18 @@ public class BigFuzzPlusDriver {
 
         long programStartTime = System.currentTimeMillis();
         File outputDir = new File("output/" + programStartTime);
-        boolean newOutputDirCreated = outputDir.mkdir();
-        if (!newOutputDirCreated) {
-            System.err.println("Something went wrong with making the output directory for this run");
-            System.exit(0);
-        }
+
         if (!outputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + outputDir);
             System.exit(0);
         }
-
-        log.logProgramArguments(testClassName,testMethodName,mutationMethodClassName,stackedMutationMethod,intMutationStackCount,outputDir,programStartTime);
+        if (mutationMethodClassName.equalsIgnoreCase("stackedmutation")) {
+            log.logProgramArgumentsStackedMutation(testClassName, testMethodName, mutationMethodClassName, stackedMutationMethod, intMutationStackCount, outputDir, programStartTime);
+        } else if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
+            log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, mutateColumns, mutationDepth, outputDir, programStartTime);
+        } else {
+            log.logProgramArguments(testClassName,testMethodName,mutationMethodClassName,outputDir,programStartTime);
+        }
         log.printProgramArguments();
 
         for (int i = 0; i < 5; i++) {
