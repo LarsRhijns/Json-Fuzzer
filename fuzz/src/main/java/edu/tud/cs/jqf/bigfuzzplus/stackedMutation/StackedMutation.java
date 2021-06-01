@@ -21,7 +21,6 @@ import static edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation.*;
 public class StackedMutation implements BigFuzzMutation {
     private final Random r = new Random();
     private long randomizationSeed;
-    ArrayList<String> fileRows = new ArrayList<>();
     String delete;
     int maxGenerateTimes = 20;
     int maxDuplicatedTimes = 10;
@@ -54,40 +53,18 @@ public class StackedMutation implements BigFuzzMutation {
      * @param nextInputFile File path where the new input should be stored
      * @throws IOException When method fails to write file name to directory "user.dir/"
      */
-    public void mutate(String inputFile, String nextInputFile) throws IOException {
-        // Select random row from input file to mutate over
-        List<String> fileList = Files.readAllLines(Paths.get(inputFile));
-
-        int n = r.nextInt(fileList.size());
-        String fileToMutate = fileList.get(n);
-
+    @Override
+    public void mutate(File inputFile, File nextInputFile) throws IOException
+    {
         // Empty applied mutations, as it is only containing the mutations performed in this cycle
         appliedMutations = new ArrayList<>();
 
-        // Mutate selected input file
-        mutateFile(fileToMutate);
-
-        //Create a file name for the about to be created input
-        String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/') + 1);
-        writeFile(fileName);
-
-        // Generate a path string, which can be used to delete the input file if it is not needed anymore
-        String path = System.getProperty("user.dir") + "/" + fileName;
-        delete = path;
-
-        // write next input config
-        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
-
-        // Write the input to the pre-defined path
-        for (int i = 0; i < fileList.size(); i++) {
-            if (i == n)
-                bw.write(path);
-            else
-                bw.write(fileList.get(i));
-            bw.newLine();
-            bw.flush();
+        ArrayList<String> mutatedInput = mutateFile(inputFile);
+        if (mutatedInput != null) {
+            writeFile(nextInputFile, mutatedInput);
         }
-        bw.close();
+
+        delete = nextInputFile.getPath();
     }
 
     /**
@@ -96,22 +73,21 @@ public class StackedMutation implements BigFuzzMutation {
      * @param inputFile path to input file
      * @throws IOException Throws exception if it fails to read to content of the input file
      */
-    public void mutateFile(String inputFile) throws IOException {
+    public ArrayList<String> mutateFile(File inputFile) throws IOException {
         // Create a reader for the file
-        File file = new File(inputFile);
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
         ArrayList<String> rows = new ArrayList<>();
 
         // If the file exists, add every line to the rows list. These will be all provided input seeds to the program
-        if (file.exists()) {
+        if (inputFile.exists()) {
             String readLine;
             while ((readLine = br.readLine()) != null) {
                 rows.add(readLine);
             }
         } else {
             System.out.println("File does not exist!");
-            return;
+            return null;
         }
 
         br.close();
@@ -120,7 +96,7 @@ public class StackedMutation implements BigFuzzMutation {
         //TODO: 50/50 chance of generating extra rows, but row generation is not implemented by BigFuzz
         mutate(rows);
 
-        fileRows = rows;
+        return rows;
     }
 
     /**
@@ -589,12 +565,9 @@ public class StackedMutation implements BigFuzzMutation {
     }
 
     @Override
-    public void writeFile(String outputFile) throws IOException {
-        File f_out = new File(outputFile);
-        FileOutputStream fos = new FileOutputStream(f_out);
-
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+        FileOutputStream fos = new FileOutputStream(outputFile);
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
         for (String fileRow : fileRows) {
             if (fileRow == null) {
                 continue;
@@ -602,7 +575,6 @@ public class StackedMutation implements BigFuzzMutation {
             bw.write(fileRow);
             bw.newLine();
         }
-
         bw.close();
         fos.close();
     }

@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package edu.ucla.cs.jqf.bigfuzz.mutations;
+package edu.ucla.cs.jqf.bigfuzz;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -41,6 +41,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.RandomMutation;
 
 /**
  * A front-end that only generates random inputs.

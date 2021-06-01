@@ -2,16 +2,11 @@ package edu.ucla.cs.jqf.bigfuzz;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import org.apache.commons.io.FileUtils;
-import org.scalatest.Entry;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class BigFuzzDriver {
 
@@ -121,11 +116,7 @@ public class BigFuzzDriver {
         System.out.println("Valid coverage: " + validCov);
         System.out.println("Percent valid coverage: " + (float) validCov / totalCov * 100 + "%");
         System.out.println("New Coverage found at: " + guidance.newCoverageRuns);
-        List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
-        for (Map.Entry<Set<Integer>, Integer> entry : guidance.branchesHitCount.entrySet()) {
-            fileHits.add(new Entry<>(guidance.coverageFilePointer.get(entry.getKey()).getName(), entry.getValue()));
-        }
-        System.out.println("Branches hit count: " + fileHits);
+        System.out.println("Branches hit count: " + guidance.branchesHitCount);
         System.out.println("Number of Seed inputs: " + guidance.newCoverageRuns.size());
     }
 }

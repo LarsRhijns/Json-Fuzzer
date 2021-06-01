@@ -7,6 +7,7 @@ import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -67,56 +68,6 @@ public class SystematicMutation implements BigFuzzMutation {
 		return "Level: " + currentLevel +
 				"\nColumn: " + mutationTree.getCurrentMutation().getColumn() +
 				"\nNext mutation: " + mutationTree.getCurrentMutation().getMutationType() + "\n";
-	}
-
-	/**
-	 * Start mutating on a csv input file or continue mutating with previous mutation.
-	 *
-	 * @param outputFile path of output file written to by the class. Will contain mutated data
-	 * @throws IOException if file cannot be found
-	 */
-	public void mutate(String inputFile, String outputFile) throws IOException {
-		if (EVALUATE) {
-			System.out.print(evaluation());
-		}
-		Mutation currentMutation = mutationTree.traverseTree();
-		currentLevel = currentMutation.getLevel();
-
-		//Start from seed after all mutations have been applied
-		if (currentLevel == 0) {
-			System.out.println("\nReached end of tree, restarting.");
-			runsBeforeRestart = runs;
-			runs = 0;
-
-			mutationTree = new MutationTree(levelData.get(0).length);
-			levelData.subList(1, levelData.size()).clear();
-			revertDelimiter();
-			currentMutation = mutationTree.traverseTree();
-			currentLevel = currentMutation.getLevel();
-		}
-
-		int columnsBefore = levelData.get(currentLevel - 1).length;
-		String[] mutationRows = new String[columnsBefore];
-		System.arraycopy(levelData.get(currentLevel - 1), 0, mutationRows, 0, columnsBefore);
-		mutationRows = applyMutation(mutationRows, currentMutation);
-
-		if (levelData.size() <= currentLevel) {
-			levelData.add(currentLevel, mutationRows);
-		} else {
-			levelData.set(currentLevel, mutationRows);
-		}
-		String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
-		writeFile(fileName);
-
-		String path = System.getProperty("user.dir") + "/" + fileName;
-
-		deletePath = path;
-		// write next input config
-		BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-		bw.write(path);
-		bw.close();
-
-		runs++;
 	}
 
 	/**
@@ -257,6 +208,11 @@ public class SystematicMutation implements BigFuzzMutation {
 
 	}
 
+	@Override
+	public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+
+	}
+
 	/**
 	 * Writes mutated data into csv txt file.
 	 *
@@ -288,6 +244,62 @@ public class SystematicMutation implements BigFuzzMutation {
 	public void deleteFile(String currentFile) throws IOException {
 		File del = new File(deletePath);
 		del.delete();
+	}
+
+	/**
+	 * Start mutating on a csv input file or continue mutating with previous mutation.
+	 *
+	 * @param outputFile path of output file written to by the class. Will contain mutated data
+	 * @throws IOException if file cannot be found
+	 */
+	@Override
+	public void mutate(File inputFile, File outputFile) throws IOException {
+		if (EVALUATE) {
+			System.out.print(evaluation());
+		}
+		Mutation currentMutation = mutationTree.traverseTree();
+		currentLevel = currentMutation.getLevel();
+
+		//Start from seed after all mutations have been applied
+		if (currentLevel == 0) {
+			System.out.println("\nReached end of tree, restarting.");
+			runsBeforeRestart = runs;
+			runs = 0;
+
+			mutationTree = new MutationTree(levelData.get(0).length);
+			levelData.subList(1, levelData.size()).clear();
+			revertDelimiter();
+			currentMutation = mutationTree.traverseTree();
+			currentLevel = currentMutation.getLevel();
+		}
+
+		int columnsBefore = levelData.get(currentLevel - 1).length;
+		String[] mutationRows = new String[columnsBefore];
+		System.arraycopy(levelData.get(currentLevel - 1), 0, mutationRows, 0, columnsBefore);
+		mutationRows = applyMutation(mutationRows, currentMutation);
+
+		if (levelData.size() <= currentLevel) {
+			levelData.add(currentLevel, mutationRows);
+		} else {
+			levelData.set(currentLevel, mutationRows);
+		}
+		String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
+		writeFile(fileName);
+
+		String path = System.getProperty("user.dir") + "/" + fileName;
+
+		deletePath = path;
+		// write next input config
+		BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+		bw.write(path);
+		bw.close();
+
+		runs++;
+	}
+
+	@Override
+	public ArrayList<String> mutateFile(File inputFile) throws IOException {
+		return null;
 	}
 
 	/**

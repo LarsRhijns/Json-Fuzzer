@@ -280,7 +280,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 // Use the current date and number of trials to create a new file name. This file is used mutate
                 String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_" + this.numTrials + "'").format(new Date());
                 nextInputFile = this.outputDirName + "/" + nextInputFile;
-                mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
+                mutation.mutate(new File(initialInputFile), new File(nextInputFile));//currentInputFile
                 currentInputFile = nextInputFile;
 
             } catch (IOException e) {

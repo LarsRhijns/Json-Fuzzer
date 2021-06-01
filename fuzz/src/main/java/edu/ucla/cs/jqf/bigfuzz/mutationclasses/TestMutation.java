@@ -1,14 +1,12 @@
-package edu.ucla.cs.jqf.bigfuzz;
+package edu.ucla.cs.jqf.bigfuzz.mutationclasses;
 
 import java.io.File;
-import edu.ucla.cs.jqf.bigfuzz.mutations.RandomMutation;
+
+import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 public class TestMutation {
     public static void main(String[] args) throws IOException
