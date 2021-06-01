@@ -165,7 +165,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     ArrayList<String> testInputFiles = new ArrayList<>();
 
 
-    public BigFuzzPlusGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName, String mutationMethodClassName) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName, String mutationMethodClassName, double favorRate) throws IOException {
         this.testName = testName;
         this.startTime = startTime;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
