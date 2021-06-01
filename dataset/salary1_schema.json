@@ -24,7 +24,7 @@
         "salary": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 4294967296
+          "maximum": 2147483646
         }
       }
     }

@@ -12,15 +12,6 @@ import static edu.ucla.cs.bigfuzz.customarray.applicable.JsonSalary.JsonSalaryAn
 public class JsonSalaryAnalysis {
 
     public void JsonSalaryAnalysis(String inputFile) throws IOException {
-        File file=new File(inputFile);
-        ArrayList<String> list;
-        if(file.exists()) {
-            list = CustomArray.read(inputFile);
-        } else {
-            System.out.println("File does not exist!");
-            return;
-        }
-
         JSONArray jsonArray = parseJSON(inputFile);
         JSONArray results1 = map1(jsonArray);
         JSONArray results2 = filter1(results1, 90024);

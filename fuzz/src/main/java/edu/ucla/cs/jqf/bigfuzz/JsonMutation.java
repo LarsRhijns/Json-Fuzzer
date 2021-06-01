@@ -112,7 +112,7 @@ public class JsonMutation implements BigFuzzMutation {
 
     @Override
     public void mutate(ArrayList<String> rows) { // array only has 1 array in it with all the objects in that array.
-        r.setSeed(System.currentTimeMillis());
+//        r.setSeed(System.currentTimeMillis());
         JSONArray objects = getJsonRows();
 
 //        System.out.println(objects.size());

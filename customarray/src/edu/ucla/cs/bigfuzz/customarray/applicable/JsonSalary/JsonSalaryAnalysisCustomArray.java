@@ -62,7 +62,7 @@ public class JsonSalaryAnalysisCustomArray {
 
             JSONObject jsonObject = (JSONObject) obj;
 
-            if ((long) jsonObject.get("zipcode") == zipcode) {
+            if (Math.toIntExact((Long) jsonObject.get("zipcode")) == zipcode) {
                 filtered.add(jsonObject);
             }
         }
@@ -89,7 +89,7 @@ public class JsonSalaryAnalysisCustomArray {
             }
 
             JSONObject jsonObject = (JSONObject) obj;
-            long age = (long) jsonObject.get("age"); // TODO Age should be a string value
+            int age = Math.toIntExact((Long) jsonObject.get("age")); // TODO Age should be a string value
             jsonObject.remove("age");
 
             if (age < 20) {
@@ -162,9 +162,9 @@ public class JsonSalaryAnalysisCustomArray {
                 // If ageRange is already in the aggregate, then update its values
                 JSONObject range = (JSONObject) aggregateObject.get(ageRange);
 
-                long incomeSum = (long) range.get("incomeSum");
+                int incomeSum = (int) range.get("incomeSum");
                 range.remove("incomeSum");
-                range.put("incomeSum", (long) jsonObject.get("salary") + incomeSum);
+                range.put("incomeSum", (int) jsonObject.get("salary") + incomeSum);
 
                 int occurrences = (int) range.get("occurrences");
                 range.remove("occurrences");
@@ -199,10 +199,10 @@ public class JsonSalaryAnalysisCustomArray {
                 String key = (String) k;
                 JSONObject aggr = (JSONObject) jsonObject.get(key);
                 JSONObject newAggr = new JSONObject();
-                long incomeSum = (long) aggr.get("incomeSum");
-                int occurences = (int) aggr.get("occurrences");
-                newAggr.put("occurences", occurences);
-                newAggr.put("averageIncome", ((double) incomeSum) / ((double) occurences));
+                int incomeSum = Math.toIntExact((Long) aggr.get("incomeSum"));
+                int occurrences = (int) aggr.get("occurrences");
+                newAggr.put("occurrences", occurrences);
+                newAggr.put("averageIncome", ((double) incomeSum) / ((double) occurrences));
                 jsonObject.remove(key);
                 jsonObject.put(key, newAggr);
             }
