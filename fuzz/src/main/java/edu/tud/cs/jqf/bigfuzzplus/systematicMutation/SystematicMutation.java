@@ -1,12 +1,14 @@
 package edu.tud.cs.jqf.bigfuzzplus.systematicMutation;
 
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusGuidance;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.Mutation;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Mutation class for applying mutations systematically. Based on MutationTemplate.
@@ -27,11 +29,16 @@ public class SystematicMutation implements BigFuzzMutation {
 	private int currentLevel;
 
 	//maximum depth of tree
-	public static final int MUTATION_DEPTH = 4;
+	public static final int MUTATION_DEPTH = 7;
 	//apply mutations to all columns
 	public static boolean MUTATE_COLUMNS = false;
+
 	//print level and mutation type for every mutation
 	public static final boolean EVALUATE = false;
+	//number of runs completed
+	private int runs = 0;
+	//amount of runs needed to restart tree
+	public int runsBeforeRestart = 0;
 
 	/**
 	 * Constructor for SystematicMutation class. Reads input conf file for path of seed.
@@ -78,6 +85,9 @@ public class SystematicMutation implements BigFuzzMutation {
 		//Start from seed after all mutations have been applied
 		if (currentLevel == 0) {
 			System.out.println("\nReached end of tree, restarting.");
+			runsBeforeRestart = runs;
+			runs = 0;
+
 			mutationTree = new MutationTree(levelData.get(0).length);
 			levelData.subList(1, levelData.size()).clear();
 			revertDelimiter();
@@ -105,6 +115,8 @@ public class SystematicMutation implements BigFuzzMutation {
 		BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 		bw.write(path);
 		bw.close();
+
+		runs++;
 	}
 
 	/**

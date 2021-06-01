@@ -7,26 +7,51 @@ import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.AgeAnalysisMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.CommuteTypeMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.ExternalUDFMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.FindSalaryMutation;
 import edu.ucla.cs.jqf.bigfuzz.mutationclasses.IncomeAggregationMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.*;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.MovieRatingMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.NumberSeriesMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.OneDFMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.PropertyInvestmentMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.StudentGradeMutation;
+import edu.ucla.cs.jqf.bigfuzz.mutationclasses.WordCountMutation;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
-
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
-import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.*;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_TEST_RESULTS;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
- * code coverage guidance: control flow coverage, dataflow operators's coverage
+ * code coverage guidance: control flow coverage, dataflow operator's coverage
  */
 public class BigFuzzPlusGuidance implements Guidance {
 
@@ -142,7 +167,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     BigFuzzMutation mutation;
     private String currentInputFile;
 
-    ArrayList<String> testInputFiles = new ArrayList();
+    ArrayList<String> testInputFiles = new ArrayList<>();
 
 
     public BigFuzzPlusGuidance(String testName, String initialInputFile, long maxTrials, long startTime, Duration duration, PrintStream out, String outputDirName, String mutationMethodClassName) throws IOException {
@@ -351,7 +376,11 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     @Override
     public void handleResult(Result result, Throwable error) {
-        System.out.print("\r Trial " + numTrials + " / " + maxTrials);
+        //progress bar
+        if (!SystematicMutation.EVALUATE && numTrials % (maxTrials / 20) == 0) {
+            System.out.print("\rCompleted trials: " + numTrials * 100 / maxTrials + "%");
+        }
+
         // Stop timeout handling
         this.runStart = null;
 
@@ -383,6 +412,8 @@ public class BigFuzzPlusGuidance implements Guidance {
             this.keepGoing = false;
         }
 
+        // Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
+        float maxDiscardRatio = 0.9f;
         if (numTrials > 10 && ((float) numDiscards) / ((float) (numTrials)) > maxDiscardRatio) {
             throw new GuidanceException("Assumption is too strong; too many inputs discarded");
         }
@@ -393,7 +424,7 @@ public class BigFuzzPlusGuidance implements Guidance {
             int nonZeroBefore = totalCoverage.getNonZeroCount();
             int validNonZeroBefore = validCoverage.getNonZeroCount();
 
-            // Compute a list of keys for which this input can assume responsiblity.
+            // Compute a list of keys for which this input can assume responsibility.
             // Newly covered branches are always included.
             // Existing branches *may* be included, depending on the heuristics used.
             // A valid input will steal responsibility from invalid inputs
@@ -401,7 +432,6 @@ public class BigFuzzPlusGuidance implements Guidance {
             //System.out.println("Responsibilities of this input: "+responsibilities);
 
             // Update total coverage
-            boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
             if (valid) {
                 validCoverage.updateBits(runCoverage);
             }
@@ -443,11 +473,13 @@ public class BigFuzzPlusGuidance implements Guidance {
 //                        currentInput.size(),
                         nonZeroAfter);
 
-                // Change current inputfile name
+                // Change current input file name
                 File src = new File(currentInputFile);
                 currentInputFile += why;
                 File des = new File(currentInputFile);
-                src.renameTo(des);
+                if (!src.renameTo(des)) {
+                    System.out.println("Can't rename file " + src + " to " + des);
+                }
             } else {
                 try {
                     mutation.deleteFile(currentInputFile);
@@ -456,7 +488,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
 
                 File src2 = new File(currentInputFile);
-                src2.delete();
+                if (!src2.delete()) {
+                    System.out.println("Can't delete file: " + src2);
+                }
             }
         } else if (result == Result.FAILURE || result == Result.TIMEOUT) {
 
@@ -481,7 +515,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
                 testProgramTraceElements.add(rootCause.getStackTrace()[i]);
 
-                // Check the currect element of the stacktrace if it originated from the test class.
+                // Check the correct element of the stacktrace if it originated from the test class.
                 if (rootCause.getStackTrace()[i].getClassName().equals(testClassName)) {
                     testClassFound = true;
                 }
@@ -500,7 +534,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                 File src = new File(currentInputFile);
                 currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + rootCause;
                 File des = new File(currentInputFile);
-                src.renameTo(des);
+                if (!src.renameTo(des)) {
+                    System.out.println("Can't rename file " + src + " to " + des);
+                }
             } else {
                 try {
                     mutation.deleteFile(currentInputFile);
@@ -508,7 +544,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                     e.printStackTrace();
                 }
                 File src2 = new File(currentInputFile);
-                src2.delete();
+                if (!src2.delete()) {
+                    System.out.println("Can't delete file: " + src2);
+                }
             }
         }
         runCoverage = new Coverage();
