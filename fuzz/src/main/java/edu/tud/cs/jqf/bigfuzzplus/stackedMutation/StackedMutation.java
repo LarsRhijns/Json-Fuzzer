@@ -219,7 +219,8 @@ public class StackedMutation implements BigFuzzMutation {
                     rowElementId = rowElements.length-1;
                 } else {
                     mutationMethod = appliedMutationPerColumn.get(rowElements.length-1);
-                    appliedMutationPerColumn.set(rowElements.length-1, mutationMethod);
+                    appliedMutationPerColumn.set(rowElementId, mutationMethod);
+                    appliedMutationPerColumn.set(rowElements.length-1, HighOrderMutationMethod.NoMutation);
                 }
             }
 
