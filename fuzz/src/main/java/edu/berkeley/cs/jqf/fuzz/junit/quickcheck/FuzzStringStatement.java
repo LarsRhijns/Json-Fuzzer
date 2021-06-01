@@ -58,7 +58,8 @@ import org.junit.runners.model.TestClass;
 import ru.vyarus.java.generics.resolver.GenericsResolver;
 
 import static edu.berkeley.cs.jqf.fuzz.guidance.Result.*;
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_ERRORS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
 
 /**
  *
@@ -179,18 +180,7 @@ public class FuzzStringStatement extends Statement {
 
                     // Attempt to run the trial and submit spark job
                     new TrialRunner(testClass.getJavaClass(), method, args).run();
-//                    try
-//                    {
-//                     //   System.out.println(sendKondorShellName+" "+currentFile+", "+count);
-//                        System.out.println("Current Input:" + currentFile + ", " + count);
-//                        System.out.println("Waiting for Spark Job Execution...");
-//                        count++;
-//                        SPARK_JOB_SUBMIT.executeShell(sendKondorShellName+" "+currentFile);
-//                    }
-//                    catch (IOException e)
-//                    {
-//
-//                    }
+
                     // If we reached here, then the trial must be a success
                     result = SUCCESS;
                 } catch (GuidanceException e) {
@@ -230,7 +220,7 @@ public class FuzzStringStatement extends Statement {
             } else {
                 // Not sure if we should report each failing run,
                 // as there may be duplicates
-                throw new MultipleFailureException(failures);
+                if(PRINT_ERRORS) {throw new MultipleFailureException(failures);}
             }
         }
 

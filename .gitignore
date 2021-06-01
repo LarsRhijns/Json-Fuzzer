@@ -1,6 +1,11 @@
 # file: ~/.gitignore_global
 *.DS_Store
 .idea/*
+fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/*
+!fuzz/src/main/java/edu/tabfuzz/generatedInputFiles/.gitkeep
+fuzz/src/main/java/edu/tabfuzz/generatedConfigurations/*
+!fuzz/src/main/java/edu/tabfuzz/generatedConfigurations/.gitkeep
+*.iml
 classes/*
 target/*
 **/target
@@ -9,6 +14,8 @@ target/*
 fuzz/target/
 conf
 conf+cov
+
+output/*
 # Ignores crash reports & sample data
 2021*
 fuzz-results/

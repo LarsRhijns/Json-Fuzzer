@@ -1,6 +1,8 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
 import java.io.File;
+import edu.ucla.cs.jqf.bigfuzz.mutations.RandomMutation;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
