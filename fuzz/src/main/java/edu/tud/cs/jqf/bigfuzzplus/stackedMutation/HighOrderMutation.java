@@ -176,7 +176,7 @@ public class HighOrderMutation {
      * @param highOrderMutationMethods List of mutations that have already been applied to an input
      * @return List of mutations that can be applied that do not interfere with already applied mutations
      */
-    private static ArrayList<HighOrderMutationMethod> getMutationListFromAppliedMutations(ArrayList<HighOrderMutationMethod> highOrderMutationMethods) {
+    public static ArrayList<HighOrderMutationMethod> getMutationListFromAppliedMutations(ArrayList<HighOrderMutationMethod> highOrderMutationMethods) {
         // Create a list of all available mutations. This list will be reduced by the exclusion rules.
         ArrayList<HighOrderMutationMethod> res = new ArrayList(getActiveHighOrderMutationMethodList());
 
