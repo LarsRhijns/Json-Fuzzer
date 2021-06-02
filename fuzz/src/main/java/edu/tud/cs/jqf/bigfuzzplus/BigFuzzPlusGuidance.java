@@ -9,7 +9,7 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations.*;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedPlusMutation;
-import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicPlusMutation;
+import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 import org.apache.commons.io.FileUtils;
 import org.scalatest.Entry;
 

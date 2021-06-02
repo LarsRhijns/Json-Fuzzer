@@ -14,7 +14,7 @@ import java.util.Random;
  *
  * @author Lars van Koetsveld van Ankeren
  */
-public class SystematicPlusMutation implements BigFuzzPlusMutation {
+public class SystematicMutation implements BigFuzzPlusMutation {
 	protected static final Random r = new Random();
 	private static String delimiter;
 	private String deletePath;
@@ -44,7 +44,7 @@ public class SystematicPlusMutation implements BigFuzzPlusMutation {
 	 *
 	 * @param inputFile path of input conf file containing path of seed
 	 */
-	public SystematicPlusMutation(String inputFile) {
+	public SystematicMutation(String inputFile) {
 		revertDelimiter();
 		currentLevel = 0;
 		levelData = new ArrayList<>(MUTATION_DEPTH);
