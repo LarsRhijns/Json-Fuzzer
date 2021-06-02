@@ -527,7 +527,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 String why = result == Result.FAILURE ? "+crash" : "+hang";
 
                 File src = new File(currentInputFile);
-                currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + rootCause;
+                currentInputFile = currentInputFile + "_" + uniqueFailures.size();
                 File des = new File(currentInputFile);
                 if (!src.renameTo(des)) {
                     System.out.println("Can't rename file " + src + " to " + des);
