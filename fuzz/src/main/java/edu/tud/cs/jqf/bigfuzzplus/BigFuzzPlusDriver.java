@@ -1,7 +1,5 @@
 package edu.tud.cs.jqf.bigfuzzplus;
 
-//import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
-
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
@@ -11,7 +9,6 @@ import java.io.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-@SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusDriver {
 
     // ---------- LOGGING / STATS OUTPUT ------------
@@ -28,10 +25,6 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
 
-    // Initializing
-    public static StringBuilder program_configuration = new StringBuilder();
-    public static StringBuilder iteration_results = new StringBuilder();
-    public static StringBuilder summarized_results = new StringBuilder();
     public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
 
     /**
