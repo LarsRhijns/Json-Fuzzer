@@ -336,8 +336,8 @@ public class BigFuzzPlusGuidance implements Guidance {
     @Override
     public InputStream getInput() throws IOException {
         //progress bar
-        if (!SystematicMutation.EVALUATE && numTrials % (maxTrials / 20) == 0) {
-            System.out.print("\rCompleted trials: " + numTrials * 100 / maxTrials + "%");
+        if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
+            System.out.println("\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")");
         }
 
         // Clear coverage stats for this run
@@ -355,6 +355,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                 FileUtils.copyFile(nextInitInput, initInput);
                 FileUtils.copyFile(nextInitInput, nextAllInput);
                 countInitFiles++;
+                if (selection == SelectionMethod.ONLY_FIRST_INIT) {
+                    break;
+                }
             }
             sc.close();
 
@@ -373,7 +376,12 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (pendingInputs.isEmpty()) {
             cyclesCompleted++;
             if (selection == SelectionMethod.COVERAGE_FILES) {
-                pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
+                File[] covFiles = coverageInputsDirectory.listFiles();
+                if (Objects.requireNonNull(covFiles).length != 0) {
+                    pendingInputs.addAll(Arrays.asList(covFiles));
+                } else {
+                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
+                }
             }
             else if (selection == SelectionMethod.INIT_FILES) {
                 pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
@@ -381,6 +389,10 @@ public class BigFuzzPlusGuidance implements Guidance {
             else if (selection == SelectionMethod.ONLY_FIRST_INIT) {
                 pendingInputs.add(Objects.requireNonNull(initialInputsDirectory.listFiles())[0]);
             }
+        }
+        if (pendingInputs.isEmpty()) {
+            System.out.println("Can't find any input files. Are you sure that you provided one in " + initialInputFile.getPath() + "?");
+            System.exit(0);
         }
 
         // Determine which input selection method to use.
