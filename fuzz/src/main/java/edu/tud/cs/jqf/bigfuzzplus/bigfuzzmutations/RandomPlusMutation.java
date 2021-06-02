@@ -1,10 +1,12 @@
-package edu.tud.cs.jqf.bigfuzzplus;
+package edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
 /*
  mutation: randomByteMutation.
  */
+
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import java.util.Random;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 
-public class RandomMutation implements BigFuzzMutation{
+public class RandomPlusMutation implements BigFuzzPlusMutation {
 
     Random r = new Random();
     String delete;

@@ -1,4 +1,4 @@
-package edu.tud.cs.jqf.bigfuzzplus;
+package edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,6 +6,7 @@ package edu.tud.cs.jqf.bigfuzzplus;
  mutation for I4: two JDU tree
  */
 
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -17,7 +18,7 @@ import java.util.Random;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 
-public class AgeAnalysisMutation implements BigFuzzMutation {
+public class AgeAnalysisPlusMutation implements BigFuzzPlusMutation {
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;

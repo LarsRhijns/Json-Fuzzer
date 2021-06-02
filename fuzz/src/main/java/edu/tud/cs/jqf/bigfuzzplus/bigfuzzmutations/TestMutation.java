@@ -1,4 +1,6 @@
-package edu.tud.cs.jqf.bigfuzzplus;
+package edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations;
+
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 
 import java.io.File;
 
@@ -10,7 +12,7 @@ public class TestMutation {
     public static void main(String[] args) throws IOException
     {
         File initialInputFile = new File("dataset/config");
-        BigFuzzMutation mutation = new RandomMutation();
+        BigFuzzPlusMutation mutation = new RandomPlusMutation();
 
         File currentInputFile;
         int i = 123;

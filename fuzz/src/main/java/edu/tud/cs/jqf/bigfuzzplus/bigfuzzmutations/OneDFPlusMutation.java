@@ -1,10 +1,12 @@
-package edu.tud.cs.jqf.bigfuzzplus;
+package edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
 /*
  mutation for I2: One DF
  */
+
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import java.util.Random;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 
-public class OneDFMutation implements BigFuzzMutation {
+public class OneDFPlusMutation implements BigFuzzPlusMutation {
 
     Random r = new Random();
     String delete;

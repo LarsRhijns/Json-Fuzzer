@@ -1,4 +1,4 @@
-package edu.tud.cs.jqf.bigfuzzplus;
+package edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
@@ -6,6 +6,7 @@ package edu.tud.cs.jqf.bigfuzzplus;
  mutation: randomByteMutation.
  */
 
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -16,7 +17,7 @@ import java.util.Random;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 
-public class WordCountMutation implements BigFuzzMutation{
+public class WordCountPlusMutation implements BigFuzzPlusMutation {
 
     Random r = new Random();
     String delete;

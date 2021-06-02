@@ -1,7 +1,8 @@
-package edu.tud.cs.jqf.bigfuzzplus;
+package edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations;
 
 //import org.apache.commons.lang.ArrayUtils;
 
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
@@ -9,7 +10,7 @@ import java.util.*;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 
-public class StudentGradeMutation implements BigFuzzMutation{
+public class StudentGradePlusMutation implements BigFuzzPlusMutation {
 
     Random r = new Random();
     String delete;

@@ -1,11 +1,12 @@
-package edu.tud.cs.jqf.bigfuzzplus;
+package edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations;
 
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
 import java.util.*;
 
-public class CommuteTypeMutation implements BigFuzzMutation {
+public class CommuteTypePlusMutation implements BigFuzzPlusMutation {
 
     Random r = new Random();
     String delete;
