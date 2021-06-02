@@ -33,12 +33,8 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.LOG_AND_PRINT_STATS;
@@ -77,7 +73,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     protected long lastNumTrials = 0;
 
     /** Minimum amount of time (in millis) between two stats refreshes. */
-    protected static final long STATS_REFRESH_TIME_PERIOD = 1000;
+    protected static final long STATS_REFRESH_TIME_PERIOD = 100000;
 
     /** The max amount of time to run for, in milli-seconds */
     protected final long maxDurationMillis;
