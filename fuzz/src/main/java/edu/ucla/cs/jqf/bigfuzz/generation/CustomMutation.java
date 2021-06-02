@@ -8,7 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.PRINT_MUTATION_DETAILS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
+
 
 public class CustomMutation implements BigFuzzMutation {
 

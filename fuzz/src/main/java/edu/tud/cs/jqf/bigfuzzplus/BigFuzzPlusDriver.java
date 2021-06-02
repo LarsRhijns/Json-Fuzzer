@@ -3,7 +3,6 @@ package edu.tud.cs.jqf.bigfuzzplus;
 //import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.io.FileUtils;
@@ -24,10 +23,12 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_MUTATION_DETAILS = false;
     public static boolean PRINT_COVERAGE_DETAILS = false;
     public static boolean PRINT_INPUT_SELECTION_DETAILS = false;
-    public static boolean LOG_AND_PRINT_STATS = false;
+    public static boolean LOG_AND_PRINT_STATS = true;
     public static boolean PRINT_ERRORS = false;
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
+
+    // Initializing
     public static StringBuilder program_configuration = new StringBuilder();
     public static StringBuilder iteration_results = new StringBuilder();
     public static StringBuilder summarized_results = new StringBuilder();
@@ -102,7 +103,7 @@ public class BigFuzzPlusDriver {
         }
         if (CLEAR_ALL_PREVIOUS_RESULTS_ON_START && allOutputDir.isDirectory()) {
             try {
-                FileUtils.cleanDirectory(outputDir);
+                FileUtils.cleanDirectory(allOutputDir);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -123,12 +124,17 @@ public class BigFuzzPlusDriver {
 
             String file = "dataset/conf";
             Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
-            double favorRate = 0.8;
             long iterationStartTime = System.currentTimeMillis();
             String iterationOutputDir = outputDir + "/Test" + atIteration;
 
+            SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
+            // 0 = only baseline selection. 1 = fully boosted grey-box fuzzing.
+            // Favor rate is irrelevant when baseline method is INIT_FILES.
+            double favorRate = 0;
+
             try {
-                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, iterationOutputDir, mutationMethodClassName, favorRate);
+                File itOutputDir = new File(iterationOutputDir);
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, System.err, itOutputDir, mutationMethodClassName, favorRate, selection);
 
                 // Set the provided input argument stackedMutationMethod in the guidance mutation
                 if (guidance.mutation instanceof StackedMutation) {
