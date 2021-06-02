@@ -2,7 +2,7 @@ package edu.tud.cs.jqf.bigfuzzplus;
 
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedPlusMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
 import java.io.*;
@@ -80,12 +80,12 @@ public class BigFuzzPlusLog {
 
         uniqueFailureResults.add(runFoundUniqueFailureCumulative);
         // Methods and columns
-        if (guidance.mutation instanceof StackedMutation) {
+        if (guidance.mutation instanceof StackedPlusMutation) {
 
             ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker;
             ArrayList<Integer> columnTracker;
-            methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
-            columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
+            methodTracker = ((StackedPlusMutation) guidance.mutation).getMutationMethodTracker();
+            columnTracker = ((StackedPlusMutation) guidance.mutation).getMutationColumnTracker();
 
             HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap<>();
             HashMap<Integer, Integer> columnMap = new HashMap<>();
@@ -125,8 +125,8 @@ public class BigFuzzPlusLog {
 
 
         //Mutation stack
-        if (guidance.mutation instanceof StackedMutation) {
-            ArrayList<Integer> stackCountList = ((StackedMutation) guidance.mutation).getMutationStackTracker();
+        if (guidance.mutation instanceof StackedPlusMutation) {
+            ArrayList<Integer> stackCountList = ((StackedPlusMutation) guidance.mutation).getMutationStackTracker();
             // Create a hashmap of the count and how many times it occured
             HashMap<Integer,Integer> stackCount = new HashMap<>();
             for (Integer integer : stackCountList) {
@@ -240,7 +240,7 @@ public class BigFuzzPlusLog {
             counter ++;
 
             sb.append("\nMutation(s) triggering the error: ");
-            if (guidance.mutation instanceof StackedMutation) {
+            if (guidance.mutation instanceof StackedPlusMutation) {
                 int atIteration = Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e));
                 // If the unique failure is recorded at the first trial, there is no mutation applied
                 if(atIteration == 0) {
@@ -334,8 +334,8 @@ public class BigFuzzPlusLog {
         e_log.append("\nMax duration: " + maxDuration.toMillis() + "ms");
 
         e_log.append("\n---REPRODUCIBILITY---");
-        if (guidance.mutation instanceof StackedMutation) {
-            e_log.append("\n\tRandomization seed: " + ((StackedMutation) guidance.mutation).getRandomizationSeed());
+        if (guidance.mutation instanceof StackedPlusMutation) {
+            e_log.append("\n\tRandomization seed: " + ((StackedPlusMutation) guidance.mutation).getRandomizationSeed());
         }
         e_log.append("\n\tMutated inputs: [");
         for (int i = 0; i < guidance.inputs.size(); i++) {

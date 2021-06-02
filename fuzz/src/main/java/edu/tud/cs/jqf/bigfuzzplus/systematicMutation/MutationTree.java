@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationType.*;
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationExclusion.*;
-import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATION_DEPTH;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicPlusMutation.MUTATION_DEPTH;
 
 //todo add breadth first search
 public class MutationTree {
@@ -26,7 +26,7 @@ public class MutationTree {
 			//go to parent
 			while (currentMutation.hasParent()) {
 				if (currentMutation.mutationType == ChangeDelimiter) {
-					SystematicMutation.revertDelimiter();
+					SystematicPlusMutation.revertDelimiter();
 				}
 				currentMutation = currentMutation.parent;
 				if (currentMutation.hasChildren()) {
@@ -175,7 +175,7 @@ public class MutationTree {
 			//for every mutation type besides ChangeDelimiter and AddElement
 			for (int i = 1; i < MutationType.values().length - 2; i++) {
 				//for every column if turned on
-				if (SystematicMutation.MUTATE_COLUMNS) {
+				if (SystematicPlusMutation.MUTATE_COLUMNS) {
 					for (int column = 0; column < columnAmount; column++) {
 						nextValue = new MutationPair(MutationType.values()[i], column);
 						currentValue = new MutationPair(this.mutationType, this.column);
@@ -185,7 +185,7 @@ public class MutationTree {
 					}
 				} else {
 					//otherwise select one random column
-					int randomColumn = SystematicMutation.r.nextInt(columnAmount);
+					int randomColumn = SystematicPlusMutation.r.nextInt(columnAmount);
 					MutationType nextType =  MutationType.values()[i];
 					// TODO: debug this method
 					if (this.prevMutations.stream().noneMatch(mutation -> mutation.getMutationType() == nextType) && !nextType.equals(this.mutationType)) {

@@ -6,21 +6,10 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations.*;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
-import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.AgeAnalysisMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.CommuteTypeMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.ExternalUDFMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.FindSalaryMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.IncomeAggregationMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.MovieRatingMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.NumberSeriesMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.OneDFMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.PropertyInvestmentMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.StudentGradeMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.WordCountMutation;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedPlusMutation;
+import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicPlusMutation;
 import org.apache.commons.io.FileUtils;
 import org.scalatest.Entry;
 
@@ -202,7 +191,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     static final int NUM_CHILDREN_MULTIPLIER_FAVORED = 20;
 
     protected final File initialInputFile;
-    BigFuzzMutation mutation;
+    BigFuzzPlusMutation mutation;
     private File currentInputFile;
     private File lastWorkingInputFile;
     private final Random r = new Random();
@@ -290,40 +279,40 @@ public class BigFuzzPlusGuidance implements Guidance {
     private void setMutation(String mutationMethodClassName) {
         switch (mutationMethodClassName) {
             case "StackedMutation":
-                mutation = new StackedMutation();
+                mutation = new StackedPlusMutation();
                 break;
             case "IncomeAggregationMutation":
-                mutation = new IncomeAggregationMutation();
+                mutation = new IncomeAggregationPlusMutation();
                 break;
             case "AgeAnalysisMutation":
-                mutation = new AgeAnalysisMutation();
+                mutation = new AgeAnalysisPlusMutation();
                 break;
             case "CommuteTypeMutation":
-                mutation = new CommuteTypeMutation();
+                mutation = new CommuteTypePlusMutation();
                 break;
             case "ExternalUDFMutation":
-                mutation = new ExternalUDFMutation();
+                mutation = new ExternalUDFPlusMutation();
                 break;
             case "FindSalaryMutation":
-                mutation = new FindSalaryMutation();
+                mutation = new FindSalaryPlusMutation();
                 break;
             case "MovieRatingMutation":
-                mutation = new MovieRatingMutation();
+                mutation = new MovieRatingPlusMutation();
                 break;
             case "NumberSeriesMutation":
-                mutation = new NumberSeriesMutation();
+                mutation = new NumberSeriesPlusMutation();
                 break;
             case "OneDFMutation":
-                mutation = new OneDFMutation();
+                mutation = new OneDFPlusMutation();
                 break;
             case "PropertyInvestmentMutation":
-                mutation = new PropertyInvestmentMutation();
+                mutation = new PropertyInvestmentPlusMutation();
                 break;
             case "StudentGradeMutation":
-                mutation = new StudentGradeMutation();
+                mutation = new StudentGradePlusMutation();
                 break;
             case "WordCountMutation":
-                mutation = new WordCountMutation();
+                mutation = new WordCountPlusMutation();
                 break;
             default:
                 System.err.println("could not match the provided mutation class to an existing class. Provided mutation class: " + mutationMethodClassName);
@@ -336,7 +325,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     @Override
     public InputStream getInput() throws IOException {
         //progress bar
-        if (!SystematicMutation.EVALUATE && numTrials % (maxTrials / 20) == 0) {
+        if (!SystematicPlusMutation.EVALUATE && numTrials % (maxTrials / 20) == 0) {
             System.out.print("\rCompleted trials: " + numTrials * 100 / maxTrials + "%");
         }
 
@@ -450,8 +439,8 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Move reference file to correct directory
         currentInputFile = nextInputFile;
 
-        if (mutation instanceof StackedMutation) {
-            mutationsPerRun.add(((StackedMutation)mutation).getAppliedMutations());
+        if (mutation instanceof StackedPlusMutation) {
+            mutationsPerRun.add(((StackedPlusMutation)mutation).getAppliedMutations());
         }
 
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] BigFuzzGuidance::getInput"); }
@@ -841,8 +830,8 @@ public class BigFuzzPlusGuidance implements Guidance {
      * @param seed seed that needs to be assigned to the Random object
      */
     public void setRandomizationSeed(long seed) {
-        if (mutation instanceof StackedMutation) {
-            ((StackedMutation) mutation).setSeed(seed);
+        if (mutation instanceof StackedPlusMutation) {
+            ((StackedPlusMutation) mutation).setSeed(seed);
         }
         r.setSeed(seed);
     }

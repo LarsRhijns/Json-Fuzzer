@@ -40,8 +40,6 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.RandomMutation;
 
 /**
  * A front-end that only generates random inputs.
@@ -106,7 +104,7 @@ public class NoGuidance implements Guidance {
 //                mutation.mutate(currentFile);
                 String fileName = new SimpleDateFormat("yyyyMMddHHmm'.csv'").format(new Date());
                 currentFile = fileName;
-                mutation.writeFile(new File(fileName), new ArrayList<>());
+                mutation.writeFile(fileName);
                 testFiles.add(fileName);
             }
             catch (IOException e)
