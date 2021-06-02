@@ -25,7 +25,7 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
 
-    private static final BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
+    public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
 
     /**
      * Run the BigFuzzPlus program with the following parameters for StackedMutation:
@@ -40,7 +40,7 @@ public class BigFuzzPlusDriver {
      *          0 = Disabled
      *          1 = Permute_random (permute between 1 and the max amount of mutations)
      *          2 = Permute_max (Always permute until the max amount of mutations)
-     *          3 = Smart_stack (Apply highorder mutation exclusion rules)
+     *          3 = Smart_stack (Apply higher-order mutation exclusion rules)
      *          4 = Single mutate (Only apply 1 mutation per column)
      * [6] - max mutation stack        (default = 2)
      *
@@ -54,6 +54,7 @@ public class BigFuzzPlusDriver {
      *
      * @param args program arguments
      */
+    @SuppressWarnings("SpellCheckingInspection")
     public static void main(String[] args) {
 
         // LOAD PROGRAM ARGUMENTS

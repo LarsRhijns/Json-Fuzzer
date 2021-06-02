@@ -376,7 +376,15 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Start next cycle and refill pendingInputs if cycle is completed.
         if (pendingInputs.isEmpty()) {
             cyclesCompleted++;
-            pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
+            if (selection == SelectionMethod.COVERAGE_FILES) {
+                pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
+            }
+            else if (selection == SelectionMethod.INIT_FILES) {
+                pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
+            }
+            else if (selection == SelectionMethod.ONLY_FIRST_INIT) {
+                pendingInputs.add(Objects.requireNonNull(initialInputsDirectory.listFiles())[0]);
+            }
         }
 
         // Determine which input selection method to use.
@@ -385,7 +393,8 @@ public class BigFuzzPlusGuidance implements Guidance {
             String method = useFavoredSelection ? "favored" : "baseline";
             System.out.println("[SELECT] Selection method used: " + method);
         }
-        if (!useFavoredSelection) { // Use baseline input selection method
+        if (!useFavoredSelection || selection != SelectionMethod.COVERAGE_FILES) {
+            // Use baseline input selection method
             currentInputFile = pendingInputs.remove(0);
         }
         else { // Use favored input selection method
