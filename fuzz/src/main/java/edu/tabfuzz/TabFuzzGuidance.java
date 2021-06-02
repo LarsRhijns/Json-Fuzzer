@@ -145,7 +145,7 @@ public class TabFuzzGuidance implements Guidance {
             {
                 String nextInputFile = initialInputFile + "-mutation_" + numTrials;
                 System.out.println(nextInputFile);
-                mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
+                mutation.mutate(new File(initialInputFile), new File(nextInputFile));//currentInputFile
                 currentInputFile = nextInputFile;
 
             }

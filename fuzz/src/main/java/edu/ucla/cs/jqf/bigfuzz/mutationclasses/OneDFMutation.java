@@ -10,62 +10,56 @@ import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
+
 public class OneDFMutation implements BigFuzzMutation {
 
     Random r = new Random();
-    ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
 
 
-    public void mutate(String inputFile, String nextInputFile) throws IOException
-    {
-        List<String> fileList = Files.readAllLines(Paths.get(inputFile));
-        Random random = new Random();
-        int n = random.nextInt(fileList.size());
-        String fileToMutate = fileList.get(n);
-        mutateFile(fileToMutate);
-
-        String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/')+1);
-        writeFile(fileName);
-
-        String path = System.getProperty("user.dir")+"/"+fileName;
-//        System.out.println(path);
-//        System.out.println(fileList);
-
-        delete = path;
-        // write next input config
-        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
-
-        for(int i = 0; i < fileList.size(); i++)
-        {
-            if(i == n)
-                bw.write(path);
-            else
-                bw.write(fileList.get(i));
+    @Override
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+        FileOutputStream fos = new FileOutputStream(outputFile);
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+        for (String fileRow : fileRows) {
+            if (fileRow == null) {
+                continue;
+            }
+            bw.write(fileRow);
             bw.newLine();
-            bw.flush();
         }
         bw.close();
+        fos.close();
     }
 
-    public void mutateFile(String inputFile) throws IOException
+    public void deleteFile(String currentInputFile) throws IOException {
+        File del = new File(delete);
+        del.delete();
+    }
+
+    public void mutate(File inputFile, File nextInputFile) throws IOException
     {
+        ArrayList<String> mutatedInput = mutateFile(inputFile);
+        if (mutatedInput != null) {
+            writeFile(nextInputFile, mutatedInput);
+        }
+        delete = nextInputFile.getPath();
+    }
 
-        File file=new File(inputFile);
-
-        ArrayList<String> rows = new ArrayList<String>();
+    public ArrayList<String> mutateFile(File inputFile) throws IOException
+    {
+        ArrayList<String> rows = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
-        if(file.exists())
+        if(inputFile.exists())
         {
-            String readLine = null;
+            String readLine;
             while((readLine = br.readLine()) != null){
                 rows.add(readLine);
             }
@@ -73,14 +67,25 @@ public class OneDFMutation implements BigFuzzMutation {
         else
         {
             System.out.println("File does not exist!");
-            return;
+            return null;
         }
 
-        br.close();
+        int method =(int)(Math.random() * 2);
+        if(method == 0){
+            ArrayList<String> tempRows = new ArrayList<>();
+            randomGenerateRows(tempRows);
+            if (PRINT_MUTATION_DETAILS) { System.out.println("[MUTATE] rows: " + tempRows); }
+            rows = tempRows;
 
-        mutate(rows);
+            int next =(int)(Math.random() * 2);
+            if(next == 0){
+                mutate(rows);
+            }
+        }else{
+            mutate(rows);
+        }
 
-        fileRows = rows;
+        return rows;
     }
 
     public static String[] removeOneElement(String[] input, int index) {
@@ -190,28 +195,4 @@ public class OneDFMutation implements BigFuzzMutation {
 
     }
 
-    @Override
-    public void writeFile(String outputFile) throws IOException {
-        File fout = new File(outputFile);
-        FileOutputStream fos = new FileOutputStream(fout);
-
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-        for (int i = 0; i < fileRows.size(); i++) {
-            if(fileRows.get(i) == null) {
-                continue;
-            }
-            bw.write(fileRows.get(i));
-            bw.newLine();
-        }
-
-        bw.close();
-        fos.close();
-    }
-
-    @Override
-    public void deleteFile(String currentFile) throws IOException {
-        File del = new File(delete);
-        del.delete();
-    }
 }

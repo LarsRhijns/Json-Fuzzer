@@ -11,22 +11,21 @@ import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class IncomeAggregationMutation implements BigFuzzMutation {
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
+
+public class IncomeAggregationMutation implements BigFuzzMutation{
 
     Random r = new Random();
     int maxDuplicatedTimes = 10;
     int maxGenerateTimes = 20;
     int maxGenerateValue = 10000000;
     DecimalFormat decimalFormat = new DecimalFormat("#,##0");
-    ArrayList<String> fileRows = new ArrayList<String>();
     String delete;
 
     /**
@@ -126,21 +125,17 @@ public class IncomeAggregationMutation implements BigFuzzMutation {
         }
     }
 
-    public void writeFile(String outputFile) throws IOException {
-//        String path = "/home/qzhang/Programs/BigFuzz/dataset/" + outputFile;
-        File fout = new File(outputFile);
-        FileOutputStream fos = new FileOutputStream(fout);
-
+    @Override
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+        FileOutputStream fos = new FileOutputStream(outputFile);
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-        for (int i = 0; i < fileRows.size(); i++) {
-            if(fileRows.get(i) == null) {
+        for (String fileRow : fileRows) {
+            if (fileRow == null) {
                 continue;
             }
-            bw.write(fileRows.get(i));
+            bw.write(fileRow);
             bw.newLine();
         }
-
         bw.close();
         fos.close();
     }
@@ -150,63 +145,39 @@ public class IncomeAggregationMutation implements BigFuzzMutation {
         del.delete();
     }
 
-    public void mutate(String inputFile, String nextInputFile) throws IOException
+    public void mutate(File inputFile, File nextInputFile) throws IOException
     {
-        List<String> fileList = Files.readAllLines(Paths.get(inputFile));
-        Random random = new Random();
-        int n = random.nextInt(fileList.size());
-        String fileToMutate = fileList.get(n);
-        mutateFile(fileToMutate);
-
-        String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/')+1);
-        writeFile(fileName);
-
-        String path = System.getProperty("user.dir")+"/"+fileName;
-//        System.out.println(path);
-//        System.out.println(fileList);
-
-        delete = path;
-        // write next input config
-        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
-
-        for(int i = 0; i < fileList.size(); i++)
-        {
-            if(i == n)
-                bw.write(path);
-            else
-                bw.write(fileList.get(i));
-            bw.newLine();
-            bw.flush();
+        ArrayList<String> mutatedInput = mutateFile(inputFile);
+        if (mutatedInput != null) {
+            writeFile(nextInputFile, mutatedInput);
         }
-        bw.close();
+        delete = nextInputFile.getPath();
     }
 
-    public void mutateFile(String inputFile) throws IOException
+    public ArrayList<String> mutateFile(File inputFile) throws IOException
     {
-
-        File file=new File(inputFile);
-
-        ArrayList<String> rows = new ArrayList<String>();
+        ArrayList<String> rows = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
-        if(file.exists())
+        if(inputFile.exists())
         {
-            String readLine = null;
+            String readLine;
             while((readLine = br.readLine()) != null){
                 rows.add(readLine);
             }
         }
         else
         {
+            System.out.println("inputFile: " + inputFile);
             System.out.println("File does not exist!");
-            return;
+            return null;
         }
 
         int method =(int)(Math.random() * 2);
         if(method == 0){
-            ArrayList<String> tempRows = new ArrayList<String>();
+            ArrayList<String> tempRows = new ArrayList<>();
             randomGenerateRows(tempRows);
-            System.out.println("rows: " + tempRows);
+            if (PRINT_MUTATION_DETAILS) { System.out.println("[MUTATE] rows: " + tempRows); }
             rows = tempRows;
 
             int next =(int)(Math.random() * 2);
@@ -217,8 +188,9 @@ public class IncomeAggregationMutation implements BigFuzzMutation {
             mutate(rows);
         }
 
-        fileRows = rows;
+        return rows;
     }
+
     public static String[] removeOneElement(String[] input, int index) {
         List result = new LinkedList();
 
@@ -262,8 +234,11 @@ public class IncomeAggregationMutation implements BigFuzzMutation {
         String[] columns = list.get(lineNum).split(",");
 
         int method = (int)(Math.random() * 2);
-        int columnID = (int)(Math.random() * 2)+1;
-        System.out.println("********"+method+" "+lineNum+" "+columnID);
+        int columnID = r.nextInt(columns.length);
+        if (PRINT_MUTATION_DETAILS) {
+            System.out.println("[MUTATE] rows size: " + list.size());
+            System.out.println("[MUTATE] row to mutate: " + list.get(lineNum));
+        }
 //        if(method == 0){
 //            columns[columnID] = Integer.toString(r.nextInt());
 //        }

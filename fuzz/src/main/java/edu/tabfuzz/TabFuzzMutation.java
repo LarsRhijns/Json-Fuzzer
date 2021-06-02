@@ -232,13 +232,22 @@ public class TabFuzzMutation implements BigFuzzMutation {
         }
     }
 
-    @Override
     public void mutate(String inputFile, String nextInputFile) {
         mutateFile(inputFile, nextInputFile);
     }
 
     public void mutateFile(String inputFile, int index) {
         System.err.println("Don't think this is used?");
+    }
+
+    @Override
+    public void mutate(File inputFile, File nextInputFile) throws IOException {
+        mutateFile(inputFile.getPath(), nextInputFile.getPath());
+    }
+
+    @Override
+    public ArrayList<String> mutateFile(File inputFile) throws IOException {
+        return null;
     }
 
     @Override
@@ -253,6 +262,11 @@ public class TabFuzzMutation implements BigFuzzMutation {
 
     public void randomGenerateRows(ArrayList<String> rows) {
         System.err.println("This should never be run");
+
+    }
+
+    @Override
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException {
 
     }
 
@@ -271,7 +285,6 @@ public class TabFuzzMutation implements BigFuzzMutation {
 
     }
 
-    @Override
     public void writeFile(String outputFile) {
 
     }

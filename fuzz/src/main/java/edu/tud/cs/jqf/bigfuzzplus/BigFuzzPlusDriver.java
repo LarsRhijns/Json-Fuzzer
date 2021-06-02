@@ -5,6 +5,7 @@ package edu.tud.cs.jqf.bigfuzzplus;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.time.Duration;
@@ -12,9 +13,17 @@ import java.time.temporal.ChronoUnit;
 
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusDriver {
+
+    // ---------- LOGGING / STATS OUTPUT ------------
+    /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
+    public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
+
     // These booleans are for debugging purposes only, toggle them if you want to see the information
     public static boolean PRINT_METHOD_NAMES = false;
     public static boolean PRINT_MUTATION_DETAILS = false;
+    public static boolean PRINT_COVERAGE_DETAILS = false;
+    public static boolean PRINT_INPUT_SELECTION_DETAILS = false;
+    public static boolean LOG_AND_PRINT_STATS = true;
     public static boolean PRINT_ERRORS = false;
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
@@ -83,12 +92,24 @@ public class BigFuzzPlusDriver {
         // **************
 
         long programStartTime = System.currentTimeMillis();
-        File outputDir = new File("output/" + programStartTime);
-
+        File allOutputDir = new File("fuzz-results");
+        File outputDir = new File(allOutputDir, "" + programStartTime);
+        if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
+            System.err.println("Something went wrong with making the output directory for this run: " + allOutputDir);
+            System.exit(0);
+        }
         if (!outputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + outputDir);
             System.exit(0);
         }
+        if (CLEAR_ALL_PREVIOUS_RESULTS_ON_START && allOutputDir.isDirectory()) {
+            try {
+                FileUtils.cleanDirectory(allOutputDir);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         if (mutationMethodClassName.equalsIgnoreCase("stackedmutation")) {
             log.logProgramArgumentsStackedMutation(testClassName, testMethodName, mutationMethodClassName, stackedMutationMethod, intMutationStackCount, outputDir, programStartTime);
         } else if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
@@ -103,20 +124,25 @@ public class BigFuzzPlusDriver {
             System.out.println("******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
             String file = "dataset/conf";
-            try {
-                long iterationStartTime = System.currentTimeMillis();
+            Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
+            long iterationStartTime = System.currentTimeMillis();
+            String iterationOutputDir = outputDir + "/Test" + atIteration;
 
-                Duration maxDuration = Duration.of(5, ChronoUnit.MINUTES);
-                //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-                String iterationOutputDir = outputDir + "/Test" + atIteration;
-                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, iterationStartTime, maxDuration, System.err, iterationOutputDir, mutationMethodClassName);
+            SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
+            // 0 = only baseline selection. 1 = fully boosted grey-box fuzzing.
+            // Favor rate is irrelevant when baseline method is INIT_FILES.
+            double favorRate = 0;
+
+            try {
+                File itOutputDir = new File(iterationOutputDir);
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, System.err, itOutputDir, mutationMethodClassName, favorRate, selection);
 
                 // Set the provided input argument stackedMutationMethod in the guidance mutation
                 if(guidance.mutation instanceof StackedMutation) {
                     ((StackedMutation)guidance.mutation).setStackedMutationMethod(stackedMutationMethod);
                     ((StackedMutation)guidance.mutation).setMutationStackCount(intMutationStackCount);
                 }
-                
+
                 // Set the randomization seed to the program start time. Seed is passed to allow for custom seeds, independent of the program start time
                 guidance.setRandomizationSeed(iterationStartTime);
 
