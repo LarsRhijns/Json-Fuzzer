@@ -1,7 +1,5 @@
 package edu.tud.cs.jqf.bigfuzzplus;
 
-//import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
-
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
@@ -11,7 +9,6 @@ import java.io.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-@SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusDriver {
 
     // ---------- LOGGING / STATS OUTPUT ------------
@@ -28,7 +25,7 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
 
-    private static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
+    private static final BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
 
     /**
      * Run the BigFuzzPlus program with the following parameters for StackedMutation:
@@ -36,13 +33,16 @@ public class BigFuzzPlusDriver {
      * [1] - test method
      * [2] - mutation method           (StackedMutation)
      * [3] - max Trials                (default = Long.MAXVALUE)
-     * [4] - stacked mutation method   (default = 0)
+     * [4] - BigFuzz / TabFuzz
+     *          0= BigFuzz
+     *          1= TabFuzz
+     * [5] - stacked mutation method   (default = 0)
      *          0 = Disabled
      *          1 = Permute_random (permute between 1 and the max amount of mutations)
      *          2 = Permute_max (Always permute until the max amount of mutations)
      *          3 = Smart_stack (Apply highorder mutation exclusion rules)
      *          4 = Single mutate (Only apply 1 mutation per column)
-     * [5] - max mutation stack        (default = 2)
+     * [6] - max mutation stack        (default = 2)
      *
      * * Run the BigFuzzPlus program with the following parameters for SystematicMutation:
      * [0] - test class
