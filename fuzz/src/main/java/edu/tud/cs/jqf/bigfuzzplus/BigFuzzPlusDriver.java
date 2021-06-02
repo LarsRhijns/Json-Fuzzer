@@ -28,11 +28,7 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
 
-    // Initializing
-    public static StringBuilder program_configuration = new StringBuilder();
-    public static StringBuilder iteration_results = new StringBuilder();
-    public static StringBuilder summarized_results = new StringBuilder();
-    public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
+    private static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
 
     /**
      * Run the BigFuzzPlus program with the following parameters for StackedMutation:
@@ -40,7 +36,12 @@ public class BigFuzzPlusDriver {
      * [1] - test method
      * [2] - mutation method           (StackedMutation)
      * [3] - max Trials                (default = Long.MAXVALUE)
-     * [4] - stacked mutation method   (default = disabled)
+     * [4] - stacked mutation method   (default = 0)
+     *          0 = Disabled
+     *          1 = Permute_random (permute between 1 and the max amount of mutations)
+     *          2 = Permute_max (Always permute until the max amount of mutations)
+     *          3 = Smart_stack (Apply highorder mutation exclusion rules)
+     *          4 = Single mutate (Only apply 1 mutation per column)
      * [5] - max mutation stack        (default = 2)
      *
      * * Run the BigFuzzPlus program with the following parameters for SystematicMutation:
@@ -54,6 +55,7 @@ public class BigFuzzPlusDriver {
      * @param args program arguments
      */
     public static void main(String[] args) {
+
         // LOAD PROGRAM ARGUMENTS
         if (args.length < 3) {
             System.err.println("Usage: java " + BigFuzzPlusDriver.class + " TEST_CLASS TEST_METHOD MUTATION_CLASS [MAX_TRIALS]");
@@ -64,8 +66,7 @@ public class BigFuzzPlusDriver {
         String testMethodName = args[1];
         String mutationMethodClassName = args[2];
 
-        long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
-        System.out.println("maxTrials: " + maxTrials);
+        Long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
 
         int intStackedMutationMethod;
         StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
@@ -86,7 +87,7 @@ public class BigFuzzPlusDriver {
         // This variable is used for the stackedMutationMethod: Smart_mutate
         // If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
         int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
-//        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
+        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
 
         // **************
 
@@ -137,13 +138,13 @@ public class BigFuzzPlusDriver {
                 BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, System.err, itOutputDir, mutationMethodClassName, favorRate, selection);
 
                 // Set the provided input argument stackedMutationMethod in the guidance mutation
-                if (guidance.mutation instanceof StackedMutation) {
+                if(guidance.mutation instanceof StackedMutation) {
                     ((StackedMutation)guidance.mutation).setStackedMutationMethod(stackedMutationMethod);
                     ((StackedMutation)guidance.mutation).setMutationStackCount(intMutationStackCount);
                 }
 
                 // Set the randomization seed to the program start time. Seed is passed to allow for custom seeds, independent of the program start time
-                guidance.setRandomizationSeed(programStartTime);
+                guidance.setRandomizationSeed(iterationStartTime);
 
                 // Set the test class name in the guidance for the failure tracking
                 guidance.setTestClassName(testClassName);

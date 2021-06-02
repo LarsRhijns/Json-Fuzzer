@@ -33,20 +33,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -86,7 +73,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     protected long lastNumTrials = 0;
 
     /** Minimum amount of time (in millis) between two stats refreshes. */
-    protected static final long STATS_REFRESH_TIME_PERIOD = 1000;
+    protected static final long STATS_REFRESH_TIME_PERIOD = 100000;
 
     /** The max amount of time to run for, in milli-seconds */
     protected final long maxDurationMillis;
@@ -154,6 +141,8 @@ public class BigFuzzPlusGuidance implements Guidance {
     private final long maxTrials;
     private final PrintStream out;
     protected long numDiscards = 0;
+    // Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
+    private final float maxDiscardRatio = 0.9f;
 
     /** Validity fuzzing -- if true then save valid inputs that increase valid coverage */
     protected boolean validityFuzzing;

@@ -195,7 +195,8 @@ public class StackedMutation implements BigFuzzMutation {
                     rowElementId = rowElements.length-1;
                 } else {
                     mutationMethod = appliedMutationPerColumn.get(rowElements.length-1);
-                    appliedMutationPerColumn.set(rowElements.length-1, mutationMethod);
+                    appliedMutationPerColumn.set(rowElementId, mutationMethod);
+                    appliedMutationPerColumn.set(rowElements.length-1, HighOrderMutationMethod.NoMutation);
                 }
             }
 
@@ -257,25 +258,83 @@ public class StackedMutation implements BigFuzzMutation {
         // Apply a mutation amount between 1 and the max mutation amount
         int mutationStackRandomCount = r.nextInt(maxMutationStack ) + 1;
 
+        boolean[] stackedColumns = new boolean[rowElements.length];
+        int stackedColumnsCount = 0;
+
         for (int i = 0; i < mutationStackRandomCount; i++) {
             // If all the elements have been deleted, stop stacking mutations as no more mutations can be applied
             if (elementDeletionCount == rowElements.length) {
                 break;
             }
-            // Randomly select the column which will be mutated
-            int rowElementId = r.nextInt(rowElements.length - elementDeletionCount);
+            int rowElementId = 0;
+            HighOrderMutationMethod mutationMethod = HighOrderMutationMethod.NoMutation;
+            boolean canApplyMutation;
 
-            // Get a random mutations method which can still be applied to the randomly selected column
-            HighOrderMutationMethod mutationMethod = HighOrderMutation.getRandomSmartMutation(r, appliedMutationPerColumn.get(rowElementId));
+            do {
+                // Keep trying to apply a mutation, unless all the columns are fully stacked
+                if(rowElements.length <= stackedColumnsCount) {
+                    break;
+                }
 
-            // If No mutation is found, there can't be more mutations stacked. Stop trying to stack mutations
-            if (mutationMethod == HighOrderMutationMethod.NoMutation) {
+                //Reset can apply mutation. This will be set to false if it is not possible
+                canApplyMutation = true;
+
+                // Randomly select the column which will be mutated.
+                int rowElementIdPointer = r.nextInt(rowElements.length - stackedColumnsCount);
+                int loopPointer=0;
+
+                // Loop through all the row elements. If the column has already been mutated skip. If the loop pointer is equal to the rowElementIdPointer, use that element to mutate
+                for (int j = 0; j < rowElements.length; j++) {
+                    if(!stackedColumns[j]) {
+                        if(rowElementIdPointer == loopPointer) {
+                            rowElementId = j;
+                            break;
+                        }
+                        loopPointer++;
+                    }
+                }
+
+                // Get a random mutations method which can still be applied to the randomly selected column
+                mutationMethod = HighOrderMutation.getRandomSmartMutation(r, appliedMutationPerColumn.get(rowElementId));
+
+                // If No mutation is found, there can't be more mutations stacked. Stop trying to stack mutations
+                if (mutationMethod == HighOrderMutationMethod.NoMutation) {
+                    stackedColumns[rowElementId] = true;
+                    stackedColumnsCount++;
+                    canApplyMutation = false;
+                }
+
+                // If the mutation will delete an element, the mutation should be applied to the last column that is not yet deleted (if possible)
+                else if (mutationMethod == HighOrderMutationMethod.RemoveElement) {
+                    //Check if the column that is about to be removed has mutations. If so, remove element can't be applied
+                    ArrayList<HighOrderMutationMethod> appliedMutationsToDeletionColumn = appliedMutationPerColumn.get((appliedMutationPerColumn.size()-1) - elementDeletionCount);
+                    ArrayList<HighOrderMutationMethod> availableMutations = HighOrderMutation.getMutationListFromAppliedMutations(appliedMutationsToDeletionColumn);
+                    if (availableMutations.contains(HighOrderMutationMethod.RemoveElement)) {
+                        // Remove element is always applied to the last column
+                        rowElementId = (appliedMutationPerColumn.size()-1) - elementDeletionCount;
+                        elementDeletionCount++;
+                    } else {
+                        //If the removeElement can't be applied, none of the columns can apply a remove element anymore
+                        for (ArrayList<HighOrderMutationMethod> e :
+                                appliedMutationPerColumn) {
+                            e.add(mutationMethod);
+                        }
+                        canApplyMutation = false;
+                    }
+                }
+            }while(!canApplyMutation);
+
+            if(rowElements.length <= stackedColumnsCount) {
                 break;
             }
 
-            // If the mutation will delete an element, the next mutation should not
-            if (mutationMethod == HighOrderMutationMethod.RemoveElement) {
-                elementDeletionCount++;
+            // If the mutation will change the delimiter, it does not need to be applied again in one of the columns as it is not column specific but is applied to the input as a whole
+            // Therefore, add change Delimiter to all columns such that it won't be picked again.
+            if (mutationMethod == HighOrderMutationMethod.ChangeDelimiter) {
+                for (ArrayList<HighOrderMutationMethod> e :
+                        appliedMutationPerColumn) {
+                    e.add(mutationMethod);
+                }
             }
 
             mutations.add(new MutationPair(rowElementId, mutationMethod));
