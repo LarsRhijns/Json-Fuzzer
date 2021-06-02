@@ -1,5 +1,8 @@
-package P2.CommuteType.Spec_BigFuzz;
-
+import P2.CommuteType.Spec_BigFuzz.CommuteTypeCustomArray;
+import P2.CommuteType.Spec_BigFuzz.join6;
+import P2.CommuteType.Spec_BigFuzz.map1;
+import P2.CommuteType.Spec_BigFuzz.map3;
+import P2.CommuteType.Spec_BigFuzz.map5;
 import main.java.sharedClasses.CustomArray;
 
 import java.io.IOException;

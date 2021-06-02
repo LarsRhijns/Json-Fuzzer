@@ -1,6 +1,5 @@
-package P9.NumberSeries.Spec_BigFuzz;
-
-
+import P9.NumberSeries.Spec_BigFuzz.InfiniteloopCustomArray;
+import P9.NumberSeries.Spec_BigFuzz.map2;
 import main.java.sharedClasses.CustomArray;
 
 

@@ -1,5 +1,3 @@
-package P3.ExternalFunction.Spec_BigFuzz;
-
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
