@@ -222,8 +222,6 @@ public class BigFuzzPlusLog {
         int counter = 1;
         while(uFailuresIterator.hasNext()) {
             List<StackTraceElement> e = uFailuresIterator.next();
-            ArrayList<MutationPair> mutationPerformedAtTrial =guidance.mutationsPerRun.get(Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)));
-
             sb.append("\n*** UNIQUE FAILURE #" + counter + " ***");
             sb.append("\n-- failure triggered at trial " + Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)) + " --");
             StringBuilder headerRow = new StringBuilder("\n#\t\t");
@@ -242,8 +240,10 @@ public class BigFuzzPlusLog {
             counter ++;
 
             sb.append("\nMutation(s) triggering the error: ");
-            sb.append(generateMutationLog(mutationPerformedAtTrial));
-
+            if (guidance.mutation instanceof StackedMutation) {
+                ArrayList<MutationPair> mutationPerformedAtTrial = guidance.mutationsPerRun.get(Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)));
+                sb.append(generateMutationLog(mutationPerformedAtTrial));
+            }
         }
         return sb;
     }

@@ -223,9 +223,7 @@ public class IncomeAggregationMutation implements BigFuzzMutation{
     public void mutate(ArrayList<String> list)
     {
         r.setSeed(System.currentTimeMillis());
-        System.out.println(list.size());
         int lineNum = r.nextInt(list.size());
-        System.out.println(list.get(lineNum));
 //        // 0: random change value
         // 1: random change into string
 //        // 2: random insert
