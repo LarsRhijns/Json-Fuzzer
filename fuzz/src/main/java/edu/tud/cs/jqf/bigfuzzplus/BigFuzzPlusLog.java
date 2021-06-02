@@ -241,8 +241,17 @@ public class BigFuzzPlusLog {
 
             sb.append("\nMutation(s) triggering the error: ");
             if (guidance.mutation instanceof StackedMutation) {
-                ArrayList<MutationPair> mutationPerformedAtTrial = guidance.mutationsPerRun.get(Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)));
-                sb.append(generateMutationLog(mutationPerformedAtTrial));
+                int atIteration = Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e));
+                // If the unique failure is recorded at the first trial, there is no mutation applied
+                if(atIteration == 0) {
+                    sb.append("\nUnique failure occured on input seed");
+                }
+                else if(atIteration >= guidance.mutationsPerRun.size() ) {
+                    sb.append("\nMutation has not been recorded, something went wrong.");
+                } else {
+                    ArrayList<MutationPair> mutationPerformedAtTrial = guidance.mutationsPerRun.get(atIteration);
+                    sb.append(generateMutationLog(mutationPerformedAtTrial));
+                }
             }
         }
         return sb;
