@@ -133,7 +133,7 @@ public class BigFuzzPlusDriver {
 
             try {
                 File itOutputDir = new File(iterationOutputDir);
-                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, System.err, itOutputDir, mutationMethodClassName, favorRate, selection);
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, itOutputDir, mutationMethodClassName, favorRate, selection);
 
                 // Set the provided input argument stackedMutationMethod in the guidance mutation
                 if(guidance.mutation instanceof StackedMutation) {

@@ -139,10 +139,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     protected int numSavedInputs = 0;
 
     private final long maxTrials;
-    private final PrintStream out;
     protected long numDiscards = 0;
-    // Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
-    private final float maxDiscardRatio = 0.9f;
 
     /** Validity fuzzing -- if true then save valid inputs that increase valid coverage */
     protected boolean validityFuzzing;
@@ -210,7 +207,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     private File lastWorkingInputFile;
     private final Random r = new Random();
 
-    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, PrintStream out, File outputDirectory, String mutationMethodClassName, double favorRate, SelectionMethod selection) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, double favorRate, SelectionMethod selection) throws IOException {
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
 
@@ -224,7 +221,6 @@ public class BigFuzzPlusGuidance implements Guidance {
         this.currentInputFile = initialFile;
         this.lastWorkingInputFile = initialFile;
         this.maxTrials = maxTrials;
-        this.out = out;
 
         this.outputDirectory = outputDirectory;
         prepareOutputDirectory();
@@ -487,8 +483,6 @@ public class BigFuzzPlusGuidance implements Guidance {
             out.println(line);
         } catch (IOException e) {
             throw new GuidanceException(e);
-        } finally {
-            out.close();
         }
     }
 
