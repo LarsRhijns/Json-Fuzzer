@@ -80,6 +80,7 @@
         <module>customarray</module>
         <module>Benchmarks</module>
         <module>faulty_benchmarks</module>
+        <module>big_fuzz_customarray</module>
     </modules>
 
     <dependencyManagement>

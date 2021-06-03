@@ -6,21 +6,10 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations.*;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.AgeAnalysisMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.CommuteTypeMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.ExternalUDFMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.FindSalaryMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.IncomeAggregationMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.MovieRatingMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.NumberSeriesMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.OneDFMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.PropertyInvestmentMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.StudentGradeMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.WordCountMutation;
 import org.apache.commons.io.FileUtils;
 import org.scalatest.Entry;
 
@@ -139,10 +128,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     protected int numSavedInputs = 0;
 
     private final long maxTrials;
-    private final PrintStream out;
     protected long numDiscards = 0;
-    // Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
-    private final float maxDiscardRatio = 0.9f;
 
     /** Validity fuzzing -- if true then save valid inputs that increase valid coverage */
     protected boolean validityFuzzing;
@@ -205,12 +191,12 @@ public class BigFuzzPlusGuidance implements Guidance {
     static final int NUM_CHILDREN_MULTIPLIER_FAVORED = 20;
 
     protected final File initialInputFile;
-    BigFuzzMutation mutation;
+    BigFuzzPlusMutation mutation;
     private File currentInputFile;
     private File lastWorkingInputFile;
     private final Random r = new Random();
 
-    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, PrintStream out, File outputDirectory, String mutationMethodClassName, double favorRate, SelectionMethod selection) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, double favorRate, SelectionMethod selection) throws IOException {
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
 
@@ -224,7 +210,6 @@ public class BigFuzzPlusGuidance implements Guidance {
         this.currentInputFile = initialFile;
         this.lastWorkingInputFile = initialFile;
         this.maxTrials = maxTrials;
-        this.out = out;
 
         this.outputDirectory = outputDirectory;
         prepareOutputDirectory();
@@ -297,37 +282,37 @@ public class BigFuzzPlusGuidance implements Guidance {
                 mutation = new StackedMutation();
                 break;
             case "IncomeAggregationMutation":
-                mutation = new IncomeAggregationMutation();
+                mutation = new IncomeAggregationPlusMutation();
                 break;
             case "AgeAnalysisMutation":
-                mutation = new AgeAnalysisMutation();
+                mutation = new AgeAnalysisPlusMutation();
                 break;
             case "CommuteTypeMutation":
-                mutation = new CommuteTypeMutation();
+                mutation = new CommuteTypePlusMutation();
                 break;
             case "ExternalUDFMutation":
-                mutation = new ExternalUDFMutation();
+                mutation = new ExternalUDFPlusMutation();
                 break;
             case "FindSalaryMutation":
-                mutation = new FindSalaryMutation();
+                mutation = new FindSalaryPlusMutation();
                 break;
             case "MovieRatingMutation":
-                mutation = new MovieRatingMutation();
+                mutation = new MovieRatingPlusMutation();
                 break;
             case "NumberSeriesMutation":
-                mutation = new NumberSeriesMutation();
+                mutation = new NumberSeriesPlusMutation();
                 break;
             case "OneDFMutation":
-                mutation = new OneDFMutation();
+                mutation = new OneDFPlusMutation();
                 break;
             case "PropertyInvestmentMutation":
-                mutation = new PropertyInvestmentMutation();
+                mutation = new PropertyInvestmentPlusMutation();
                 break;
             case "StudentGradeMutation":
-                mutation = new StudentGradeMutation();
+                mutation = new StudentGradePlusMutation();
                 break;
             case "WordCountMutation":
-                mutation = new WordCountMutation();
+                mutation = new WordCountPlusMutation();
                 break;
             default:
                 System.err.println("could not match the provided mutation class to an existing class. Provided mutation class: " + mutationMethodClassName);
@@ -340,8 +325,8 @@ public class BigFuzzPlusGuidance implements Guidance {
     @Override
     public InputStream getInput() throws IOException {
         //progress bar
-        if (!SystematicMutation.EVALUATE && numTrials % (maxTrials / 20) == 0) {
-            System.out.print("\rCompleted trials: " + numTrials * 100 / maxTrials + "%");
+        if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
+            System.out.println("\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")");
         }
 
         // Clear coverage stats for this run
@@ -359,6 +344,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                 FileUtils.copyFile(nextInitInput, initInput);
                 FileUtils.copyFile(nextInitInput, nextAllInput);
                 countInitFiles++;
+                if (selection == SelectionMethod.ONLY_FIRST_INIT) {
+                    break;
+                }
             }
             sc.close();
 
@@ -377,7 +365,12 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (pendingInputs.isEmpty()) {
             cyclesCompleted++;
             if (selection == SelectionMethod.COVERAGE_FILES) {
-                pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(coverageInputsDirectory.listFiles())));
+                File[] covFiles = coverageInputsDirectory.listFiles();
+                if (Objects.requireNonNull(covFiles).length != 0) {
+                    pendingInputs.addAll(Arrays.asList(covFiles));
+                } else {
+                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
+                }
             }
             else if (selection == SelectionMethod.INIT_FILES) {
                 pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
@@ -385,6 +378,10 @@ public class BigFuzzPlusGuidance implements Guidance {
             else if (selection == SelectionMethod.ONLY_FIRST_INIT) {
                 pendingInputs.add(Objects.requireNonNull(initialInputsDirectory.listFiles())[0]);
             }
+        }
+        if (pendingInputs.isEmpty()) {
+            System.out.println("Can't find any input files. Are you sure that you provided one in " + initialInputFile.getPath() + "?");
+            System.exit(0);
         }
 
         // Determine which input selection method to use.
@@ -487,8 +484,6 @@ public class BigFuzzPlusGuidance implements Guidance {
             out.println(line);
         } catch (IOException e) {
             throw new GuidanceException(e);
-        } finally {
-            out.close();
         }
     }
 

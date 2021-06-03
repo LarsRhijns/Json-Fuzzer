@@ -4,7 +4,7 @@ import com.github.curiousoddman.rgxgen.RgxGen;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.io.*;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class TabFuzzMutation implements BigFuzzMutation {
+public class TabFuzzMutation implements BigFuzzPlusMutation {
 
     private static final int MUTATIONS_AMOUNT = 6;
     private final DataFormat[] dataSpecification;

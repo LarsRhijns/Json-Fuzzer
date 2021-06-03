@@ -1,5 +1,7 @@
 package P7.InsideCircle.Spec_BigFuzz;
 
+import P7.InsideCircle.Spec_BigFuzz.ExternalUDFCustomArray;
+import P7.InsideCircle.Spec_BigFuzz.map2;
 import main.java.sharedClasses.CustomArray;
 
 

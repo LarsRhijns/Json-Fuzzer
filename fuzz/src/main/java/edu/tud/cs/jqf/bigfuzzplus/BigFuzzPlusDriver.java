@@ -20,7 +20,7 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_MUTATION_DETAILS = false;
     public static boolean PRINT_COVERAGE_DETAILS = false;
     public static boolean PRINT_INPUT_SELECTION_DETAILS = false;
-    public static boolean LOG_AND_PRINT_STATS = true;
+    public static boolean LOG_AND_PRINT_STATS = false;
     public static boolean PRINT_ERRORS = false;
     public static boolean PRINT_MUTATIONS = false;
     public static boolean PRINT_TEST_RESULTS = false;
@@ -122,7 +122,7 @@ public class BigFuzzPlusDriver {
 
         for (int i = 0; i < 5; i++) {
             int atIteration = i + 1;
-            System.out.println("******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
+            System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
             String file = "dataset/conf";
             Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
@@ -136,7 +136,7 @@ public class BigFuzzPlusDriver {
 
             try {
                 File itOutputDir = new File(iterationOutputDir);
-                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, System.err, itOutputDir, mutationMethodClassName, favorRate, selection);
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, itOutputDir, mutationMethodClassName, favorRate, selection);
 
                 // Set the provided input argument stackedMutationMethod in the guidance mutation
                 if(guidance.mutation instanceof StackedMutation) {

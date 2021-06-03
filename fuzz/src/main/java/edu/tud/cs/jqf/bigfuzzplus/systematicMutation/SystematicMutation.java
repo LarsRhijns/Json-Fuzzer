@@ -1,22 +1,20 @@
 package edu.tud.cs.jqf.bigfuzzplus.systematicMutation;
 
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
-import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusGuidance;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.Mutation;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Mutation class for applying mutations systematically. Based on MutationTemplate.
  *
  * @author Lars van Koetsveld van Ankeren
  */
-public class SystematicMutation implements BigFuzzMutation {
+public class SystematicMutation implements BigFuzzPlusMutation {
 	protected static final Random r = new Random();
 	private static String delimiter;
 	private String deletePath;
