@@ -211,7 +211,8 @@ public class MutationTree {
 			ArrayList<MutationPair> excludeMutations = new ArrayList<>(this.prevMutations);
 			excludeMutations.add(new MutationPair(this.mutationType, this.column));
 			for (MutationPair pair : excludeMutations) {
-				this.children.removeIf(child -> pair.getColumn() == child.column && Arrays.stream(pair.getMutationType().exclusion.values).anyMatch(index -> index == child.mutationType.ordinal()));
+				this.children.removeIf(child -> pair.getColumn() == child.column &&
+						Arrays.stream(pair.getMutationType().exclusion.values).anyMatch(index -> index == child.mutationType.ordinal()));
 			}
 		}
 	}
