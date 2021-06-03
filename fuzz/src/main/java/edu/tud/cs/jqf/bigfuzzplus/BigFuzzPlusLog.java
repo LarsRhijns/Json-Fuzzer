@@ -40,6 +40,10 @@ public class BigFuzzPlusLog {
         return INSTANCE;
     }
 
+    public static void resetInstance() {
+        INSTANCE = new BigFuzzPlusLog();
+    }
+
     public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
         program_configuration.append("PROGRAM CONFIGURATION");
         program_configuration.append("\nOutput directory is set to: " + outputDir);
