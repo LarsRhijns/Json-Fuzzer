@@ -1,3 +1,5 @@
+package P1.Wordcount.Spec_BigFuzz;
+
 import P1.Wordcount.Spec_BigFuzz.WordCountCustomArray;
 import P1.Wordcount.Spec_BigFuzz.mapToPair2;
 import main.java.sharedClasses.CustomArray;

@@ -1,4 +1,4 @@
-
+package P4.FindSalary.Spec_BigFuzz;
 
 import P4.FindSalary.Spec_BigFuzz.FindSalaryCustomArray;
 import main.java.sharedClasses.CustomArray;

@@ -1,3 +1,4 @@
+import P8.StringSelf.Spec_BigFuzz.OneDFOperator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
@@ -9,7 +10,7 @@ public class OneDFOperatorDriver {
 
 @Fuzz
     public void testOneDFOperator(String fileName) throws IOException {
-//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.OneDFOperator.OneDFOperatorDriver::testOneDFOperator: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.P8.StringSelf.Spec_BigFuzz.OneDFOperator.OneDFOperatorDriver::testOneDFOperator: "+fileName);
         OneDFOperator analysis = new OneDFOperator();
         analysis.OneDFOperator(fileName);
     }

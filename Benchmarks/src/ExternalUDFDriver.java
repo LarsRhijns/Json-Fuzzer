@@ -1,5 +1,4 @@
-package P7.InsideCircle.Spec_BigFuzz;
-
+import P7.InsideCircle.Spec_BigFuzz.ExternalUDF;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
@@ -11,7 +10,7 @@ public class ExternalUDFDriver {
 
 @Fuzz
     public void testExternalUDF(String fileName) throws IOException {
-//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.P7.InsideCircle.Spec_BigFuzz.ExternalUDF.P7.InsideCircle.Spec_BigFuzz.ExternalUDFDriver::testExternalUDF: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.P7.InsideCircle.Spec_BigFuzz.ExternalUDF.ExternalUDFDriver::testExternalUDF: "+fileName);
         ExternalUDF analysis = new ExternalUDF();
         analysis.ExternalUDF(fileName);
     }

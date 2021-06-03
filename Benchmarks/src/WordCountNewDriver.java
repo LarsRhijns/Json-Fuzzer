@@ -1,3 +1,4 @@
+import P3.ExternalFunction.Spec_BigFuzz.WordCountNew;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
