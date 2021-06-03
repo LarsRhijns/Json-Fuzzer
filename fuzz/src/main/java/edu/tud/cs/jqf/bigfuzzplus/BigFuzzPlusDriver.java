@@ -117,7 +117,8 @@ public class BigFuzzPlusDriver {
         }
         log.printProgramArguments();
 
-        for (int i = 0; i < 5; i++) {
+        int NUMBER_OF_ITERATIONS = 5;
+        for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
             int atIteration = i + 1;
             System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
