@@ -94,7 +94,7 @@ public class BigFuzzPlusDriver {
 
         long programStartTime = System.currentTimeMillis();
         File allOutputDir = new File("fuzz-results");
-        File outputDir = new File(allOutputDir, "" + programStartTime);
+        File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName + " - " + mutationMethodClassName );
         if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + allOutputDir);
             System.exit(0);
@@ -120,7 +120,7 @@ public class BigFuzzPlusDriver {
         }
         log.printProgramArguments();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             int atIteration = i + 1;
             System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
