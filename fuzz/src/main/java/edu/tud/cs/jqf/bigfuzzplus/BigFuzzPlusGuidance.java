@@ -327,13 +327,13 @@ public class BigFuzzPlusGuidance implements Guidance {
     @Override
     public InputStream getInput() throws IOException {
         //progress bar
-        if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
-            String completedTrialsString = "\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")";
-            if (PRINT_INPUT_SELECTION_DETAILS || PRINT_COVERAGE_DETAILS || PRINT_MUTATION_DETAILS || PRINT_METHOD_NAMES
-                    || PRINT_TEST_RESULTS || PRINT_ERRORS || LOG_AND_PRINT_STATS || PRINT_MUTATIONS) {
-                System.out.println(completedTrialsString);
-            }
-            else {
+        String completedTrialsString = "\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")";
+        if (PRINT_INPUT_SELECTION_DETAILS || PRINT_COVERAGE_DETAILS || PRINT_MUTATION_DETAILS || PRINT_METHOD_NAMES
+                || PRINT_TEST_RESULTS || PRINT_ERRORS || LOG_AND_PRINT_STATS || PRINT_MUTATIONS) {
+            System.out.println(completedTrialsString);
+        }
+        else {
+            if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
                 System.out.print(completedTrialsString);
             }
         }
