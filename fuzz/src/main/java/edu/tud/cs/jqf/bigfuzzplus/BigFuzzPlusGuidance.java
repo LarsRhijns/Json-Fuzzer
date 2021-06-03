@@ -359,6 +359,9 @@ public class BigFuzzPlusGuidance implements Guidance {
             }
             sc.close();
 
+            File firstInitInput = Objects.requireNonNull(initialInputsDirectory.listFiles())[0];
+            File firstInputIsInteresting = new File(allInterestingInputsDirectory, firstInitInput.getName());
+            FileUtils.copyFile(firstInitInput, firstInputIsInteresting);
             pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allInputsDirectory.listFiles())));
         }
 
@@ -598,6 +601,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 File src = currentInputFile;
                 String branchesFileName = "branches_" + numTrials;
                 File des = new File(coverageInputsDirectory, branchesFileName);
+                File src2 = new File(allInterestingInputsDirectory, src.getName());
                 File des2 = new File(allInterestingInputsDirectory, branchesFileName);
                 // save the file if it increased coverage
                 if (why.contains("+cov")) {
@@ -605,7 +609,9 @@ public class BigFuzzPlusGuidance implements Guidance {
                         try {
                             if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] " + des.getName() + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
-                            FileUtils.copyFile(src, des2);
+                            if (!src2.renameTo(des2)) {
+                                System.out.println("!! Could not rename file " + src2 + " to " + des2);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -670,7 +676,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 if (why.contains("+crash")) {
                     try {
                         FileUtils.copyFile(src, des);
-                        if (srcInteresting.exists() && !srcInteresting.renameTo(srcRename)) {
+                        if (!srcInteresting.renameTo(srcRename)) {
                             System.out.println("!! Could not rename file " + srcInteresting + " to " + srcRename);
                         }
                         lastWorkingInputFile = src;
