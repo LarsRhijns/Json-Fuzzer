@@ -106,7 +106,7 @@ public class TabFuzzGuidance implements Guidance {
         this.maxTrials = maxTrials;
         this.out = out;
         this.ws = ws;
-        mutation = new TabFuzzPlusMutation(dataSpecification, ws);
+        mutation = new TabFuzzMutation(dataSpecification, ws);
     }
 
     private static void copyFileUsingFileChannels(File source, File dest) throws IOException {

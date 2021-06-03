@@ -16,7 +16,7 @@ import java.util.*;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
 import static edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation.*;
 
-public class StackedPlusMutation implements BigFuzzPlusMutation {
+public class StackedMutation implements BigFuzzPlusMutation {
     private final Random r = new Random();
     private long randomizationSeed;
     String delete;

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class TabFuzzPlusMutation implements BigFuzzPlusMutation {
+public class TabFuzzMutation implements BigFuzzPlusMutation {
 
     private static final int MUTATIONS_AMOUNT = 6;
     private final DataFormat[] dataSpecification;
@@ -23,7 +23,7 @@ public class TabFuzzPlusMutation implements BigFuzzPlusMutation {
      *         fileName += new SimpleDateFormat("yyyyMMddHHmmssSS").format(Calendar.getInstance().getTime());
      *         String filePath = GENERATED_INPUT_FILES_FOLDER + fileName + ".csv";
      */
-    public TabFuzzPlusMutation(DataFormat[] dataSpecification, WriterSettings ws) {
+    public TabFuzzMutation(DataFormat[] dataSpecification, WriterSettings ws) {
         this.dataSpecification = dataSpecification;
         this.ws = ws;
     }
