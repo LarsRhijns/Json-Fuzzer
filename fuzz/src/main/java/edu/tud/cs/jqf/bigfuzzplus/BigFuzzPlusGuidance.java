@@ -670,7 +670,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 if (why.contains("+crash")) {
                     try {
                         FileUtils.copyFile(src, des);
-                        if (!srcInteresting.renameTo(srcRename)) {
+                        if (srcInteresting.exists() && !srcInteresting.renameTo(srcRename)) {
                             System.out.println("!! Could not rename file " + srcInteresting + " to " + srcRename);
                         }
                         lastWorkingInputFile = src;
