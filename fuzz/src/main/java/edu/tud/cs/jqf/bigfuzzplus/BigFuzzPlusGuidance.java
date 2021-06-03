@@ -326,7 +326,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     public InputStream getInput() throws IOException {
         //progress bar
         if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
-            System.out.println("\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")");
+            System.out.print("\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")");
         }
 
         // Clear coverage stats for this run
@@ -457,7 +457,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] BigFuzzGuidance::getInput"); }
 
-        saveInput();
+//        saveInput();
         return new ByteArrayInputStream(currentInputFile.getPath().getBytes());
     }
 
