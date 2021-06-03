@@ -1,7 +1,7 @@
 package edu.tud.cs.jqf.bigfuzzplus;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedPlusMutation;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import org.apache.commons.io.FileUtils;
 
@@ -136,9 +136,9 @@ public class BigFuzzPlusDriver {
                 BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, itOutputDir, mutationMethodClassName, favorRate, selection);
 
                 // Set the provided input argument stackedMutationMethod in the guidance mutation
-                if(guidance.mutation instanceof StackedPlusMutation) {
-                    ((StackedPlusMutation)guidance.mutation).setStackedMutationMethod(stackedMutationMethod);
-                    ((StackedPlusMutation)guidance.mutation).setMutationStackCount(intMutationStackCount);
+                if(guidance.mutation instanceof StackedMutation) {
+                    ((StackedMutation)guidance.mutation).setStackedMutationMethod(stackedMutationMethod);
+                    ((StackedMutation)guidance.mutation).setMutationStackCount(intMutationStackCount);
                 }
 
                 // Set the randomization seed to the program start time. Seed is passed to allow for custom seeds, independent of the program start time

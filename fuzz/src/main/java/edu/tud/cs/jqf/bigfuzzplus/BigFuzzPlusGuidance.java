@@ -8,7 +8,7 @@ import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations.*;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
-import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedPlusMutation;
+import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 import org.apache.commons.io.FileUtils;
 import org.scalatest.Entry;
@@ -279,7 +279,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     private void setMutation(String mutationMethodClassName) {
         switch (mutationMethodClassName) {
             case "StackedMutation":
-                mutation = new StackedPlusMutation();
+                mutation = new StackedMutation();
                 break;
             case "IncomeAggregationMutation":
                 mutation = new IncomeAggregationPlusMutation();
@@ -451,8 +451,8 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Move reference file to correct directory
         currentInputFile = nextInputFile;
 
-        if (mutation instanceof StackedPlusMutation) {
-            mutationsPerRun.add(((StackedPlusMutation)mutation).getAppliedMutations());
+        if (mutation instanceof StackedMutation) {
+            mutationsPerRun.add(((StackedMutation)mutation).getAppliedMutations());
         }
 
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] BigFuzzGuidance::getInput"); }
@@ -842,8 +842,8 @@ public class BigFuzzPlusGuidance implements Guidance {
      * @param seed seed that needs to be assigned to the Random object
      */
     public void setRandomizationSeed(long seed) {
-        if (mutation instanceof StackedPlusMutation) {
-            ((StackedPlusMutation) mutation).setSeed(seed);
+        if (mutation instanceof StackedMutation) {
+            ((StackedMutation) mutation).setSeed(seed);
         }
         r.setSeed(seed);
     }
