@@ -60,7 +60,6 @@ public class BigFuzzPlusDriver {
      *
      * @param args program arguments
      */
-    @SuppressWarnings("SpellCheckingInspection")
     public static void main(String[] args) {
 
         // LOAD PROGRAM ARGUMENTS
@@ -158,7 +157,7 @@ public class BigFuzzPlusDriver {
                 long endTime = System.currentTimeMillis();
 
                 // Evaluate the results
-                log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
+//                log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
                 log.writeToLists(guidance, maxTrials);
                 log.addDuration(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");

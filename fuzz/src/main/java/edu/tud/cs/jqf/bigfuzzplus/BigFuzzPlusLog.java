@@ -29,7 +29,7 @@ public class BigFuzzPlusLog {
     private final ArrayList<Long> errorInputCount = new ArrayList<>();
     private final ArrayList<Long> validInputCount = new ArrayList<>();
     private final ArrayList<Long> durations = new ArrayList<>();
-
+    private final ArrayList<Integer> uniqueFailures = new ArrayList<>();
 
     private BigFuzzPlusLog() {}
 
@@ -79,6 +79,7 @@ public class BigFuzzPlusLog {
         }
 
         uniqueFailureResults.add(runFoundUniqueFailureCumulative);
+        uniqueFailures.add(cumulative);
         // Methods and columns
         if (guidance.mutation instanceof StackedMutation) {
 
@@ -157,7 +158,7 @@ public class BigFuzzPlusLog {
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\n#CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
         for (int i = 0; i < uniqueFailureResults.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + "= " + uniqueFailureResults.get(i));
+            summarized_results.append(uniqueFailureResults.get(i));
         }
 
         // --------------- INPUTS --------------
@@ -194,6 +195,12 @@ public class BigFuzzPlusLog {
         summarized_results.append("\ntotal_valid_inputs: " + validInputCount);
         for (int i = 0; i < validInputCount.size(); i++) {
             summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
+        }
+
+        // --------------- UNIQUE FAILURES --------------
+        summarized_results.append("\n\n UNIQUE FAILURES PER RUN");
+        for (int i = 0; i < uniqueFailures.size(); i++) {
+            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailures.get(i));
         }
 
         System.out.println(summarized_results);
