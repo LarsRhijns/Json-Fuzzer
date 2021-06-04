@@ -1,4 +1,0 @@
-Exception: java.lang.ClassCastException: java.lang.String cannot be cast to java.lang.Long (edu.ucla.cs.bigfuzz.customarray.applicable.JsonSalary.JsonSalaryAnalysisCustomArray 65), trial: 3
-Exception: java.lang.ClassCastException: java.lang.String cannot be cast to java.lang.Long (edu.ucla.cs.bigfuzz.customarray.applicable.JsonSalary.JsonSalaryAnalysisCustomArray 92), trial: 8
-Exception: java.lang.ClassCastException: java.lang.String cannot be cast to java.lang.Long (edu.ucla.cs.bigfuzz.customarray.applicable.JsonSalary.JsonSalaryAnalysisCustomArray 203), trial: 19
-Exception: java.lang.ClassCastException: java.lang.Double cannot be cast to java.lang.Long (edu.ucla.cs.bigfuzz.customarray.applicable.JsonSalary.JsonSalaryAnalysisCustomArray 92), trial: 33
