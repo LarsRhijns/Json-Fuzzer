@@ -10,10 +10,7 @@ import edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations.*;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import edu.ucla.cs.jqf.bigfuzz.mutationclasses.*;
 import org.apache.commons.io.FileUtils;
-import org.scalatest.Entry;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -81,12 +78,8 @@ public class BigFuzzPlusGuidance implements Guidance {
 	 * The number of valid inputs.
 	 */
 	protected long numValid = 0;
-
 	protected final long maxTrials;
-	private final PrintStream out;
-	private long numDiscards = 0;
-	// Ratio is used to terminate the program if the ratio of invalid inputs reaches the discard ratio
-	private final float maxDiscardRatio = 0.9f;
+	protected long numDiscards = 0;
     /** The directory where fuzzing results are written. */
     protected final File outputDirectory;
 
@@ -141,8 +134,6 @@ public class BigFuzzPlusGuidance implements Guidance {
      */
     protected int numSavedInputs = 0;
 
-    private final long maxTrials;
-    protected long numDiscards = 0;
 	 /** Validity fuzzing -- if true then save valid inputs that increase valid coverage
 	 */
 	protected boolean validityFuzzing;
@@ -297,6 +288,8 @@ public class BigFuzzPlusGuidance implements Guidance {
             case "StackedMutation":
                 mutation = new StackedMutation();
                 break;
+            case "SystematicMutation":
+                mutation = new SystematicMutation(initialInputFile.getName());
             case "IncomeAggregationMutation":
                 mutation = new IncomeAggregationPlusMutation();
                 break;
@@ -446,24 +439,24 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
 
-            if (PRINT_INPUT_SELECTION_DETAILS) {
-                List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
-                List<Map.Entry<String, Double>> fileChance = new ArrayList<>();
-                List<Map.Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
-                double before = 0;
-                for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
-                    before += entry.getValue();
-                    String fileName = coverageFilePointer.get(entry.getKey()).getName();
-                    fileHits.add(new Entry<>(fileName, branchesHitCount.get(entry.getKey())));
-                    fileChance.add(new Entry<>(fileName, entry.getValue()));
-                    fileChanceBoundaries.add(new Entry<>(fileName, before));
-                }
-
-                System.out.println("[SELECT] known branch hits: " + fileHits);
-                System.out.println("[SELECT] favored chances: " + fileChance);
-                System.out.println("[SELECT] favored chance boundaries: " + fileChanceBoundaries);
-                System.out.println("[SELECT] selected random number: " + selectedChance);
-            }
+//            if (PRINT_INPUT_SELECTION_DETAILS) {
+//                List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
+//                List<Map.Entry<String, Double>> fileChance = new ArrayList<>();
+//                List<Map.Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
+//                double before = 0;
+//                for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
+//                    before += entry.getValue();
+//                    String fileName = coverageFilePointer.get(entry.getKey()).getName();
+//                    fileHits.add(new Entry<>(fileName, branchesHitCount.get(entry.getKey())));
+//                    fileChance.add(new Entry<>(fileName, entry.getValue()));
+//                    fileChanceBoundaries.add(new Entry<>(fileName, before));
+//                }
+//
+//                System.out.println("[SELECT] known branch hits: " + fileHits);
+//                System.out.println("[SELECT] favored chances: " + fileChance);
+//                System.out.println("[SELECT] favored chance boundaries: " + fileChanceBoundaries);
+//                System.out.println("[SELECT] selected random number: " + selectedChance);
+//            }
         }
 
         // Mutate the next file from pendingInputs

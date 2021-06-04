@@ -161,9 +161,10 @@ public class BigFuzzPlusLog {
         }
 
         // --------------- INPUTS --------------
-        summarized_results.append("\n\n#MUTATION RESULTS PER ITERATION");
-        summarized_results.append(dataPerIterationListToLog(inputs));
-
+        if (BigFuzzPlusDriver.SAVE_INPUTS) {
+            summarized_results.append("\n\n#MUTATION RESULTS PER ITERATION");
+            summarized_results.append(dataPerIterationListToLog(inputs));
+        }
         // --------------- MUTATION COUNTER --------------
         summarized_results.append("\n\n #MUTATED INPUTS PER ITERATION");
         summarized_results.append(dataPerIterationListToLog(methods));

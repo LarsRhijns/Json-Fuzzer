@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATE_COLUMNS;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATION_DEPTH;
+
 public class BigFuzzPlusDriver {
 	// These booleans are for debugging purposes only, toggle them if you want to see the information
 	public static boolean PRINT_METHOD_NAMES = false;
@@ -25,9 +28,6 @@ public class BigFuzzPlusDriver {
 	public static boolean PRINT_MUTATIONS = false;
 	public static boolean PRINT_TEST_RESULTS = false;
 	public static boolean SAVE_INPUTS = false;
-	public static StringBuilder program_configuration = new StringBuilder();
-	public static StringBuilder iteration_results = new StringBuilder();
-	public static StringBuilder summarized_results = new StringBuilder();
 
     // ---------- LOGGING / STATS OUTPUT ------------
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
@@ -94,30 +94,29 @@ public class BigFuzzPlusDriver {
             }
         }
 
-		int intStackedMutationMethod;
 		StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
+        int intMutationStackCount = 0;
 		if (mutationMethodClassName.equalsIgnoreCase("stackedmutation")) {
-			intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
+			int intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
+			// This variable is used for the stackedMutationMethod: Smart_mutate
+			// If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
 			stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
+			intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
 			System.out.println("stackedMutationMethod: " + stackedMutationMethod);
-            log.logProgramArgumentsStackedMutation(testClassName, testMethodName, mutationMethodClassName, stackedMutationMethod, intMutationStackCount, outputDir, programStartTime);
+			log.logProgramArgumentsStackedMutation(testClassName, testMethodName, mutationMethodClassName, stackedMutationMethod, intMutationStackCount, outputDir, programStartTime);
 		}
-		if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
-			SystematicMutation.MUTATE_COLUMNS = Boolean.parseBoolean(args[4]);
-			System.out.println("Mutate columns: " + SystematicMutation.MUTATE_COLUMNS);
-			SystematicMutation.MUTATION_DEPTH = Integer.parseInt(args[5]);
-			System.out.println("Mutation depth: " + SystematicMutation.MUTATION_DEPTH);
+	    if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
+			MUTATE_COLUMNS = Boolean.parseBoolean(args[4]);
+			System.out.println("Mutate columns: " + MUTATE_COLUMNS);
+			MUTATION_DEPTH = Integer.parseInt(args[5]);
+			System.out.println("Mutation depth: " + MUTATION_DEPTH);
 			outputDir = new File("output/" + testClassName + " - " + args[4] + ", " + args[5]);
-            log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, mutateColumns, mutationDepth, outputDir, programStartTime);
+            log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, MUTATE_COLUMNS, MUTATION_DEPTH, outputDir, programStartTime);
 		}
         else {
             log.logProgramArguments(testClassName,testMethodName,mutationMethodClassName,outputDir,programStartTime);
         }
 
-		// This variable is used for the stackedMutationMethod: Smart_mutate
-		// If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
-		int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
-//        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
 
 		// **************
 

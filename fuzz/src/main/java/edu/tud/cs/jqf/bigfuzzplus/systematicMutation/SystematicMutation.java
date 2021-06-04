@@ -72,7 +72,8 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	 * @param outputFile path of output file written to by the class. Will contain mutated data
 	 * @throws IOException if file cannot be found
 	 */
-	public void mutate(String inputFile, String outputFile) throws IOException {
+	@Override
+	public void mutate(File inputFile, File outputFile) throws IOException {
 		if (EVALUATE) {
 			System.out.print(evaluation());
 		}
@@ -100,8 +101,8 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 		} else {
 			levelData.set(currentLevel, mutationRows);
 		}
-		String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
-		writeFile(fileName);
+		String fileName = outputFile.getName() + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
+		writeFile(outputFile.getName());
 
 		String path = System.getProperty("user.dir") + "/" + fileName;
 
@@ -255,7 +256,8 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	 *
 	 * @param outputFile path of output file
 	 */
-	public void writeFile(String outputFile) throws IOException {
+
+	private void writeFile(String outputFile) throws IOException {
 		File fOut = new File(outputFile);
 		FileOutputStream fos = new FileOutputStream(fOut);
 		String[] mutationRows = levelData.get(currentLevel);
@@ -279,8 +281,12 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	}
 
 	public void deleteFile(String currentFile) throws IOException {
-		File del = new File(deletePath);
-		del.delete();
+		// Check if delete is not null (which it is when the file is deleted in the first run)
+		if (deletePath != null) {
+			File del = new File(deletePath);
+			//noinspection ResultOfMethodCallIgnored
+			del.delete();
+		}
 	}
 
 	/**
@@ -290,4 +296,18 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	public void mutate(ArrayList<String> rows) {
 	}
 
+	/**
+	 * Unused method to implement BigFuzzMutation interface.
+	 */
+	@Override
+	public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+	}
+
+	/**
+	 * Unused method to implement BigFuzzMutation interface.
+	 */
+	@Override
+	public ArrayList<String> mutateFile(File inputFile) throws IOException {
+		return null;
+	}
 }
