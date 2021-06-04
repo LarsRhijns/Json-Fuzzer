@@ -32,7 +32,7 @@ public class SystematicMutation implements BigFuzzMutation {
 	public static boolean MUTATE_COLUMNS;
 
 	//print level and mutation type for every mutation
-	public static final boolean EVALUATE = false;
+	public static final boolean EVALUATE = true;
 	//number of times the tree has been restarted
 	public static int restartAmount;
 
