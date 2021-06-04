@@ -6,6 +6,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import edu.ucla.cs.jqf.bigfuzz.evaluation.Failure;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -355,6 +356,7 @@ public class BigFuzzGuidance implements Guidance {
                 int crashIdx = uniqueFailures.size() - 1;
 
                 infoLog("%s", "Found crash: " + error.getClass() + " - " + (msg != null ? msg : ""));
+                BigFuzzDriver.ds.addFailure(error, (int) numTrials);
 
 //                String how = currentInput.desc;
                 String why = result == Result.FAILURE ? "+crash" : "+hang";

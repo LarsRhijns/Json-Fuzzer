@@ -177,7 +177,7 @@ public class JsonSalaryAnalysisCustomArray {
 
     /**
      * This mapValue implements a mapValue that takes
-     * @param lines JSON values that need to be reduced by key
+     * @param lines JSON values that need to be mapped by value
      * @return value mapped lines (AgeRange, (Occurrences, Average))
      */
     public static JSONArray mapValues2(JSONArray lines) {
@@ -194,6 +194,7 @@ public class JsonSalaryAnalysisCustomArray {
             }
 
             JSONObject jsonObject = (JSONObject) obj;
+            JSONObject outObject = new JSONObject();
 
             for (Object k : jsonObject.keySet()) {
                 String key = (String) k;
@@ -203,11 +204,10 @@ public class JsonSalaryAnalysisCustomArray {
                 int occurrences = (int) aggr.get("occurrences");
                 newAggr.put("occurrences", occurrences);
                 newAggr.put("averageIncome", ((double) incomeSum) / ((double) occurrences));
-                jsonObject.remove(key);
-                jsonObject.put(key, newAggr);
+                outObject.put(key, newAggr);
             }
 
-            mappedLines.add(jsonObject);
+            mappedLines.add(outObject);
         }
 
         return mappedLines;
