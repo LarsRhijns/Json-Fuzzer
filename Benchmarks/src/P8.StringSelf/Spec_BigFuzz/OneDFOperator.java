@@ -1,5 +1,6 @@
 package P8.StringSelf.Spec_BigFuzz;
 
+import P8.StringSelf.Spec_BigFuzz.OneDFOperatorCustomArray;
 import main.java.sharedClasses.CustomArray;
 
 

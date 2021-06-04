@@ -1,5 +1,8 @@
 package P6.MovieRating.Spec_BigFuzz;
 
+import P6.MovieRating.Spec_BigFuzz.MovieRatingCustomArray;
+import P6.MovieRating.Spec_BigFuzz.map3;
+import P6.MovieRating.Spec_BigFuzz.map4;
 import main.java.sharedClasses.CustomArray;
 
 
