@@ -4,6 +4,7 @@ import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 
 import java.io.*;
 import java.time.Duration;
@@ -152,13 +153,12 @@ public class BigFuzzPlusLog {
         inputs.add(guidance.inputs);
     }
 
-
     public void summarizeProgramIterations() {
         summarized_results.append("\n#********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\n#CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
         for (int i = 0; i < uniqueFailureResults.size(); i++) {
-            summarized_results.append(uniqueFailureResults.get(i));
+            summarized_results.append("\n" + uniqueFailureResults.get(i));
         }
 
         // --------------- INPUTS --------------
@@ -184,6 +184,10 @@ public class BigFuzzPlusLog {
         // --------------- MUTATION STACK ---------------------
         summarized_results.append("\n\n #STACKED COUNT PER MUTATION PER ITERATION");
         summarized_results.append(dataPerIterationListToLog(mutationStacks));
+
+        // --------------- RESTARTS ---------------------
+        summarized_results.append("\n\n RESTARTS");
+        summarized_results.append("Total amount of restarts: " + SystematicMutation.restartAmount);
 
         // --------------- ERRORS ---------------------
         summarized_results.append("\n\n #ERROR/VALID COUNT PER ITERATION");

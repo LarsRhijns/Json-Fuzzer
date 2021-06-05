@@ -33,7 +33,7 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	public static boolean MUTATE_COLUMNS;
 
 	//print level and mutation type for every mutation
-	public static final boolean EVALUATE = true;
+	public static final boolean EVALUATE = false;
 	//number of times the tree has been restarted
 	public static int restartAmount;
 
@@ -82,7 +82,7 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 
 		//Start from seed after all mutations have been applied
 		if (currentLevel == 0) {
-			System.out.println("\nReached end of tree, restarting.");
+			System.out.println("Reached end of tree, restarting.");
 			restartAmount++;
 			mutationTree = new MutationTree(levelData.get(0).length);
 			levelData.subList(1, levelData.size()).clear();
