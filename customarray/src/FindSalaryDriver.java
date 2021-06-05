@@ -11,16 +11,17 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+
 @RunWith(JQF.class)
 
 public class FindSalaryDriver {
 
-@Fuzz
+    @Fuzz
     public void testFindSalary(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.FindSalary.FindSalaryDriver::testFindSalary: "+fileName);
-
-        List<String> fileList = Files.readAllLines(Paths.get(fileName));
+        File inputFile = new File(fileName);
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] FindSalaryDriver::testFindSalary"); }
         FindSalary analysis = new FindSalary();
-        analysis.FindSalary(fileList.get(0));
+        analysis.FindSalary(inputFile.getPath());
     }
 }

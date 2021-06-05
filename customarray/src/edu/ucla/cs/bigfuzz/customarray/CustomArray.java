@@ -259,7 +259,7 @@ public class CustomArray {
         }
         for(String line : lines)
         {
-            System.out.println(line);
+//            System.out.println(line);
             int val = 0;
             int zipCode = 0;
             int age = 0;
@@ -294,7 +294,7 @@ public class CustomArray {
                 ret.add(num);
             }
         }
-        System.out.println(ret.size());
+//        System.out.println(ret.size());
         if( !ret.isEmpty()) arm = 1;
 
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
@@ -379,7 +379,7 @@ public class CustomArray {
         return words;
     }
     public static ArrayList<String> flatMap() {
-        System.out.println("Generating Data Flow Event: FlatMap");
+//        System.out.println("Generating Data Flow Event: FlatMap");
 
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
 
@@ -393,7 +393,7 @@ public class CustomArray {
         return words;
     }
     public static ArrayList<Map<String, Integer>> mapToPair(List<String> words) {
-        System.out.println("Generating Data Flow Event: mapToPair");
+//        System.out.println("Generating Data Flow Event: mapToPair");
 
 //        System.out.println(Thread.currentThread().getStackTrace().length);
 //
@@ -435,7 +435,7 @@ public class CustomArray {
         return wordsCountMapList;
     }
     public static Map<String, Integer> reduceByKey(ArrayList<Map<String, Integer>> wordsCountMapList) {
-        System.out.println("Generating Data Flow Event: ReduceByKey");
+//        System.out.println("Generating Data Flow Event: ReduceByKey");
 
 //        for (int i = 0; i < Thread.currentThread().getStackTrace().length; i++)
 //        {

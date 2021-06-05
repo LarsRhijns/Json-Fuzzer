@@ -38,9 +38,8 @@ public class BigFuzzDriver {
             String title = testClassName+"#"+testMethodName;
               Duration duration = Duration.of(100, ChronoUnit.SECONDS);
              //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
-             File outputDir = new File("output/" + startTime);
-             outputDir.mkdir();
-             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err, "output/" + startTime + "/bigfuzzdata");
+
+             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err);
 
              // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
@@ -55,7 +54,7 @@ public class BigFuzzDriver {
            System.out.println("*********Running Time：" + (endTime - startTime) + "ms");
 
        } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
 //            System.exit(2);
         }
 

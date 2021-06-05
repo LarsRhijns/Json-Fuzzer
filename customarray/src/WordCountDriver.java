@@ -54,27 +54,16 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+
 @RunWith(JQF.class)
 public class WordCountDriver {
 
     @Fuzz
     public void testWordCount(String fileName) throws Exception {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCount.WordCountDriver::testWordCount: "+fileName);
-
-        List<String> fileList = Files.readAllLines(Paths.get(fileName));
-
-        try {
-            Scanner sc = new Scanner(new File(fileList.get(0)));
-
-            while (sc.hasNextLine()) {
-                System.out.println(sc.nextLine());
-
-            }
-        } catch (FileNotFoundException e) {
-
-        }
-
+        File inputFile = new File(fileName);
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] WordCountDriver::testWordCount"); }
         WordCount analysis = new WordCount();
-        analysis.WordCount(fileList.get(0));
+        analysis.WordCount(inputFile.getPath());
     }
 }
