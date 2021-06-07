@@ -158,7 +158,7 @@
     <orderEntry type="library" name="Maven: org.javassist:javassist:3.20.0-GA" level="project" />
     <orderEntry type="library" name="Maven: ru.vyarus:generics-resolver:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.pholser:junit-quickcheck-generators:0.8" level="project" />
-    <orderEntry type="module" module-name="jqf-instrument" />
+    <orderEntry type="library" name="Maven: edu.berkeley.cs.jqf:jqf-instrument:1.2-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm:6.2.1" level="project" />
     <orderEntry type="library" name="Maven: org.jacoco:org.jacoco.report:0.8.2" level="project" />
     <orderEntry type="library" name="Maven: org.jacoco:org.jacoco.core:0.8.2" level="project" />
