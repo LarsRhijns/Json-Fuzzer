@@ -224,7 +224,7 @@ public class MutationTree {
 	 *                    3: random insert value in element (M4)
 	 *                    4: random delete one column/element (M5)
 	 *                    5: Empty String (M6)
-	 *                    6: random add one column/element (?)
+	 *                    6: random add one column/element (M7)
 	 *                    7: change delimiter (M3)
 	 */
 	public enum MutationType {

@@ -32,7 +32,7 @@ public class SystematicMutation implements BigFuzzMutation {
 	public static boolean MUTATE_COLUMNS;
 
 	//print level and mutation type for every mutation
-	public static final boolean EVALUATE = true;
+	public static final boolean EVALUATE = false;
 	//number of times the tree has been restarted
 	public static int restartAmount;
 
@@ -60,9 +60,9 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	public String evaluation() {
-		return "Level: " + currentLevel +
-				"\nColumn: " + mutationTree.getCurrentMutation().getColumn() +
-				"\nNext mutation: " + mutationTree.getCurrentMutation().getMutationType() + "\n";
+		return		"Next mutation: " + mutationTree.getCurrentMutation().getMutationType() +
+				"\nLevel: " + currentLevel +
+				"\nColumn: " + mutationTree.getCurrentMutation().getColumn();
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class SystematicMutation implements BigFuzzMutation {
 
 		//Start from seed after all mutations have been applied
 		if (currentLevel == 0) {
-			System.out.println("\nReached end of tree, restarting.");
+			System.out.println("Reached end of tree, restarting.");
 			restartAmount++;
 			mutationTree = new MutationTree(levelData.get(0).length);
 			levelData.subList(1, levelData.size()).clear();
