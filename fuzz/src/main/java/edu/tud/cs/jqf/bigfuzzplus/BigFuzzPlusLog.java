@@ -14,21 +14,20 @@ public class BigFuzzPlusLog {
 
     private static BigFuzzPlusLog INSTANCE;
 
+    private static StringBuilder program_configuration = new StringBuilder();
+    private static StringBuilder iteration_results = new StringBuilder();
+    private static StringBuilder summarized_results = new StringBuilder();
 
-    private final StringBuilder program_configuration = new StringBuilder();
-    private final StringBuilder iteration_results = new StringBuilder();
-    private final StringBuilder summarized_results = new StringBuilder();
 
+    private static ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> inputs = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> methods = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> columns = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> mutationStacks = new ArrayList<>();
 
-    private final ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> inputs = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> methods = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> columns = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> mutationStacks = new ArrayList<>();
-
-    private final ArrayList<Long> errorInputCount = new ArrayList<>();
-    private final ArrayList<Long> validInputCount = new ArrayList<>();
-    private final ArrayList<Long> durations = new ArrayList<>();
+    private static ArrayList<Long> errorInputCount = new ArrayList<>();
+    private static ArrayList<Long> validInputCount = new ArrayList<>();
+    private static ArrayList<Long> durations = new ArrayList<>();
 
 
     private BigFuzzPlusLog() {}
@@ -42,6 +41,21 @@ public class BigFuzzPlusLog {
 
     public static void resetInstance() {
         INSTANCE = new BigFuzzPlusLog();
+
+        // TODO: singleton has not been implemented correctly/might not be suited for the job.
+        program_configuration = new StringBuilder();
+        iteration_results = new StringBuilder();
+        summarized_results = new StringBuilder();
+
+        uniqueFailureResults = new ArrayList<>();
+        inputs = new ArrayList<>();
+        methods = new ArrayList<>();
+        columns = new ArrayList<>();
+        mutationStacks = new ArrayList<>();
+
+        errorInputCount = new ArrayList<>();
+        validInputCount = new ArrayList<>();
+        durations = new ArrayList<>();
     }
 
     public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
