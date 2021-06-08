@@ -365,7 +365,8 @@ public class BigFuzzGuidance implements Guidance {
 //                infoLog("Saved - %s %s %s", saveFile.getPath(), how, why);
 
                 File src = new File(currentInputFile);
-                currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + rootCause;
+                String cause = rootCause.getClass().toString();
+                currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + cause;
                 File des = new File(currentInputFile);
                 src.renameTo(des);
             } else {
