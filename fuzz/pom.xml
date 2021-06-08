@@ -35,10 +35,6 @@
             <artifactId>junit-quickcheck-generators</artifactId>
         </dependency>
         <dependency>
-            <groupId>edu.berkeley.cs.jqf</groupId>
-    		<artifactId>jqf-instrument</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.report</artifactId>
             <version>0.8.2</version>
@@ -91,6 +87,11 @@
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.12</artifactId>
             <version>3.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-instrument</artifactId>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

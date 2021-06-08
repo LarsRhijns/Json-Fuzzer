@@ -26,6 +26,6 @@ public class DataPoint {
     }
 
     public String toString() {
-        return "(" + trialNumber + "," + cumErrors + ")";
+        return trialNumber + "," + cumErrors;
     }
 }

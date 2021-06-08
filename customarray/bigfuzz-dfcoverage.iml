@@ -157,8 +157,6 @@
     <orderEntry type="library" name="Maven: org.javassist:javassist:3.20.0-GA" level="project" />
     <orderEntry type="library" name="Maven: ru.vyarus:generics-resolver:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.pholser:junit-quickcheck-generators:0.8" level="project" />
-    <orderEntry type="library" name="Maven: edu.berkeley.cs.jqf:jqf-instrument:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.ow2.asm:asm:6.2.1" level="project" />
     <orderEntry type="library" name="Maven: org.jacoco:org.jacoco.report:0.8.2" level="project" />
     <orderEntry type="library" name="Maven: org.jacoco:org.jacoco.core:0.8.2" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-commons:6.2.1" level="project" />
@@ -182,6 +180,8 @@
     <orderEntry type="library" name="Maven: org.scalatest:scalatest_2.12:3.0.5" level="project" />
     <orderEntry type="library" name="Maven: org.scalactic:scalactic_2.12:3.0.5" level="project" />
     <orderEntry type="library" name="Maven: org.scala-lang.modules:scala-xml_2.12:1.0.6" level="project" />
+    <orderEntry type="module" module-name="jqf-instrument" />
+    <orderEntry type="library" name="Maven: org.ow2.asm:asm:6.2.1" level="project" />
     <orderEntry type="library" name="Maven: com.googlecode.json-simple:json-simple:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: com.opencsv:opencsv:5.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.10" level="project" />
