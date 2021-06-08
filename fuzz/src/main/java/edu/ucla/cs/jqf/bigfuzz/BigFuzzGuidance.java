@@ -96,15 +96,24 @@ public class BigFuzzGuidance implements Guidance {
     protected final String initialInputFile;
     BigFuzzMutation mutation = new JsonMutation();
     private String currentInputFile;
+    private final String outputDirName;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out, String outputDirName) throws IOException {
 
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
-        //this.outputDirectory = outputDirectory;
+
+        // create or empty the output directory
+        this.outputDirName = outputDirName;
+        File outputDir = new File(outputDirName);
+        boolean newOutputDirCreated = outputDir.mkdir();
+        if (!newOutputDirCreated) {
+            FileUtils.cleanDirectory(FileUtils.getFile(outputDirName));
+        }
+
 
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
@@ -163,6 +172,7 @@ public class BigFuzzGuidance implements Guidance {
 //                mutation.writeFile(fileName);
 
                 String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date());
+                nextInputFile = this.outputDirName + '/' + nextInputFile;
                 System.out.println(nextInputFile);
                 mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
                 currentInputFile = nextInputFile;

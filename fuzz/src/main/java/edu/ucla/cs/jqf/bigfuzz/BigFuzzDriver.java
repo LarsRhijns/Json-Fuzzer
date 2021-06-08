@@ -23,7 +23,7 @@ public class BigFuzzDriver {
         String testMethodName = args[1];
         Long maxTrials = args.length > 2 ? Long.parseLong(args[2]) : Long.MAX_VALUE;
         System.out.println("maxTrials: "+maxTrials);
-//        File outputDirectory = new File("../fuzz-results");
+
 
 
         String file = "dataset/conf";
@@ -34,12 +34,14 @@ public class BigFuzzDriver {
        try {
            long startTime = System.currentTimeMillis();
            folder = startTime;
+           File outputDir = new File("output/" + startTime);
+           outputDir.mkdir();
 
             String title = testClassName+"#"+testMethodName;
               Duration duration = Duration.of(100, ChronoUnit.SECONDS);
              //NoGuidance guidance = new NoGuidance(file, maxTrials, System.err);
 
-             BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err);
+            BigFuzzGuidance guidance = new BigFuzzGuidance("Test1", file, maxTrials, duration, System.err, "output/" + startTime + "/bigfuzzdata");
 
              // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);
