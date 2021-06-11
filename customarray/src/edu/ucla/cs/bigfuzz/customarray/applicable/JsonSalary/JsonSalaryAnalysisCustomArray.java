@@ -169,6 +169,9 @@ public class JsonSalaryAnalysisCustomArray {
                 int occurrences = (int) range.get("occurrences");
                 range.remove("occurrences");
                 range.put("occurrences", (int) jsonObject.get("count") + occurrences);
+
+                aggregateObject.remove(ageRange);
+                aggregateObject.put(ageRange, range);
             }
         }
         reducedLine.add(aggregateObject);
