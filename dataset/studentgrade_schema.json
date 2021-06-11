@@ -10,7 +10,7 @@
       "properties": {
         "course": {
           "type": "string",
-          "pattern": "[EE|CS][0-9]{2}"
+          "pattern": "^(EE|CS)([1-9]|10)$"
         },
         "grade": {
           "type": "integer",

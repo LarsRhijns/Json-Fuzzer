@@ -43,52 +43,52 @@ def fillPoints (x, y):
 
     return xs
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055143042/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055143042/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x10.append(values[1])
     y10.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055225322/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055225322/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x9.append(values[1])
     y9.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055269878/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055269878/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x8.append(values[1])
     y8.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055314598/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055314598/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x7.append(values[1])
     y7.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055368682/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055368682/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x6.append(values[1])
     y6.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055411177/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055411177/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x5.append(values[1])
     y5.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055462545/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055462545/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x4.append(values[1])
     y4.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055519968/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055519968/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x3.append(values[1])
     y3.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055565194/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055565194/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x2.append(values[1])
     y2.append(values[0])
 
-for line in open('../output/SalaryAnalysis-10runs-valid/1623055646240/datapoints/points.txt', 'r'):
+for line in open('../../output/SalaryAnalysis-10runs-valid/1623055646240/datapoints/points.txt', 'r'):
     values = [float(s) for s in line.split(',')]
     x1.append(values[1])
     y1.append(values[0])
