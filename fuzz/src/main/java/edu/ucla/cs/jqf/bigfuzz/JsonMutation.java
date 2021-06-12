@@ -212,14 +212,17 @@ public class JsonMutation implements BigFuzzMutation {
         if (valueSchema instanceof ArraySchema) {
             // Remove min and max items, keep all item schemas
             ArraySchema sc = (ArraySchema) valueSchema;
-            Schema itemSchemas = sc.getAllItemSchema();
+            List<Schema> itemSchemas = sc.getItemSchemas();
             ArraySchema.Builder builder = new ArraySchema.Builder();
             builder.maxItems(null);
             builder.minItems(null);
-            builder.allItemSchema(itemSchemas);
+            for (Schema schema : itemSchemas) {
+                builder.addItemSchema(schema);
+            }
             ArraySchema newSchema = builder.build();
 //            updateJsonSchema(newSchema, property);
-            return new JSONArray().add(GeneratorFactory.getGenerator(newSchema).generate());
+            JSONArray out = new JSONArray();
+            return out.add(GeneratorFactory.getGenerator(newSchema).generate());
         } else if (valueSchema instanceof BooleanSchema) {
             // Simply generate a new boolean
             BooleanSchema sc = (BooleanSchema) valueSchema;
@@ -274,11 +277,17 @@ public class JsonMutation implements BigFuzzMutation {
         } else if (valueSchema instanceof StringSchema) {
             // Remove min and max length, keep pattern and format
             StringSchema sc = (StringSchema) valueSchema;
-            String pattern = sc.getPattern().toString();
+
+            String pattern = null;
+            if (sc.getPattern() != null) {
+                pattern = sc.getPattern().toString();
+            }
             StringSchema.Builder builder = new StringSchema.Builder();
             builder.minLength(null);
             builder.maxLength(null);
-            builder.pattern(pattern);
+            if (pattern != null) {
+                builder.pattern(pattern);
+            }
             StringSchema newSchema = builder.build();
 //            updateJsonSchema(newSchema, property);
             return GeneratorFactory.getGenerator(newSchema).generate();

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "title": "MovieRating Object",
+      "description": "MovieRating data input",
+      "properties": {
+        "movietitle": {
+          "type": "string"
+        },
+        "ratings": {
+          "type": "array",
+          "items": [
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

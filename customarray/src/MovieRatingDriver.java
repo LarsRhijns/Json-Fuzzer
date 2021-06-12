@@ -19,7 +19,8 @@ public class MovieRatingDriver {
         File inputFile = new File(fileName);
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] MovieRatingDriver::testMovieRating"); }
         MovieRating analysis = new MovieRating();
-        analysis.MovieRating(inputFile.getPath());
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
+        analysis.MovieRating(fileList.get(0));
     }
 
     public static void main(String[] args) throws IOException {
