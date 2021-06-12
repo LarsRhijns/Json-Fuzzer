@@ -70,31 +70,27 @@ public class BigFuzzPlusDriver {
         Long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
 
         int intStackedMutationMethod;
+        int intMutationStackCount = 1;
         StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
         if (mutationMethodClassName.equalsIgnoreCase("stackedmutation")) {
             intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
             stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
-            System.out.println("stackedMutationMethod: " + stackedMutationMethod);
+
+            // This variable is used for the stackedMutationMethod: Smart_mutate
+            // If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
+            intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
         }
         boolean mutateColumns = true;
         int mutationDepth = 6;
         if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
             mutateColumns = Boolean.parseBoolean(args[4]);
-            System.out.println("Mutate columns: " + mutateColumns);
             mutationDepth = Integer.parseInt(args[5]);
-            System.out.println("Mutation depth: " + mutationDepth);
         }
-
-        // This variable is used for the stackedMutationMethod: Smart_mutate
-        // If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
-        int intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
-        System.out.println("maximal amount of stacked mutation: " + intMutationStackCount);
-
         // **************
 
         long programStartTime = System.currentTimeMillis();
         File allOutputDir = new File("fuzz-results");
-        File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName + " - " + mutationMethodClassName );
+        File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName + " - " + mutationMethodClassName + " - " + stackedMutationMethod );
         if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + allOutputDir);
             System.exit(0);
@@ -120,7 +116,7 @@ public class BigFuzzPlusDriver {
         }
         log.printProgramArguments();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 25; i++) {
             int atIteration = i + 1;
             System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 

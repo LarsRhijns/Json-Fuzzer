@@ -13,11 +13,13 @@ import java.util.*;
 public class BigFuzzPlusLog {
     private static final boolean LOG_UNIQUE_FAILURES_PER_TRIAL = true;
     private static final boolean LOG_INPUTS = true;
-    private static final boolean LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN = true;
+    private static final boolean LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN = false;
     private static final boolean LOG_MUTATION_STACKS = true;
-    private static final boolean LOG_ERROR_INPUT_COUNT = true;
-    private static final boolean LOG_VALID_INPUT_COUNT = true;
+    private static final boolean LOG_ERROR_INPUT_COUNT = false;
+    private static final boolean LOG_VALID_INPUT_COUNT = false;
     private static final boolean LOG_UNIQUE_FAILURE_AND_MUTATION = true;
+
+    private static final boolean PRINT_TO_CONSOLE = false;
 
     private static BigFuzzPlusLog INSTANCE;
 
@@ -88,7 +90,8 @@ public class BigFuzzPlusLog {
     }
 
     public void printProgramArguments() {
-        System.out.println(program_configuration);
+        if(PRINT_TO_CONSOLE)
+            System.out.println(program_configuration);
     }
 
     public void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials) {
@@ -259,8 +262,8 @@ public class BigFuzzPlusLog {
                 summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
             }
         }
-
-        System.out.println(summarized_results);
+        if(PRINT_TO_CONSOLE)
+            System.out.println(summarized_results);
     }
 
 
@@ -461,7 +464,8 @@ public class BigFuzzPlusLog {
         if(LOG_UNIQUE_FAILURE_AND_MUTATION)
             e_log.append(printUniqueFailuresWithMutations(guidance));
 
-        System.out.println(e_log);
+        if(PRINT_TO_CONSOLE)
+            System.out.println(e_log);
         iteration_results.append(e_log);
     }
 
