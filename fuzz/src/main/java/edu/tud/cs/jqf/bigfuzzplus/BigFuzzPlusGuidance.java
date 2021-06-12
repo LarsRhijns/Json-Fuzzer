@@ -396,9 +396,6 @@ public class BigFuzzPlusGuidance implements Guidance {
             else if (selection == SelectionMethod.INIT_FILES) {
                 pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
             }
-            else if (selection == SelectionMethod.ONLY_FIRST_INIT) {
-                pendingInputs.add(Objects.requireNonNull(initialInputsDirectory.listFiles())[0]);
-            }
         }
         if (pendingInputs.isEmpty()) {
             System.out.println("Can't find any input files. Are you sure that you provided one in " + initialInputFile.getPath() + "?");
