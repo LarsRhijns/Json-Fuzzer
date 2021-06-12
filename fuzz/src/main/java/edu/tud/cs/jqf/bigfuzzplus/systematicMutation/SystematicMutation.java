@@ -5,6 +5,7 @@ import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.Mutation;
 import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -101,15 +102,29 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 		} else {
 			levelData.set(currentLevel, mutationRows);
 		}
-		String fileName = outputFile.getName() + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
-		writeFile(outputFile.getName());
 
-		String path = System.getProperty("user.dir") + "/" + fileName;
+		List<String> fileList = Files.readAllLines(inputFile.toPath());
+		int n = new Random().nextInt(fileList.size());
+		File fileToMutate = new File(fileList.get(n));
+		ArrayList<String> mutatedInput = mutateFile(fileToMutate);
+		if (mutatedInput != null) {
+			writeFile(outputFile, mutatedInput);
+		}
 
-		deletePath = path;
-		// write next input config
-		BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-		bw.write(path);
+		deletePath = outputFile.getPath();
+
+		// write next ref file
+		File refFile = new File(outputFile + "_ref");
+		BufferedWriter bw = new BufferedWriter(new FileWriter(refFile));
+		for(int i = 0; i < fileList.size(); i++)
+		{
+			if(i == n)
+				bw.write(outputFile.getPath());
+			else
+				bw.write(fileList.get(i));
+			bw.newLine();
+			bw.flush();
+		}
 		bw.close();
 	}
 

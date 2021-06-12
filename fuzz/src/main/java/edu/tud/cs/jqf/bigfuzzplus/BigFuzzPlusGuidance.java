@@ -352,26 +352,12 @@ public class BigFuzzPlusGuidance implements Guidance {
 
         if (numTrials == 0) { // Copy initial input files if no input exists yet.
             // Handle initially declared inputs
-            int countInitFiles = 0;
-            Scanner sc = new Scanner(initialInputFile);
-            while (sc.hasNextLine()) {
-                File nextInitInput = new File(sc.nextLine());
-                String initFileName = "init_" + countInitFiles;
-                File initInput = new File(initialInputsDirectory, initFileName);
-                File nextAllInput = new File(allInputsDirectory, initFileName);
-                FileUtils.copyFile(nextInitInput, initInput);
-                FileUtils.copyFile(nextInitInput, nextAllInput);
-                countInitFiles++;
-                if (selection == SelectionMethod.ONLY_FIRST_INIT) {
-                    break;
-                }
-            }
-            sc.close();
+            File initFile = new File(initialInputsDirectory, "init_0_ref");
+            FileUtils.copyFile(initialInputFile, initFile);
+            File firstInputIsInteresting = new File(allInterestingInputsDirectory, initFile.getName());
+            FileUtils.copyFile(initFile, firstInputIsInteresting);
 
-            File firstInitInput = Objects.requireNonNull(initialInputsDirectory.listFiles())[0];
-            File firstInputIsInteresting = new File(allInterestingInputsDirectory, firstInitInput.getName());
-            FileUtils.copyFile(firstInitInput, firstInputIsInteresting);
-            pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allInputsDirectory.listFiles())));
+            pendingInputs.add(initFile);
         }
 
         // Select initial inputs first and don't mutate them.
@@ -461,10 +447,9 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Mutate the next file from pendingInputs
         String mutationFileName = "mutation_" + numTrials;
         File nextInputFile = new File(allInputsDirectory, mutationFileName);
-        File mutationFile = new File(allInterestingInputsDirectory, mutationFileName);
+        File mutationFile = new File(allInputsDirectory, mutationFileName);
         if (PRINT_INPUT_SELECTION_DETAILS) { System.out.println("[SELECT] selected mutate input: " + currentInputFile.getName()); }
         mutation.mutate(currentInputFile, mutationFile);
-        FileUtils.copyFile(mutationFile, nextInputFile);
 
         // Move reference file to correct directory
         currentInputFile = nextInputFile;
@@ -604,20 +589,17 @@ public class BigFuzzPlusGuidance implements Guidance {
                         numTrials, nonZeroAfter);
 
                 // Change current input file name
-                File src = currentInputFile;
-                String branchesFileName = "branches_" + numTrials;
-                File des = new File(coverageInputsDirectory, branchesFileName);
-                File src2 = new File(allInterestingInputsDirectory, src.getName());
-                File des2 = new File(allInterestingInputsDirectory, branchesFileName);
+                boolean isInitFile = new File(initialInputsDirectory, currentInputFile.getName()).exists();
+                File src = new File(currentInputFile + (isInitFile ? "" : "_ref"));
+                File des = new File(coverageInputsDirectory, src.getName());
+                File des2 = new File(allInterestingInputsDirectory, src.getName());
                 // save the file if it increased coverage
                 if (why.contains("+cov")) {
                     if (!des.exists()) {
                         try {
                             if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] " + des.getName() + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
-                            if (!src2.renameTo(des2)) {
-                                System.out.println("!! Could not rename file " + src2 + " to " + des2);
-                            }
+                            FileUtils.copyFile(src, des2);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -673,18 +655,15 @@ public class BigFuzzPlusGuidance implements Guidance {
                 String why = result == Result.FAILURE ? "+crash" : "+hang";
                 if (PRINT_MUTATION_DETAILS) { System.out.println("[MUTATE] Unique failure found: " + why + "\n\t" + rootCause); }
 
-                File src = currentInputFile;
-                File srcInteresting = new File(allInterestingInputsDirectory, src.getName());
-                String failureFileName = "failure_" + numTrials;
-                File des = new File(uniqueFailuresDirectory, failureFileName);
-                File srcRename = new File(allInterestingInputsDirectory, failureFileName);
+                boolean isInitFile = new File(initialInputsDirectory, currentInputFile.getName()).exists();
+                File src = new File(currentInputFile + (isInitFile ? "" : "_ref"));
+                File des = new File(uniqueFailuresDirectory, src.getName());
+                File des2 = new File(allInterestingInputsDirectory, src.getName());
                 // save the file if it increased coverage
                 if (why.contains("+crash")) {
                     try {
                         FileUtils.copyFile(src, des);
-                        if (!srcInteresting.renameTo(srcRename)) {
-                            System.out.println("!! Could not rename file " + srcInteresting + " to " + srcRename);
-                        }
+                        FileUtils.copyFile(src, des2);
                         lastWorkingInputFile = src;
                     } catch (IOException e) {
                         e.printStackTrace();
