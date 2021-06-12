@@ -11,6 +11,7 @@ import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 import org.apache.commons.io.FileUtils;
+import org.scalatest.Entry;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -440,24 +441,24 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
 
-//            if (PRINT_INPUT_SELECTION_DETAILS) {
-//                List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
-//                List<Map.Entry<String, Double>> fileChance = new ArrayList<>();
-//                List<Map.Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
-//                double before = 0;
-//                for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
-//                    before += entry.getValue();
-//                    String fileName = coverageFilePointer.get(entry.getKey()).getName();
-//                    fileHits.add(new Entry<>(fileName, branchesHitCount.get(entry.getKey())));
-//                    fileChance.add(new Entry<>(fileName, entry.getValue()));
-//                    fileChanceBoundaries.add(new Entry<>(fileName, before));
-//                }
-//
-//                System.out.println("[SELECT] known branch hits: " + fileHits);
-//                System.out.println("[SELECT] favored chances: " + fileChance);
-//                System.out.println("[SELECT] favored chance boundaries: " + fileChanceBoundaries);
-//                System.out.println("[SELECT] selected random number: " + selectedChance);
-//            }
+            if (PRINT_INPUT_SELECTION_DETAILS) {
+                List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
+                List<Map.Entry<String, Double>> fileChance = new ArrayList<>();
+                List<Map.Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
+                double before = 0;
+                for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
+                    before += entry.getValue();
+                    String fileName = coverageFilePointer.get(entry.getKey()).getName();
+                    fileHits.add(new Entry<>(fileName, branchesHitCount.get(entry.getKey())));
+                    fileChance.add(new Entry<>(fileName, entry.getValue()));
+                    fileChanceBoundaries.add(new Entry<>(fileName, before));
+                }
+
+                System.out.println("[SELECT] known branch hits: " + fileHits);
+                System.out.println("[SELECT] favored chances: " + fileChance);
+                System.out.println("[SELECT] favored chance boundaries: " + fileChanceBoundaries);
+                System.out.println("[SELECT] selected random number: " + selectedChance);
+            }
         }
 
         // Mutate the next file from pendingInputs
