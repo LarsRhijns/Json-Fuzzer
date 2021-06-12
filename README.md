@@ -13,7 +13,7 @@ On this repository, a new method is implemented: BigFuzzPlus. This method builds
 New functionalities added are:
 - Tabular input specification 
 - JSON input specification
-- Coverage guided fuzzing 
+- (Boosted) Coverage-guided fuzzing 
 - Systematic mutations for fuzzing
 - Stacking of mutation 
 
@@ -59,6 +59,10 @@ Existing benchmarks can be found in either the "Benchmarks" (module: bigfuzz-ben
 The mutation method needs to be an existing mutation method and has to be added to the BigFuzzPlusGuidance class.   
 > (e.g. StackedMutation / SystematicMutation / FindSalaryMutation/ ....)
  
+To run with (Boosted) Coverage-Guided fuzzing
+> - set SelectionMethod to COVERAGE_FILES (default = INIT_FILES)
+> - Tweak the favor rate between 0 and 1 (0 = only baseline selection, 1 = only favored selection)
+
 If run with StackedMutation as the mutation method:  
 > [4] - stacked mutation method   (default = 0)  
 > - 0 = Disabled  
