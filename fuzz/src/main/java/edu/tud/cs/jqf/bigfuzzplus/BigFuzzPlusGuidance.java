@@ -34,6 +34,7 @@ import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_TEST_RESULTS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.SAVE_UNIQUE_FAILURES;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
@@ -242,9 +243,11 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (!this.coverageInputsDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + coverageInputsDirectory);
         }
-        this.uniqueFailuresDirectory = new File(outputDirectory, "unique_failures");
-        if (!this.uniqueFailuresDirectory.mkdirs()) {
-            System.out.println("!! Could not create directory: " + uniqueFailuresDirectory);
+        if (SAVE_UNIQUE_FAILURES) {
+            this.uniqueFailuresDirectory = new File(outputDirectory, "unique_failures");
+            if (!this.uniqueFailuresDirectory.mkdirs()) {
+                System.out.println("!! Could not create directory: " + uniqueFailuresDirectory);
+            }
         }
         this.initialInputsDirectory = new File(outputDirectory, "init_inputs");
         if (!this.initialInputsDirectory.mkdirs()) {
@@ -641,11 +644,12 @@ public class BigFuzzPlusGuidance implements Guidance {
                 File des = new File(uniqueFailuresDirectory, src.getName());
                 // save the file if it increased coverage
                 if (why.contains("+crash")) {
-                    try {
-                        FileUtils.copyFile(src, des);
-                        lastWorkingInputFile = src;
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (SAVE_UNIQUE_FAILURES) {
+                        try {
+                            FileUtils.copyFile(src, des);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

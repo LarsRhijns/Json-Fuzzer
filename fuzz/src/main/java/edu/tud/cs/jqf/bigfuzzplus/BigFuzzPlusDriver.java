@@ -32,6 +32,7 @@ public class BigFuzzPlusDriver {
     // ---------- LOGGING / STATS OUTPUT ------------
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
+    public static boolean SAVE_UNIQUE_FAILURES = false;
 
 
     public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
