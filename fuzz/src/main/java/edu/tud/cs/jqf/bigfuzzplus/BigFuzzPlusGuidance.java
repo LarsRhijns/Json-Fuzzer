@@ -594,11 +594,6 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
             else {
-                try {
-                    mutation.deleteFile(currentInputFile.getPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 currentInputFile = lastWorkingInputFile;
             }
         }else if (result == Result.FAILURE || result == Result.TIMEOUT) {
@@ -654,11 +649,6 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
             else {
-                try {
-                    mutation.deleteFile(currentInputFile.getPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 currentInputFile = lastWorkingInputFile;
             }
         }
