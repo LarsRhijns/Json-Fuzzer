@@ -1,19 +1,20 @@
-
-
-
 import P11.IncomAggregation.Spec_BigFuzz.DFOperator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
 @RunWith(JQF.class)
 
 public class DFOperatorDriver {
 
-@Fuzz
+    @Fuzz
     public void testDFOperator(String fileName) throws Exception {
-//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.P11.IncomAggregation.Spec_BigFuzz.DFOperator.DFOperatorDriver::testDFOperator: "+fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         DFOperator analysis = new DFOperator();
-        analysis.DFOperator(fileName);
+        analysis.DFOperator(fileList.get(0));
     }
 }

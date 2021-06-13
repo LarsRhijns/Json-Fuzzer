@@ -17,10 +17,10 @@ public class ExternalUDFDriver {
 
     @Fuzz
     public void testExternalUDF(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] ExternalUDFDriver::testExternalUDF"); }
         ExternalUDF analysis = new ExternalUDF();
-        analysis.ExternalUDF(inputFile.getPath());
+        analysis.ExternalUDF(fileList.get(0));
     }
 
     public static void main(String[] args) throws IOException {

@@ -18,9 +18,9 @@ public class WordCountNewDriver {
 
     @Fuzz
     public void testWordCountNew(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] WordCountNewDriver::testWordCountNew"); }
         WordCountNew analysis = new WordCountNew();
-        analysis.WordCountNew(inputFile.getPath());
+        analysis.WordCountNew(fileList.get(0));
     }
 }

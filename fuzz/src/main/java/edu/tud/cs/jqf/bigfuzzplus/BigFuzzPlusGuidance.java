@@ -447,7 +447,9 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] BigFuzzGuidance::getInput"); }
 
         saveInput();
-        return new ByteArrayInputStream(currentInputFile.getPath().getBytes());
+
+        File refFile = new File(currentInputFile + "_ref");
+        return new ByteArrayInputStream(refFile.getPath().getBytes());
     }
 
     /**

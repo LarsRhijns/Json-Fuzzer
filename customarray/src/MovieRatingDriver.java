@@ -16,10 +16,10 @@ public class MovieRatingDriver {
 
     @Fuzz
     public void testMovieRating(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] MovieRatingDriver::testMovieRating"); }
         MovieRating analysis = new MovieRating();
-        analysis.MovieRating(inputFile.getPath());
+        analysis.MovieRating(fileList.get(0));
     }
 
     public static void main(String[] args) throws IOException {
