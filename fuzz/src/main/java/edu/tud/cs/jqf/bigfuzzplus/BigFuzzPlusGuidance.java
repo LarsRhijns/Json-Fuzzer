@@ -101,9 +101,6 @@ public class BigFuzzPlusGuidance implements Guidance {
     /** The directory where all inputs are written. */
     protected File allInputsDirectory;
 
-    /** The directory where all mutations are written. */
-    protected File allInterestingInputsDirectory;
-
     /** Set of saved inputs to fuzz. */
     protected ArrayList<ZestGuidance.Input> savedInputs = new ArrayList<>();
 
@@ -257,10 +254,6 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (!this.allInputsDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + allInputsDirectory);
         }
-        this.allInterestingInputsDirectory = new File(outputDirectory, "interesting_inputs");
-        if (!this.allInterestingInputsDirectory.mkdirs()) {
-            System.out.println("!! Could not create directory: " + allInterestingInputsDirectory);
-        }
 
         if (LOG_AND_PRINT_STATS) {
             this.statsFile = new File(outputDirectory, "plot_data");
@@ -354,8 +347,6 @@ public class BigFuzzPlusGuidance implements Guidance {
             // Handle initially declared inputs
             File initFile = new File(initialInputsDirectory, "init_0_ref");
             FileUtils.copyFile(initialInputFile, initFile);
-            File firstInputIsInteresting = new File(allInterestingInputsDirectory, initFile.getName());
-            FileUtils.copyFile(initFile, firstInputIsInteresting);
 
             pendingInputs.add(initFile);
         }
@@ -592,14 +583,12 @@ public class BigFuzzPlusGuidance implements Guidance {
                 boolean isInitFile = new File(initialInputsDirectory, currentInputFile.getName()).exists();
                 File src = new File(currentInputFile + (isInitFile ? "" : "_ref"));
                 File des = new File(coverageInputsDirectory, src.getName());
-                File des2 = new File(allInterestingInputsDirectory, src.getName());
                 // save the file if it increased coverage
                 if (why.contains("+cov")) {
                     if (!des.exists()) {
                         try {
                             if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] " + des.getName() + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
-                            FileUtils.copyFile(src, des2);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -658,12 +647,10 @@ public class BigFuzzPlusGuidance implements Guidance {
                 boolean isInitFile = new File(initialInputsDirectory, currentInputFile.getName()).exists();
                 File src = new File(currentInputFile + (isInitFile ? "" : "_ref"));
                 File des = new File(uniqueFailuresDirectory, src.getName());
-                File des2 = new File(allInterestingInputsDirectory, src.getName());
                 // save the file if it increased coverage
                 if (why.contains("+crash")) {
                     try {
                         FileUtils.copyFile(src, des);
-                        FileUtils.copyFile(src, des2);
                         lastWorkingInputFile = src;
                     } catch (IOException e) {
                         e.printStackTrace();
