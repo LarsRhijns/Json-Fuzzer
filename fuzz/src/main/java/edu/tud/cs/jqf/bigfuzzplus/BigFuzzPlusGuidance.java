@@ -341,7 +341,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         String completedTrialsString = "\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")";
         if (PRINT_INPUT_SELECTION_DETAILS || PRINT_COVERAGE_DETAILS || PRINT_MUTATION_DETAILS || PRINT_METHOD_NAMES
                 || PRINT_TEST_RESULTS || PRINT_ERRORS || LOG_AND_PRINT_STATS || PRINT_MUTATIONS) {
-            System.out.println(completedTrialsString);
+            System.out.println("\n" + completedTrialsString);
         }
         else {
             if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
@@ -778,6 +778,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         int hits = branchesHitCount.getOrDefault(hitBranches, 0);
         branchesHitCount.put(hitBranches, hits + 1);
         if (PRINT_COVERAGE_DETAILS) {
+            System.out.println("[COV] branches hit: " + hitBranches);
             File equalCovFile = coverageFilePointer.get(hitBranches);
             if (equalCovFile != null) {
                 System.out.println("[COV] equal branches discovered as " + equalCovFile.getName());

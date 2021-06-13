@@ -10,6 +10,8 @@ import java.io.*;
 import java.time.Duration;
 import java.util.*;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAILS;
+
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusLog {
     private static final boolean LOG_UNIQUE_FAILURES_PER_TRIAL = true;
@@ -38,7 +40,9 @@ public class BigFuzzPlusLog {
     private static ArrayList<Long> errorInputCount = new ArrayList<>();
     private static ArrayList<Long> validInputCount = new ArrayList<>();
     private static ArrayList<Long> durations = new ArrayList<>();
-    private static ArrayList<Integer> uniqueFailures = new ArrayList<>();
+    private final ArrayList<Map<Set<Integer>, Integer>> branchesHit = new ArrayList<>();
+    private final ArrayList<Collection<Integer>> totalBranches = new ArrayList<>();
+
 
     private BigFuzzPlusLog() {}
 
@@ -131,11 +135,14 @@ public class BigFuzzPlusLog {
 
         if(LOG_MUTATION_STACKS)
             writeMutationStack(guidance);
+
+        branchesHit.add(guidance.branchesHitCount);
+        totalBranches.add(guidance.totalCoverage.getCounter().getNonZeroIndices());
     }
 
     private void writeMutationStack(BigFuzzPlusGuidance guidance) {
         ArrayList<Integer> stackCountList = ((StackedMutation) guidance.mutation).getMutationStackTracker();
-        // Create a hashmap of the count and how many times it occured
+        // Create a hashmap of the count and how many times it occurred
         HashMap<Integer,Integer> stackCount = new HashMap<>();
         for (Integer integer : stackCountList) {
             if (stackCount.containsKey(integer)) {
@@ -268,6 +275,21 @@ public class BigFuzzPlusLog {
             }
         }
 
+        summarized_results.append("\n\nBRANCHES HIT");
+        for (int i = 0; i < branchesHit.size(); i++) {
+            summarized_results.append("\n\tRun " + (i + 1) + ": ");
+            if (PRINT_COVERAGE_DETAILS) {
+                Collection<Integer> runTotalBranches = totalBranches.get(i);
+                summarized_results.append("" +
+                        "\n\t\ttotal length = " + runTotalBranches.size() +
+                        "\n\t\ttotal branches = " + runTotalBranches +
+                        "\n\t\tdistribution = " + branchesHit.get(i));
+            }
+            else {
+                summarized_results.append(branchesHit.get(i));
+            }
+        }
+
         if(PRINT_TO_CONSOLE)
             System.out.println(summarized_results);
     }
@@ -304,9 +326,9 @@ public class BigFuzzPlusLog {
             StringBuilder lineRow = new StringBuilder("\nLine\t");
             for (int i = 0; i < e.size(); i++) {
                 // Usually the filename and method name are much longer than the line number. Use this amount to create tabs
-                int maxLengthColumn = Math.max(e.get(i).getFileName().length(), e.get(i).getMethodName().length());
+                int maxLengthColumn = Math.max(Objects.requireNonNull(e.get(i).getFileName()).length(), e.get(i).getMethodName().length());
                 headerRow.append(i).append(getAmountOfSpaces(maxLengthColumn, i + ""));
-                classRow.append(e.get(i).getFileName()).append(getAmountOfSpaces(maxLengthColumn, e.get(i).getFileName()));
+                classRow.append(e.get(i).getFileName()).append(getAmountOfSpaces(maxLengthColumn, Objects.requireNonNull(e.get(i).getFileName())));
                 methodRow.append(e.get(i).getMethodName()).append(getAmountOfSpaces(maxLengthColumn, e.get(i).getMethodName()));
                 lineRow.append(e.get(i).getLineNumber()).append(getAmountOfSpaces(maxLengthColumn, e.get(i).getLineNumber() + ""));
             }
