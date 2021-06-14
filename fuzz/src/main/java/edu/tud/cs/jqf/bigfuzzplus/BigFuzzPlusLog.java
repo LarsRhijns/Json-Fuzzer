@@ -13,7 +13,7 @@ import java.util.*;
 public class BigFuzzPlusLog {
     private static final boolean LOG_UNIQUE_FAILURES_PER_TRIAL = true;
     private static final boolean LOG_INPUTS = true;
-    private static final boolean LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN = false;
+    private static final boolean LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN = true;
     private static final boolean LOG_MUTATION_STACKS = true;
     private static final boolean LOG_ERROR_INPUT_COUNT = false;
     private static final boolean LOG_VALID_INPUT_COUNT = false;

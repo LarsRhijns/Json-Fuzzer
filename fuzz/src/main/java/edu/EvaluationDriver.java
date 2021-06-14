@@ -32,15 +32,24 @@ public class EvaluationDriver {
                 "movierating.csv",
                 "salaryanalysis.csv",
                 "property.csv" };
+        
+        String[] maxStacks = {
+                "5",
+                "3",
+                "3",
+                "3",
+                "5",
+                "15"
+        };
 
         for (int i = 0; i < 6; i++) {
             // Program arguments
             String testClass = testClasses[i];
             String testMethod = testMethods[i];
             String mutationMethod = "StackedMutation";
-            String numTrials = "5";
+            String numTrials = "5000";
             String[] stackedmethod = {"0", "1", "3", "4"};
-            String maxStack = "5";
+            String maxStack = maxStacks[i];
             String[] args2 = {testClass, testMethod, mutationMethod, numTrials, "0", maxStack};
 
             // Change seed
