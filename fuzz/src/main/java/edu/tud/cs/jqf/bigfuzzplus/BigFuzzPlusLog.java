@@ -6,11 +6,21 @@ import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.time.Duration;
-import java.util.*;
-
-import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAILS;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusLog {
@@ -20,6 +30,7 @@ public class BigFuzzPlusLog {
     private static final boolean LOG_MUTATION_STACKS = true;
     private static final boolean LOG_ERROR_INPUT_COUNT = false;
     private static final boolean LOG_VALID_INPUT_COUNT = false;
+    private static final boolean LOG_BRANCH_COVERAGE = true;
     private static final boolean LOG_UNIQUE_FAILURE_AND_MUTATION = true;
 
     private static final boolean PRINT_TO_CONSOLE = false;
@@ -73,10 +84,11 @@ public class BigFuzzPlusLog {
     }
 
     public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
-        program_configuration.append("PROGRAM CONFIGURATION");
+        program_configuration.append("************ PROGRAM CONFIGURATION ************");
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
-        program_configuration.append("\n\nProgram started with the following parameters: ");
+
+        program_configuration.append("\nProgram arguments: ");
         program_configuration.append("\n\tTest class: " + testClassName);
         program_configuration.append("\n\tTest method: " + testMethodName);
         program_configuration.append("\n\tMutation class: " + mutationMethodClassName);
@@ -202,91 +214,92 @@ public class BigFuzzPlusLog {
     }
 
     public void summarizeProgramIterations() {
-        summarized_results.append("\n#********* PROGRAM SUMMARY **********");
+        summarized_results.append("\n************ PROGRAM SUMMARY ************");
         // --------------- UNIQUE FAILURES --------------
-        summarized_results.append("\n#CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
+        summarized_results.append("\nCUMULATIVE UNIQUE FAILURE RUN");
         if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
             summarized_results.append("\nData log disabled");
         } else {
             for (int i = 0; i < uniqueFailureResults.size(); i++) {
-                summarized_results.append("\nRun_" + (i + 1) + "= " + uniqueFailureResults.get(i));
+                summarized_results.append("\n\tRun " + (i + 1) + ": " + uniqueFailureResults.get(i));
             }
         }
 
         // --------------- INPUTS --------------
         summarized_results.append("\n\n#MUTATION RESULTS PER ITERATION");
         if(!LOG_INPUTS) {
-            summarized_results.append("\nData log disabled");
+            summarized_results.append("\n\tData log disabled");
         } else {
             summarized_results.append(dataPerIterationListToLog(inputs));
         }
 
         // --------------- MUTATION COUNTER --------------
-        summarized_results.append("\n\n #MUTATED INPUTS PER ITERATION");
+        summarized_results.append("\n\nMUTATED INPUTS PER ITERATION");
         if(!LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN) {
-            summarized_results.append("\nData log disabled");
+            summarized_results.append("\n\tData log disabled");
         } else {
             summarized_results.append(dataPerIterationListToLog(appliedMutationMethods));
         }
 
         // --------------- COLUMN COUNTER --------------
-        summarized_results.append("\n\n MUTATIONS APPLIED ON COLUMN PER ITERATION");
+        summarized_results.append("\n\nMUTATIONS APPLIED ON COLUMN PER ITERATION");
         if(!LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN) {
-            summarized_results.append("\nData log disabled");
+            summarized_results.append("\n\tData log disabled");
         } else {
             summarized_results.append(dataPerIterationListToLog(mutatedColumns));
         }
 
         // --------------- DURATION --------------
-        summarized_results.append("\n\n #DURATION PER ITERATION");
-        summarized_results.append("\ndurations= " + durations);
+        summarized_results.append("\n\nDURATION PER ITERATION");
+        summarized_results.append("\n\tdurations: " + durations);
         for (int i = 0; i < durations.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + "= \"" + durations.get(i) + " ms\"");
+            summarized_results.append("\n\tRun " + (i + 1) + ": " + durations.get(i) + " ms");
         }
 
         // --------------- MUTATION STACK ---------------------
-        summarized_results.append("\n\n #STACKED COUNT PER MUTATION PER ITERATION");
-        if(!LOG_MUTATION_STACKS) {
-            summarized_results.append("\nData log disabled");
+        summarized_results.append("\n\nSTACKED COUNT PER MUTATION PER ITERATION");
+        if(!LOG_MUTATION_STACKS || mutationStacks.get(0).isEmpty()) {
+            summarized_results.append("\n\tData log disabled");
         } else {
             summarized_results.append(dataPerIterationListToLog(mutationStacks));
         }
 
         // --------------- RESTARTS ---------------------
-        summarized_results.append("\n\n RESTARTS");
-        summarized_results.append("Total amount of restarts: " + SystematicMutation.restartAmount);
+        summarized_results.append("\n\nRESTARTS");
+        summarized_results.append("\n\tTotal amount of restarts: " + SystematicMutation.restartAmount);
 
         // --------------- ERRORS ---------------------
-        summarized_results.append("\n\n #ERROR/VALID COUNT PER ITERATION");
+        summarized_results.append("\n\nERROR/VALID COUNT PER ITERATION");
         if(!LOG_ERROR_INPUT_COUNT) {
-            summarized_results.append("\nData log disabled");
+            summarized_results.append("\n\tData log disabled (error input count)");
         } else {
-            summarized_results.append("\ntotal_errors= " + errorInputCount);
+            summarized_results.append("\n\ttotal_errors: " + errorInputCount);
             for (int i = 0; i < errorInputCount.size(); i++) {
-                summarized_results.append("\nRun_" + (i + 1) + "= " + errorInputCount.get(i) + " ");
+                summarized_results.append("\n\tRun " + (i + 1) + ": " + errorInputCount.get(i));
             }
         }
         if(!LOG_VALID_INPUT_COUNT) {
-            summarized_results.append("\nData log disabled");
+            summarized_results.append("\n\tData log disabled (valid input count)");
         } else {
-            summarized_results.append("\ntotal_valid_inputs: " + validInputCount);
+            summarized_results.append("\n\ttotal_valid_inputs: " + validInputCount);
             for (int i = 0; i < validInputCount.size(); i++) {
-                summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
+                summarized_results.append("\n\tRun " + (i + 1) + ": " + validInputCount.get(i));
             }
         }
 
+        // --------------- BRANCHES HIT -----------------
         summarized_results.append("\n\nBRANCHES HIT");
-        for (int i = 0; i < branchesHit.size(); i++) {
-            summarized_results.append("\n\tRun " + (i + 1) + ": ");
-            if (PRINT_COVERAGE_DETAILS) {
+        if (!LOG_BRANCH_COVERAGE) {
+            summarized_results.append("\n\tData log disabled");
+        }
+        else {
+            for (int i = 0; i < branchesHit.size(); i++) {
+                summarized_results.append("\n\tRun " + (i + 1) + ": ");
                 Collection<Integer> runTotalBranches = totalBranches.get(i);
                 summarized_results.append("" +
                         "\n\t\ttotal length = " + runTotalBranches.size() +
                         "\n\t\ttotal branches = " + runTotalBranches +
                         "\n\t\tdistribution = " + branchesHit.get(i));
-            }
-            else {
-                summarized_results.append(branchesHit.get(i));
             }
         }
 
@@ -298,7 +311,7 @@ public class BigFuzzPlusLog {
     private static StringBuilder dataPerIterationListToLog(ArrayList<ArrayList<String>> lists) {
         StringBuilder res = new StringBuilder();
         for (int i = 0; i < lists.size(); i++) {
-            res.append("\nRun_" + (i + 1) + " [");
+            res.append("\n\tRun " + (i + 1) + ": [");
             for (int j = 0; j < lists.get(i).size(); j++) {
                 if (j != 0) {
                     res.append(", ");
@@ -340,7 +353,7 @@ public class BigFuzzPlusLog {
                 int atIteration = Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e));
                 // If the unique failure is recorded at the first trial, there is no mutation applied
                 if(atIteration == 0) {
-                    sb.append("\nUnique failure occured on input seed");
+                    sb.append("\nUnique failure occurred on input seed");
                 }
                 else if(atIteration >= guidance.mutationsPerRun.size() ) {
                     sb.append("\nMutation has not been recorded, something went wrong.");

@@ -22,18 +22,17 @@ public class BigFuzzPlusDriver {
 	public static boolean PRINT_ERRORS = false;
 	public static boolean PRINT_MUTATIONS = false;
 	public static boolean PRINT_TEST_RESULTS = false;
-	public static boolean SAVE_INPUTS = false;
 
-    // ---------- MANUAL VARIABLES ------------
+	// ---------- MANUAL VARIABLES ------------
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
-    public static boolean SAVE_UNIQUE_FAILURES = false;
-	public static int NUMBER_OF_ITERATIONS = 1;
-	public static Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
+    public static boolean SAVE_UNIQUE_FAILURES = true;
+	public static int NUMBER_OF_ITERATIONS = 5;
+	public static Duration maxDuration = Duration.of(30, ChronoUnit.MINUTES);
 	public static SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
 	/** Favor rate is used to tweak boosted grey-box fuzzing. Only relevant if selection = COVERAGE_FILES.
 	 * 0 = only baseline selection. 1 = only boosted grey-box fuzzing. */
-	public static double favorRate = 0;
+	public static double favorRate = 1;
 
 
 	public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
@@ -81,7 +80,10 @@ public class BigFuzzPlusDriver {
 
 		long programStartTime = System.currentTimeMillis();
         File allOutputDir = new File("fuzz-results");
-        File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName + " - " + mutationMethodClassName + NUMBER_OF_ITERATIONS + "x" + maxTrials);
+        String selectionMethodString = (selection == SelectionMethod.COVERAGE_FILES ? "C" : "I");
+        File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName +
+		        " - " + mutationMethodClassName + " " +
+		        " f=" + favorRate + " " + selectionMethodString + " " + NUMBER_OF_ITERATIONS + "x" + maxTrials);
         if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + allOutputDir);
             System.exit(0);
@@ -106,20 +108,17 @@ public class BigFuzzPlusDriver {
 			// If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
 			stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
 			intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
-			System.out.println("stackedMutationMethod: " + stackedMutationMethod);
 			log.logProgramArgumentsStackedMutation(testClassName, testMethodName, mutationMethodClassName, stackedMutationMethod, intMutationStackCount, outputDir, programStartTime);
 		}
-		if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
+		else if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
 			if (args.length > 4) {
 				MUTATE_COLUMNS = Boolean.parseBoolean(args[4]);
-				System.out.println("Mutate columns: " + MUTATE_COLUMNS);
 			} if (args.length > 5) {
 				MUTATION_DEPTH = Integer.parseInt(args[5]);
-				System.out.println("Mutation depth: " + MUTATION_DEPTH);
 			}
 			log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, MUTATE_COLUMNS, MUTATION_DEPTH, outputDir, programStartTime);
 		}
-		if (mutationMethodClassName.equalsIgnoreCase("random")) {
+		else if (mutationMethodClassName.equalsIgnoreCase("random")) {
 			MUTATE_RANDOM = true;
 			System.out.println("Mutating randomly");
 			log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, MUTATE_COLUMNS, MUTATION_DEPTH, outputDir, programStartTime);
@@ -128,10 +127,9 @@ public class BigFuzzPlusDriver {
             log.logProgramArguments(testClassName,testMethodName,mutationMethodClassName,outputDir,programStartTime);
         }
 
-
 		// **************
-
         log.printProgramArguments();
+        System.out.println();
 
 		String file;
 		switch (testClassName) {
@@ -166,7 +164,7 @@ public class BigFuzzPlusDriver {
 
 	    for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
 	        int atIteration = i + 1;
-	        System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
+		    System.out.println("************ START OF PROGRAM ITERATION " + atIteration + " ************");
 
             long iterationStartTime = System.currentTimeMillis();
             String iterationOutputDir = outputDir + "/Test" + atIteration;
@@ -195,7 +193,6 @@ public class BigFuzzPlusDriver {
                 log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
                 log.writeToLists(guidance, maxTrials);
                 log.addDuration(endTime - iterationStartTime);
-                System.out.println("************************* END OF PROGRAM ITERATION ************************");
             } catch (Exception e) {
                 e.printStackTrace();
             }
