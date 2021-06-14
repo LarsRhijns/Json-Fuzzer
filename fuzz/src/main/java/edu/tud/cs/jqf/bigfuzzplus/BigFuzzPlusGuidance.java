@@ -51,7 +51,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 	 */
 	public final String testName;
 
-	/**
+    /**
 	 * testClassName for error tracking purposes
 	 */
 	private String testClassName;
@@ -150,6 +150,9 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     /** Map which tracks the amount of times each known branch is covered */
     protected Map<Set<Integer>, Integer> branchesHitCount = new HashMap<>();
+
+    /** List in which trial numbers are saved which discovered new Coverage. */
+    public ArrayList<Long> newDiscoveryTrials = new ArrayList<>();
 
     /** Map which is used to point to the initial File that discovered the combination of branches. */
     protected Map<Set<Integer>, File> coverageFilePointer = new HashMap<>();
@@ -592,6 +595,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                         try {
                             if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] " + des.getName() + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
+                            newDiscoveryTrials.add(numTrials);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

@@ -53,6 +53,7 @@ public class BigFuzzPlusLog {
     private static ArrayList<Long> durations = new ArrayList<>();
     private final ArrayList<Map<Set<Integer>, Integer>> branchesHit = new ArrayList<>();
     private final ArrayList<Collection<Integer>> totalBranches = new ArrayList<>();
+    private final ArrayList<ArrayList<Long>> newDiscoveryTrials = new ArrayList<>();
 
 
     private BigFuzzPlusLog() {}
@@ -150,6 +151,7 @@ public class BigFuzzPlusLog {
 
         branchesHit.add(guidance.branchesHitCount);
         totalBranches.add(guidance.totalCoverage.getCounter().getNonZeroIndices());
+        newDiscoveryTrials.add(guidance.newDiscoveryTrials);
     }
 
     private void writeMutationStack(BigFuzzPlusGuidance guidance) {
@@ -288,20 +290,39 @@ public class BigFuzzPlusLog {
         }
 
         // --------------- BRANCHES HIT -----------------
+        ArrayList<ArrayList<Integer>> discoveriesCountAtTrial = new ArrayList<>();
+        int totalBranchesSize = 0;
+        int maxTrials = uniqueFailureResults.get(0).size();
+
         summarized_results.append("\n\nBRANCHES HIT");
         if (!LOG_BRANCH_COVERAGE) {
             summarized_results.append("\n\tData log disabled");
         }
         else {
             for (int i = 0; i < branchesHit.size(); i++) {
-                summarized_results.append("\n\tRun " + (i + 1) + ": ");
                 Collection<Integer> runTotalBranches = totalBranches.get(i);
-                summarized_results.append("" +
+                totalBranchesSize += runTotalBranches.size();
+
+                discoveriesCountAtTrial.add(new ArrayList<>());
+                int knownDiscoveries = 0;
+                for (int t = 0; t < maxTrials; t++) {
+                    if (newDiscoveryTrials.get(i).contains((long) t)) {
+                        knownDiscoveries++;
+                    }
+                    discoveriesCountAtTrial.get(i).add(knownDiscoveries);
+                }
+
+                summarized_results.append("\n\tRun " + (i + 1) + ": " +
                         "\n\t\ttotal length = " + runTotalBranches.size() +
+                        "\n\t\tnew discovery trials = " + newDiscoveryTrials.get(i) +
+                        "\n\t\tdiscoveries count at trial = " + discoveriesCountAtTrial.get(i) +
                         "\n\t\ttotal branches = " + runTotalBranches +
                         "\n\t\tdistribution = " + branchesHit.get(i));
             }
         }
+        float avgBranchesSize = (float) totalBranchesSize / totalBranches.size();
+        summarized_results.append("\n\tAverage:" +
+                "\n\t\ttotal length: " + avgBranchesSize);
 
         if(PRINT_TO_CONSOLE)
             System.out.println(summarized_results);
