@@ -27,6 +27,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.LOG_AND_PRINT_STATS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAILS;
@@ -359,6 +360,19 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (numTrials == 0) {
             File initCopy = new File(initialInputsDirectory, initialInputFile.getName());
             FileUtils.copyFile(initialInputFile, initCopy);
+
+            for (String s : Files.readAllLines(initialInputFile.toPath())) {
+                File f = new File(s);
+                File des = new File(coverageInputsDirectory, f.getName());
+                if (f.exists()) {
+                    FileUtils.copyFile(f, des);
+                }
+                else {
+                    System.out.println("!! Initial file does not exist: " + f);
+                }
+            }
+
+            pendingInputs.add(initCopy);
             if (PRINT_INPUT_SELECTION_DETAILS) { System.out.println("[SELECT] selected config input: " + initialInputFile.getName());}
             return new ByteArrayInputStream(initialInputFile.getPath().getBytes());
         }
@@ -369,7 +383,11 @@ public class BigFuzzPlusGuidance implements Guidance {
             if (selection == SelectionMethod.COVERAGE_FILES) {
                 File[] covFiles = coverageInputsDirectory.listFiles();
                 if (Objects.requireNonNull(covFiles).length != 0) {
-                    pendingInputs.addAll(Arrays.asList(covFiles));
+                    List<File> onlyActualCovFiles = Arrays.stream(covFiles)
+                            .filter(l -> l.getName().contains("_ref"))
+                            .collect(Collectors.toList());
+                    onlyActualCovFiles.add(initialInputFile);
+                    pendingInputs.addAll(onlyActualCovFiles);
                 } else {
                     pendingInputs.add(initialInputFile);
                 }
@@ -595,6 +613,10 @@ public class BigFuzzPlusGuidance implements Guidance {
                         try {
                             if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] " + des.getName() + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
+                            if (currentInputFile.exists()) {
+                                File des2 = new File(coverageInputsDirectory, currentInputFile.getName());
+                                FileUtils.copyFile(currentInputFile, des2);
+                            }
                             newDiscoveryTrials.add(numTrials);
                         } catch (IOException e) {
                             e.printStackTrace();
