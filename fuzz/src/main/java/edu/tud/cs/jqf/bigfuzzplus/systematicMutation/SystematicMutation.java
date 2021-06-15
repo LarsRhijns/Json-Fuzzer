@@ -60,7 +60,7 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	public String evaluation() {
-		return		"Next mutation: " + mutationTree.getCurrentMutation().getMutationType() +
+		return "Next mutation: " + mutationTree.getCurrentMutation().getMutationType() +
 				"\nLevel: " + currentLevel +
 				"\nColumn: " + mutationTree.getCurrentMutation().getColumn();
 	}
@@ -80,7 +80,9 @@ public class SystematicMutation implements BigFuzzMutation {
 
 		//Start from seed after all mutations have been applied
 		if (currentLevel == 0) {
-			System.out.println("Reached end of tree, restarting.");
+			if (EVALUATE) {
+				System.out.println("Reached end of tree, restarting.");
+			}
 			restartAmount++;
 			mutationTree = new MutationTree(levelData.get(0).length);
 			levelData.subList(1, levelData.size()).clear();
@@ -154,7 +156,8 @@ public class SystematicMutation implements BigFuzzMutation {
 
 	/**
 	 * Changes type of column from float to String, int to float and String to int.
-	 * @param columnIndex column to be mutated
+	 *
+	 * @param columnIndex  column to be mutated
 	 * @param mutationRows input to be mutated
 	 */
 	private void changeType(int columnIndex, String[] mutationRows) {

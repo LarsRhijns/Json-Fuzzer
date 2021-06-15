@@ -81,7 +81,7 @@ public class MutationTree {
 				this.prevMutations.addAll(parent.prevMutations);
 				this.prevMutations.add(new MutationPair(parent.mutationType, parent.column));
 			}
-			if (mutationType == MutationTree.MutationType.RemoveElement) {
+			if (mutationType == MutationTree.MutationType.RemoveElement && parent.columnAmount > 1) {
 				this.columnAmount = parent.columnAmount - 1;
 			} else {
 				this.columnAmount = parent.columnAmount;
@@ -187,7 +187,6 @@ public class MutationTree {
 					//otherwise select one random column
 					int randomColumn = SystematicMutation.r.nextInt(columnAmount);
 					MutationType nextType =  MutationType.values()[i];
-					// TODO: debug this method
 					if (this.prevMutations.stream().noneMatch(mutation -> mutation.getMutationType() == nextType) && !nextType.equals(this.mutationType)) {
 						this.addChild(new Mutation(this, MutationType.values()[i], randomColumn));
 					}
