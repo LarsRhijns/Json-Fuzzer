@@ -28,7 +28,7 @@ public class BigFuzzPlusDriver {
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
     public static boolean SAVE_UNIQUE_FAILURES = true;
 	public static int NUMBER_OF_ITERATIONS = 5;
-	public static Duration maxDuration = Duration.of(30, ChronoUnit.MINUTES);
+	public static Duration maxDuration = null; // example: Duration.of(30, ChronoUnit.MINUTES);
 	public static SelectionMethod selection = SelectionMethod.FULLY_BOOSTED_GREY_BOX;
 
 	public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
