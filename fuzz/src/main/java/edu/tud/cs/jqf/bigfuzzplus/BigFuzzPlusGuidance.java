@@ -13,7 +13,6 @@ import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 import edu.ucla.cs.jqf.bigfuzz.JsonMutation;
 import org.apache.commons.io.FileUtils;
-import org.scalatest.Entry;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -90,7 +89,6 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     /** A percentage indicating how often the less frequent branches preferring method is applied over
      * the baseline input selection method */
-    private final double favorRate;
     private final SelectionMethod selection;
 
     /** The directory where saved inputs are written. */
@@ -208,11 +206,10 @@ public class BigFuzzPlusGuidance implements Guidance {
     private File lastWorkingInputFile;
     private final Random r = new Random();
 
-    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, double favorRate, SelectionMethod selection) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, SelectionMethod selection) throws IOException {
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
 
-        this.favorRate = favorRate;
         this.selection = selection;
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
@@ -338,7 +335,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         }
     }
 
-    @SuppressWarnings({"SuspiciousMethodCalls", "unchecked"})
+    @SuppressWarnings({"SuspiciousMethodCalls"})
     @Override
     public InputStream getInput() throws IOException {
         //progress bar
@@ -380,7 +377,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Start next cycle and refill pendingInputs if cycle is completed.
         if (pendingInputs.isEmpty()) {
             cyclesCompleted++;
-            if (selection == SelectionMethod.COVERAGE_FILES) {
+            if (selection != SelectionMethod.BLACK_BOX) {
                 File[] covFiles = coverageInputsDirectory.listFiles();
                 if (Objects.requireNonNull(covFiles).length != 0) {
                     List<File> onlyActualCovFiles = Arrays.stream(covFiles)
@@ -392,7 +389,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                     pendingInputs.add(initialInputFile);
                 }
             }
-            else if (selection == SelectionMethod.INIT_FILES) {
+            else {
                 pendingInputs.add(initialInputFile);
             }
         }
@@ -402,12 +399,21 @@ public class BigFuzzPlusGuidance implements Guidance {
         }
 
         // Determine which input selection method to use.
-        boolean useFavoredSelection = r.nextDouble() <= favorRate;
+        boolean useFavoredSelection;
+        if (selection == SelectionMethod.FULLY_BOOSTED_GREY_BOX) {
+            useFavoredSelection = true;
+        } else if (selection == SelectionMethod.HALF_BOOSTED_GREY_BOX) {
+            useFavoredSelection = r.nextDouble() <= 0.5;
+        } else {
+            useFavoredSelection = false;
+        }
+
         if (PRINT_INPUT_SELECTION_DETAILS) {
             String method = useFavoredSelection ? "favored" : "baseline";
             System.out.println("[SELECT] Selection method used: " + method);
         }
-        if (!useFavoredSelection || selection != SelectionMethod.COVERAGE_FILES) {
+
+        if (!useFavoredSelection) {
             // Use baseline input selection method
             currentInputFile = pendingInputs.remove(0);
         }
@@ -438,9 +444,9 @@ public class BigFuzzPlusGuidance implements Guidance {
             }
 
             if (PRINT_INPUT_SELECTION_DETAILS) {
-                List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
-                List<Map.Entry<String, Double>> fileChance = new ArrayList<>();
-                List<Map.Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
+                List<Entry<String, Integer>> fileHits = new ArrayList<>();
+                List<Entry<String, Double>> fileChance = new ArrayList<>();
+                List<Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
                 double before = 0;
                 for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
                     before += entry.getValue();
@@ -854,5 +860,28 @@ public class BigFuzzPlusGuidance implements Guidance {
             ((StackedMutation) mutation).setSeed(seed);
         }
         r.setSeed(seed);
+    }
+}
+
+class Entry<A, B> {
+    A key;
+    B value;
+
+    Entry(A key, B value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    public A getKey() {
+        return key;
+    }
+
+    public B getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
+        return "" + key + "=" + value;
     }
 }

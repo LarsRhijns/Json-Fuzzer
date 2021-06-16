@@ -29,11 +29,7 @@ public class BigFuzzPlusDriver {
     public static boolean SAVE_UNIQUE_FAILURES = true;
 	public static int NUMBER_OF_ITERATIONS = 5;
 	public static Duration maxDuration = Duration.of(30, ChronoUnit.MINUTES);
-	public static SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
-	/** Favor rate is used to tweak boosted grey-box fuzzing. Only relevant if selection = COVERAGE_FILES.
-	 * 0 = only baseline selection. 1 = only boosted grey-box fuzzing. */
-	public static double favorRate = 1;
-
+	public static SelectionMethod selection = SelectionMethod.FULLY_BOOSTED_GREY_BOX;
 
 	public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
 
@@ -79,11 +75,22 @@ public class BigFuzzPlusDriver {
 		long maxTrials = args.length > 3 ? Long.parseLong(args[3]) : Long.MAX_VALUE;
 
 		long programStartTime = System.currentTimeMillis();
+		
+	    String selectionMethodString;
+	    if (selection == SelectionMethod.FULLY_BOOSTED_GREY_BOX) {
+		    selectionMethodString = "FBGB";
+	    } else if (selection == SelectionMethod.HALF_BOOSTED_GREY_BOX) {
+		    selectionMethodString = "HBGB";
+	    } else if (selection == SelectionMethod.GREY_BOX) {
+		    selectionMethodString = "GB";
+	    } else {
+		    selectionMethodString = "BB";
+	    }
+
         File allOutputDir = new File("fuzz-results");
-        String selectionMethodString = (selection == SelectionMethod.COVERAGE_FILES ? "C" : "I");
         File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName +
 		        " - " + mutationMethodClassName + " " +
-		        " f=" + favorRate + " " + selectionMethodString + " " + NUMBER_OF_ITERATIONS + "x" + maxTrials);
+		        " " + selectionMethodString + " " + NUMBER_OF_ITERATIONS + "x" + maxTrials);
         if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + allOutputDir);
             System.exit(0);
@@ -171,7 +178,7 @@ public class BigFuzzPlusDriver {
 
             try {
                 File itOutputDir = new File(iterationOutputDir);
-                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, itOutputDir, mutationMethodClassName, favorRate, selection);
+                BigFuzzPlusGuidance guidance = new BigFuzzPlusGuidance("Test" + atIteration, file, maxTrials, maxDuration, itOutputDir, mutationMethodClassName, selection);
 
                 // Set the provided input argument stackedMutationMethod in the guidance mutation
                 if(guidance.mutation instanceof StackedMutation) {

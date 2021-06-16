@@ -1,5 +1,5 @@
 package edu.tud.cs.jqf.bigfuzzplus;
 
 public enum SelectionMethod {
-	COVERAGE_FILES, INIT_FILES
+	BLACK_BOX, GREY_BOX, HALF_BOOSTED_GREY_BOX, FULLY_BOOSTED_GREY_BOX
 }
