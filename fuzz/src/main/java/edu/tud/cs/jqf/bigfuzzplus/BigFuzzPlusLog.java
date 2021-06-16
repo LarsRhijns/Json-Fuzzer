@@ -300,8 +300,8 @@ public class BigFuzzPlusLog {
         }
         else {
             for (int i = 0; i < branchesHit.size(); i++) {
-                Collection<Integer> runTotalBranches = totalBranches.get(i);
-                totalBranchesSize += runTotalBranches.size();
+                ArrayList<Long> runDiscoveryTrials = newDiscoveryTrials.get(i);
+                totalBranchesSize += runDiscoveryTrials.size();
 
                 discoveriesCountAtTrial.add(new ArrayList<>());
                 int knownDiscoveries = 0;
@@ -313,16 +313,15 @@ public class BigFuzzPlusLog {
                 }
 
                 summarized_results.append("\n\tRun " + (i + 1) + ": " +
-                        "\n\t\ttotal length = " + runTotalBranches.size() +
+                        "\n\t\t# discovered branches = " + runDiscoveryTrials.size() +
                         "\n\t\tnew discovery trials = " + newDiscoveryTrials.get(i) +
-                        "\n\t\tdiscoveries count at trial = " + discoveriesCountAtTrial.get(i) +
-                        "\n\t\ttotal branches = " + runTotalBranches +
+                        "\n\t\ttotal branches = " + totalBranches.get(i) +
                         "\n\t\tdistribution = " + branchesHit.get(i));
             }
         }
         float avgBranchesSize = (float) totalBranchesSize / totalBranches.size();
         summarized_results.append("\n\tAverage:" +
-                "\n\t\ttotal length: " + avgBranchesSize);
+                "\n\t\t# discovered branches: " + avgBranchesSize);
         for (int i = 0; i < branchesHit.size(); i++) {
             String printCovResults = discoveriesCountAtTrial.get(i).toString();
             printCovResults = printCovResults.substring(1, printCovResults.length() - 1);
