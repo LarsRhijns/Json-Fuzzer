@@ -82,7 +82,7 @@ public class BranchMarkCustomArray {
 		// todo: idea to depend arm based on small steps of ints
 		// calculate number of commas in string
 		String[] splits = oldResult.split(",");
-		int arm = splits.length;
+		int arm = Math.min(40, splits.length);
 
 		// throw filter event
 		throwEvent(EventType.Branch, arm);
