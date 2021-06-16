@@ -323,6 +323,11 @@ public class BigFuzzPlusLog {
         float avgBranchesSize = (float) totalBranchesSize / totalBranches.size();
         summarized_results.append("\n\tAverage:" +
                 "\n\t\ttotal length: " + avgBranchesSize);
+        for (int i = 0; i < branchesHit.size(); i++) {
+            String printCovResults = discoveriesCountAtTrial.get(i).toString();
+            printCovResults = printCovResults.substring(1, printCovResults.length() - 1);
+            summarized_results.append("\n" + printCovResults);
+        }
 
         if(PRINT_TO_CONSOLE)
             System.out.println(summarized_results);
