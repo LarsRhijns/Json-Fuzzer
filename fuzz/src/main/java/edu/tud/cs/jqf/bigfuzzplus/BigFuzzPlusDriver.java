@@ -29,7 +29,7 @@ public class BigFuzzPlusDriver {
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
     public static boolean SAVE_UNIQUE_FAILURES = false;
-	public static int NUMBER_OF_ITERATIONS = 5;
+	public static int NUMBER_OF_ITERATIONS = 2;
 	public static Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
 	public static SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
 	/** Favor rate is used to tweak boosted grey-box fuzzing. Only relevant if selection = COVERAGE_FILES.
@@ -45,13 +45,16 @@ public class BigFuzzPlusDriver {
      * [1] - test method
      * [2] - mutation method           (StackedMutation)
      * [3] - max Trials                (default = Long.MAXVALUE)
-     * [4] - stacked mutation method   (default = 0)
+     * [4] - BigFuzz / TabFuzz
+     *          0= BigFuzz
+     *          1= TabFuzz
+     * [5] - stacked mutation method   (default = 0)
      *          0 = Disabled
      *          1 = Permute_random (permute between 1 and the max amount of mutations)
      *          2 = Permute_max (Always permute until the max amount of mutations)
      *          3 = Smart_stack (Apply higher-order mutation exclusion rules)
      *          4 = Single mutate (Only apply 1 mutation per column)
-     * [5] - max mutation stack        (default = 2)
+     * [6] - max mutation stack        (default = 2)
      *
      * * Run the BigFuzzPlus program with the following parameters for SystematicMutation:
      * [0] - test class
@@ -79,7 +82,7 @@ public class BigFuzzPlusDriver {
 
 		long programStartTime = System.currentTimeMillis();
         File allOutputDir = new File("fuzz-results");
-        File outputDir = new File(allOutputDir, "" + programStartTime);
+        File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName + " - " + mutationMethodClassName );
         if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + allOutputDir);
             System.exit(0);
@@ -128,7 +131,7 @@ public class BigFuzzPlusDriver {
             int atIteration = i + 1;
             System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
-            String file = "dataset/" + args[6];
+            String file = "dataset/conf";
             long iterationStartTime = System.currentTimeMillis();
             String iterationOutputDir = outputDir + "/Test" + atIteration;
 
@@ -153,7 +156,7 @@ public class BigFuzzPlusDriver {
                 long endTime = System.currentTimeMillis();
 
                 // Evaluate the results
-//                log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
+                log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
                 log.writeToLists(guidance, maxTrials);
                 log.addDuration(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");
