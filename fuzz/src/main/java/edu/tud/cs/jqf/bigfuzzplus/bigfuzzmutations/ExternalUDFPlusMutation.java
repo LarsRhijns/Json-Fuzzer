@@ -11,6 +11,7 @@ import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
@@ -39,11 +40,29 @@ public class ExternalUDFPlusMutation implements BigFuzzPlusMutation {
 
     public void mutate(File inputFile, File nextInputFile) throws IOException
     {
-        ArrayList<String> mutatedInput = mutateFile(inputFile);
+        List<String> fileList = Files.readAllLines(inputFile.toPath());
+        int n = new Random().nextInt(fileList.size());
+        File fileToMutate = new File(fileList.get(n));
+        ArrayList<String> mutatedInput = mutateFile(fileToMutate);
         if (mutatedInput != null) {
             writeFile(nextInputFile, mutatedInput);
         }
+
         delete = nextInputFile.getPath();
+
+        // write next ref file
+        File refFile = new File(nextInputFile + "_ref");
+        BufferedWriter bw = new BufferedWriter(new FileWriter(refFile));
+        for(int i = 0; i < fileList.size(); i++)
+        {
+            if(i == n)
+                bw.write(nextInputFile.getPath());
+            else
+                bw.write(fileList.get(i));
+            bw.newLine();
+            bw.flush();
+        }
+        bw.close();
     }
 
     public ArrayList<String> mutateFile(File inputFile) throws IOException

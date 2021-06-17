@@ -1,15 +1,20 @@
+import P1.Wordcount.Spec_BigFuzz.WordCount;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 @RunWith(JQF.class)
 
 public class WordCountDriver {
 
-@Fuzz
+    @Fuzz
     public void testWordCount(String fileName) throws Exception {
-//        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCount.WordCountDriver::testWordCount: "+fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         WordCount analysis = new WordCount();
-        analysis.WordCount(fileName);
+        analysis.WordCount(fileList.get(0));
     }
 }

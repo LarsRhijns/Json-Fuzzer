@@ -18,10 +18,10 @@ public class InfiniteloopDriver {
 
     @Fuzz
     public void testInfiniteloop(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] InfiniteloopDriver::testInfiniteloop"); }
         Infiniteloop analysis = new Infiniteloop();
-        analysis.Infiniteloop(inputFile.getPath());
+        analysis.Infiniteloop(fileList.get(0));
     }
 
     public static void main(String[] args) throws IOException {

@@ -1,3 +1,5 @@
+package P12.PropertyInvestment.Spec_BigFuzz;
+
 import P12.PropertyInvestment.Spec_BigFuzz.PropertyCustomArray;
 import scala.Tuple4;
 import main.java.sharedClasses.CustomArray;

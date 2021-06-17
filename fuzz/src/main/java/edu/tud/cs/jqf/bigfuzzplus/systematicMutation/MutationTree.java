@@ -211,20 +211,21 @@ public class MutationTree {
 			ArrayList<MutationPair> excludeMutations = new ArrayList<>(this.prevMutations);
 			excludeMutations.add(new MutationPair(this.mutationType, this.column));
 			for (MutationPair pair : excludeMutations) {
-				this.children.removeIf(child -> pair.getColumn() == child.column && Arrays.stream(pair.getMutationType().exclusion.values).anyMatch(index -> index == child.mutationType.ordinal()));
+				this.children.removeIf(child -> pair.getColumn() == child.column &&
+						Arrays.stream(pair.getMutationType().exclusion.values).anyMatch(index -> index == child.mutationType.ordinal()));
 			}
 		}
 	}
 
 	/*
-	 *                    -: no mutation used for root
-	 *                    0: random change value   (M1)
-	 *                    1: random change into float (M2)
-	 *                    2: random insert value in element (M4)
-	 *                    3: random delete one column/element (M5)
-	 *                    4: Empty String (M6)
-	 *                    5: random add one column/element (?)
-	 *                    6: change delimiter (M3)
+	 *                    0: no mutation used for root
+	 *                    1: random change value   (M1)
+	 *                    2: random change into float (M2)
+	 *                    3: random insert value in element (M4)
+	 *                    4: random delete one column/element (M5)
+	 *                    5: Empty String (M6)
+	 *                    6: random add one column/element (?)
+	 *                    7: change delimiter (M3)
 	 */
 	public enum MutationType {
 		NoMutation(NoExclusion),
@@ -245,7 +246,6 @@ public class MutationTree {
 	}
 
 	protected enum MutationExclusion {
-
 		ChangeValueExclusion(new int[]{4, 5}),
 		ChangeTypeExclusion(new int[]{1, 4, 5}),
 		InsertCharExclusion(new int[]{1, 2, 4, 5}),

@@ -1,3 +1,5 @@
+package P5.StudentGrade.Spec_BigFuzz;
+
 import P5.StudentGrade.Spec_BigFuzz.StudentGradesCustomArray;
 import P5.StudentGrade.Spec_BigFuzz.map3;
 import P5.StudentGrade.Spec_BigFuzz.map4;

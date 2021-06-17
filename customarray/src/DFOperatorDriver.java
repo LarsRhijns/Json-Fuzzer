@@ -15,8 +15,7 @@ public class DFOperatorDriver {
 
     @Fuzz
     public void testDFOperator(String fileName) throws IOException {
-        File inputFile = new File(fileName);
-        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] DFOperatorDriver::testDFOperator"); }
-        DFOperator.DFOperator(inputFile.getPath());
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
+        DFOperator.DFOperator(fileList.get(0));
     }
 }

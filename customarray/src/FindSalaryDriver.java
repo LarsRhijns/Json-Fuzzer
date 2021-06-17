@@ -19,9 +19,9 @@ public class FindSalaryDriver {
 
     @Fuzz
     public void testFindSalary(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] FindSalaryDriver::testFindSalary"); }
         FindSalary analysis = new FindSalary();
-        analysis.FindSalary(inputFile.getPath());
+        analysis.FindSalary(fileList.get(0));
     }
 }

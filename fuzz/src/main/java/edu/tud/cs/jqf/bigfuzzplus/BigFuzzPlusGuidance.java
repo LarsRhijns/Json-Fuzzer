@@ -28,10 +28,13 @@ import java.util.function.Consumer;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.LOG_AND_PRINT_STATS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAILS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_ERRORS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_INPUT_SELECTION_DETAILS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_TEST_RESULTS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.SAVE_UNIQUE_FAILURES;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
@@ -41,38 +44,44 @@ import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_TEST_RESULTS;
 @SuppressWarnings({"rawtypes", "Duplicates"})
 public class BigFuzzPlusGuidance implements Guidance {
 
-    /** The name of the test for display purposes. */
-    public final String testName;
+	/**
+	  The name of the test for display purposes.
+	 */
+	public final String testName;
 
-    /**
-     * testClassName for error tracking purposes
-     */
-    private String testClassName;
+	/**
+	 * testClassName for error tracking purposes
+	 */
+	private String testClassName;
 
-    private boolean keepGoing = true;
-    private Coverage coverage;
+	private boolean keepGoing = true;
+	private Coverage coverage;
 
-    /** Time since this guidance instance was created. */
+	/**Time since this guidance instance was created. */
     protected final Date startTime = new Date();
+	 /** Time at last stats refresh. */
+	 protected Date lastRefreshTime = startTime;
 
-    /** Time at last stats refresh. */
-    protected Date lastRefreshTime = startTime;
-
-    /** Total execs at last stats refresh. */
+	/**Total execs at last stats refresh. */
     protected long lastNumTrials = 0;
 
     /** Minimum amount of time (in millis) between two stats refreshes. */
     protected static final long STATS_REFRESH_TIME_PERIOD = 100000;
+	 /** The max amount of time to run for, in milli-seconds
+	 */
+	protected final long maxDurationMillis;
 
-    /** The max amount of time to run for, in milli-seconds */
-    protected final long maxDurationMillis;
+	/**
+	 * The number of trials completed.
+	 */
+	protected long numTrials = 0;
 
-    /** The number of trials completed. */
-    protected long numTrials = 0;
-
-    /** The number of valid inputs. */
-    protected long numValid = 0;
-
+	/**
+	 * The number of valid inputs.
+	 */
+	protected long numValid = 0;
+	protected final long maxTrials;
+	protected long numDiscards = 0;
     /** The directory where fuzzing results are written. */
     protected final File outputDirectory;
 
@@ -92,9 +101,6 @@ public class BigFuzzPlusGuidance implements Guidance {
 
     /** The directory where all inputs are written. */
     protected File allInputsDirectory;
-
-    /** The directory where all mutations are written. */
-    protected File allInterestingInputsDirectory;
 
     /** Set of saved inputs to fuzz. */
     protected ArrayList<ZestGuidance.Input> savedInputs = new ArrayList<>();
@@ -120,18 +126,16 @@ public class BigFuzzPlusGuidance implements Guidance {
     /** Blind fuzzing -- if true then the queue is always empty. */
     protected boolean blind;
 
-    /** Number of saved inputs.
+	/**Number of saved inputs.
      *
      * This is usually the same as savedInputs.size(),
      * but we do not really save inputs in TOTALLY_RANDOM mode.
      */
     protected int numSavedInputs = 0;
 
-    private final long maxTrials;
-    protected long numDiscards = 0;
-
-    /** Validity fuzzing -- if true then save valid inputs that increase valid coverage */
-    protected boolean validityFuzzing;
+	 /** Validity fuzzing -- if true then save valid inputs that increase valid coverage
+	 */
+	protected boolean validityFuzzing;
 
     /** Coverage statistics for a single run. */
     protected Coverage runCoverage = new Coverage();
@@ -151,8 +155,10 @@ public class BigFuzzPlusGuidance implements Guidance {
     /** The maximum number of keys covered by any single input found so far. */
     protected int maxCoverage = 0;
 
-    /** The list of total failures found so far. */
-    protected int totalFailures = 0;
+	/**
+	 * The list of total failures found so far.
+	 */
+	protected int totalFailures = 0;
 
     /** The set of unique failures found so far. */
     protected Set<List<StackTraceElement>> uniqueFailures = new HashSet<>();
@@ -177,7 +183,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     /** The file where saved plot data is written. */
     protected File statsFile;
 
-    // ------------- TIMEOUT HANDLING ------------
+	// ------------- TIMEOUT HANDLING ------------
 
     /** Date when last run was started. */
     protected Date runStart;
@@ -237,9 +243,11 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (!this.coverageInputsDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + coverageInputsDirectory);
         }
-        this.uniqueFailuresDirectory = new File(outputDirectory, "unique_failures");
-        if (!this.uniqueFailuresDirectory.mkdirs()) {
-            System.out.println("!! Could not create directory: " + uniqueFailuresDirectory);
+        if (SAVE_UNIQUE_FAILURES) {
+            this.uniqueFailuresDirectory = new File(outputDirectory, "unique_failures");
+            if (!this.uniqueFailuresDirectory.mkdirs()) {
+                System.out.println("!! Could not create directory: " + uniqueFailuresDirectory);
+            }
         }
         this.initialInputsDirectory = new File(outputDirectory, "init_inputs");
         if (!this.initialInputsDirectory.mkdirs()) {
@@ -248,10 +256,6 @@ public class BigFuzzPlusGuidance implements Guidance {
         this.allInputsDirectory = new File(outputDirectory, "all_inputs");
         if (!this.allInputsDirectory.mkdirs()) {
             System.out.println("!! Could not create directory: " + allInputsDirectory);
-        }
-        this.allInterestingInputsDirectory = new File(outputDirectory, "interesting_inputs");
-        if (!this.allInterestingInputsDirectory.mkdirs()) {
-            System.out.println("!! Could not create directory: " + allInterestingInputsDirectory);
         }
 
         if (LOG_AND_PRINT_STATS) {
@@ -280,6 +284,9 @@ public class BigFuzzPlusGuidance implements Guidance {
         switch (mutationMethodClassName) {
             case "StackedMutation":
                 mutation = new StackedMutation();
+                break;
+            case "SystematicMutation":
+                mutation = new SystematicMutation(initialInputFile.getName());
                 break;
             case "IncomeAggregationMutation":
                 mutation = new IncomeAggregationPlusMutation();
@@ -325,40 +332,26 @@ public class BigFuzzPlusGuidance implements Guidance {
     @Override
     public InputStream getInput() throws IOException {
         //progress bar
-        if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
-            System.out.print("\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")");
+        String completedTrialsString = "\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")";
+        if (PRINT_INPUT_SELECTION_DETAILS || PRINT_COVERAGE_DETAILS || PRINT_MUTATION_DETAILS || PRINT_METHOD_NAMES
+                || PRINT_TEST_RESULTS || PRINT_ERRORS || LOG_AND_PRINT_STATS || PRINT_MUTATIONS) {
+            System.out.println(completedTrialsString);
+        }
+        else {
+            if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
+                System.out.print(completedTrialsString);
+            }
         }
 
         // Clear coverage stats for this run
         runCoverage.clear();
 
-        if (numTrials == 0) { // Copy initial input files if no input exists yet.
-            // Handle initially declared inputs
-            int countInitFiles = 0;
-            Scanner sc = new Scanner(initialInputFile);
-            while (sc.hasNextLine()) {
-                File nextInitInput = new File(sc.nextLine());
-                String initFileName = "init_" + countInitFiles;
-                File initInput = new File(initialInputsDirectory, initFileName);
-                File nextAllInput = new File(allInputsDirectory, initFileName);
-                FileUtils.copyFile(nextInitInput, initInput);
-                FileUtils.copyFile(nextInitInput, nextAllInput);
-                countInitFiles++;
-                if (selection == SelectionMethod.ONLY_FIRST_INIT) {
-                    break;
-                }
-            }
-            sc.close();
-
-            pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(allInputsDirectory.listFiles())));
-        }
-
         // Select initial inputs first and don't mutate them.
-        int initLength = Objects.requireNonNull(initialInputsDirectory.listFiles()).length;
-        if (numTrials < initLength) {
-            currentInputFile = pendingInputs.remove(0);
-            if (PRINT_INPUT_SELECTION_DETAILS) { System.out.println("[SELECT] selected config input: " + currentInputFile.getName());}
-            return new ByteArrayInputStream(currentInputFile.getPath().getBytes());
+        if (numTrials == 0) {
+            File initCopy = new File(initialInputsDirectory, initialInputFile.getName());
+            FileUtils.copyFile(initialInputFile, initCopy);
+            if (PRINT_INPUT_SELECTION_DETAILS) { System.out.println("[SELECT] selected config input: " + initialInputFile.getName());}
+            return new ByteArrayInputStream(initialInputFile.getPath().getBytes());
         }
 
         // Start next cycle and refill pendingInputs if cycle is completed.
@@ -369,14 +362,11 @@ public class BigFuzzPlusGuidance implements Guidance {
                 if (Objects.requireNonNull(covFiles).length != 0) {
                     pendingInputs.addAll(Arrays.asList(covFiles));
                 } else {
-                    pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
+                    pendingInputs.add(initialInputFile);
                 }
             }
             else if (selection == SelectionMethod.INIT_FILES) {
-                pendingInputs.addAll(Arrays.asList(Objects.requireNonNull(initialInputsDirectory.listFiles())));
-            }
-            else if (selection == SelectionMethod.ONLY_FIRST_INIT) {
-                pendingInputs.add(Objects.requireNonNull(initialInputsDirectory.listFiles())[0]);
+                pendingInputs.add(initialInputFile);
             }
         }
         if (pendingInputs.isEmpty()) {
@@ -443,10 +433,9 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Mutate the next file from pendingInputs
         String mutationFileName = "mutation_" + numTrials;
         File nextInputFile = new File(allInputsDirectory, mutationFileName);
-        File mutationFile = new File(allInterestingInputsDirectory, mutationFileName);
+        File mutationFile = new File(allInputsDirectory, mutationFileName);
         if (PRINT_INPUT_SELECTION_DETAILS) { System.out.println("[SELECT] selected mutate input: " + currentInputFile.getName()); }
         mutation.mutate(currentInputFile, mutationFile);
-        FileUtils.copyFile(mutationFile, nextInputFile);
 
         // Move reference file to correct directory
         currentInputFile = nextInputFile;
@@ -457,8 +446,10 @@ public class BigFuzzPlusGuidance implements Guidance {
 
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] BigFuzzGuidance::getInput"); }
 
-//        saveInput();
-        return new ByteArrayInputStream(currentInputFile.getPath().getBytes());
+        saveInput();
+
+        File refFile = new File(currentInputFile + "_ref");
+        return new ByteArrayInputStream(refFile.getPath().getBytes());
     }
 
     /**
@@ -586,17 +577,15 @@ public class BigFuzzPlusGuidance implements Guidance {
                         numTrials, nonZeroAfter);
 
                 // Change current input file name
-                File src = currentInputFile;
-                String branchesFileName = "branches_" + numTrials;
-                File des = new File(coverageInputsDirectory, branchesFileName);
-                File des2 = new File(allInterestingInputsDirectory, branchesFileName);
+                boolean isInitFile = initialInputFile.equals(currentInputFile);
+                File src = new File(currentInputFile + (isInitFile ? "" : "_ref"));
+                File des = new File(coverageInputsDirectory, src.getName());
                 // save the file if it increased coverage
                 if (why.contains("+cov")) {
                     if (!des.exists()) {
                         try {
                             if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] " + des.getName() + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
-                            FileUtils.copyFile(src, des2);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -607,11 +596,6 @@ public class BigFuzzPlusGuidance implements Guidance {
                 }
             }
             else {
-                try {
-                    mutation.deleteFile(currentInputFile.getPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 currentInputFile = lastWorkingInputFile;
             }
         }else if (result == Result.FAILURE || result == Result.TIMEOUT) {
@@ -652,30 +636,21 @@ public class BigFuzzPlusGuidance implements Guidance {
                 String why = result == Result.FAILURE ? "+crash" : "+hang";
                 if (PRINT_MUTATION_DETAILS) { System.out.println("[MUTATE] Unique failure found: " + why + "\n\t" + rootCause); }
 
-                File src = currentInputFile;
-                File srcInteresting = new File(allInterestingInputsDirectory, src.getName());
-                String failureFileName = "failure_" + numTrials;
-                File des = new File(uniqueFailuresDirectory, failureFileName);
-                File srcRename = new File(allInterestingInputsDirectory, failureFileName);
+                boolean isInitFile = initialInputFile.equals(currentInputFile);
+                File src = new File(currentInputFile + (isInitFile ? "" : "_ref"));
+                File des = new File(uniqueFailuresDirectory, src.getName());
                 // save the file if it increased coverage
                 if (why.contains("+crash")) {
-                    try {
-                        FileUtils.copyFile(src, des);
-                        if (!srcInteresting.renameTo(srcRename)) {
-                            System.out.println("!! Could not rename file " + srcInteresting + " to " + srcRename);
+                    if (SAVE_UNIQUE_FAILURES) {
+                        try {
+                            FileUtils.copyFile(src, des);
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                        lastWorkingInputFile = src;
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
                 }
             }
             else {
-                try {
-                    mutation.deleteFile(currentInputFile.getPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 currentInputFile = lastWorkingInputFile;
             }
         }

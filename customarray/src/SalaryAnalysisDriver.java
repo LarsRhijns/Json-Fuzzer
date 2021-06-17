@@ -16,10 +16,10 @@ public class SalaryAnalysisDriver {
 
     @Fuzz
     public void testSalaryAnalysis(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] SalaryAnalysisDriver::testSalaryAnalysis"); }
         SalaryAnalysis analysis = new SalaryAnalysis();
-        analysis.SalaryAnalysis(inputFile.getPath());
+        analysis.SalaryAnalysis(fileList.get(0));
     }
 
     public static void main(String[] args) throws IOException

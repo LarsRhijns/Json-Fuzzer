@@ -18,10 +18,10 @@ public class PropertyDriver {
 
     @Fuzz
     public void testProperty(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] PropertyDriver::testProperty"); }
-        Property property = new Property();
-        property.Property(inputFile.getPath());
+        Property analysis = new Property();
+        analysis.Property(fileList.get(0));
     }
 
     public static void main(String[] args) throws IOException {

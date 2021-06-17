@@ -4,6 +4,7 @@ import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
+import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 
 import java.io.*;
 import java.time.Duration;
@@ -34,10 +35,10 @@ public class BigFuzzPlusLog {
     private static ArrayList<ArrayList<String>> mutatedColumns = new ArrayList<>();
     private static ArrayList<ArrayList<String>> mutationStacks = new ArrayList<>();
 
-    private static ArrayList<Long> errorInputCount = new ArrayList<>();
-    private static ArrayList<Long> validInputCount = new ArrayList<>();
-    private static ArrayList<Long> durations = new ArrayList<>();
-
+    private final ArrayList<Long> errorInputCount = new ArrayList<>();
+    private final ArrayList<Long> validInputCount = new ArrayList<>();
+    private final ArrayList<Long> durations = new ArrayList<>();
+    private final ArrayList<Integer> uniqueFailures = new ArrayList<>();
 
     private BigFuzzPlusLog() {}
 
@@ -244,6 +245,10 @@ public class BigFuzzPlusLog {
             summarized_results.append(dataPerIterationListToLog(mutationStacks));
         }
 
+        // --------------- RESTARTS ---------------------
+        summarized_results.append("\n\n RESTARTS");
+        summarized_results.append("Total amount of restarts: " + SystematicMutation.restartAmount);
+
         // --------------- ERRORS ---------------------
         summarized_results.append("\n\n #ERROR/VALID COUNT PER ITERATION");
         if(!LOG_ERROR_INPUT_COUNT) {
@@ -262,6 +267,13 @@ public class BigFuzzPlusLog {
                 summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
             }
         }
+
+        // --------------- UNIQUE FAILURES --------------
+        summarized_results.append("\n\n UNIQUE FAILURES PER RUN");
+        for (int i = 0; i < uniqueFailures.size(); i++) {
+            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailures.get(i));
+        }
+
         if(PRINT_TO_CONSOLE)
             System.out.println(summarized_results);
     }

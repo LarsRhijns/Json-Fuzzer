@@ -1,3 +1,5 @@
+package P3.ExternalFunction.Spec_BigFuzz;
+
 import P3.ExternalFunction.Spec_BigFuzz.WordCountNewCustomArray;
 import P3.ExternalFunction.Spec_BigFuzz.map3;
 import main.java.sharedClasses.CustomArray;

@@ -61,9 +61,9 @@ public class WordCountDriver {
 
     @Fuzz
     public void testWordCount(String fileName) throws Exception {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] WordCountDriver::testWordCount"); }
         WordCount analysis = new WordCount();
-        analysis.WordCount(inputFile.getPath());
+        analysis.WordCount(fileList.get(0));
     }
 }

@@ -5,6 +5,7 @@ import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.Mutation;
 import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -28,16 +29,14 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	private int currentLevel;
 
 	//maximum depth of tree
-	public static final int MUTATION_DEPTH = 7;
+	public static int MUTATION_DEPTH;
 	//apply mutations to all columns
-	public static boolean MUTATE_COLUMNS = false;
+	public static boolean MUTATE_COLUMNS;
 
 	//print level and mutation type for every mutation
 	public static final boolean EVALUATE = false;
-	//number of runs completed
-	private int runs = 0;
-	//amount of runs needed to restart tree
-	public int runsBeforeRestart = 0;
+	//number of times the tree has been restarted
+	public static int restartAmount;
 
 	/**
 	 * Constructor for SystematicMutation class. Reads input conf file for path of seed.
@@ -66,6 +65,67 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 		return "Level: " + currentLevel +
 				"\nColumn: " + mutationTree.getCurrentMutation().getColumn() +
 				"\nNext mutation: " + mutationTree.getCurrentMutation().getMutationType() + "\n";
+	}
+
+	/**
+	 * Start mutating on a csv input file or continue mutating with previous mutation.
+	 *
+	 * @param outputFile path of output file written to by the class. Will contain mutated data
+	 * @throws IOException if file cannot be found
+	 */
+	@Override
+	public void mutate(File inputFile, File outputFile) throws IOException {
+		if (EVALUATE) {
+			System.out.print(evaluation());
+		}
+		Mutation currentMutation = mutationTree.traverseTree();
+		currentLevel = currentMutation.getLevel();
+
+		//Start from seed after all mutations have been applied
+		if (currentLevel == 0) {
+			System.out.println("Reached end of tree, restarting.");
+			restartAmount++;
+			mutationTree = new MutationTree(levelData.get(0).length);
+			levelData.subList(1, levelData.size()).clear();
+			revertDelimiter();
+			currentMutation = mutationTree.traverseTree();
+			currentLevel = currentMutation.getLevel();
+		}
+
+		int columnsBefore = levelData.get(currentLevel - 1).length;
+		String[] mutationRows = new String[columnsBefore];
+		System.arraycopy(levelData.get(currentLevel - 1), 0, mutationRows, 0, columnsBefore);
+		mutationRows = applyMutation(mutationRows, currentMutation);
+
+		if (levelData.size() <= currentLevel) {
+			levelData.add(currentLevel, mutationRows);
+		} else {
+			levelData.set(currentLevel, mutationRows);
+		}
+
+		List<String> fileList = Files.readAllLines(inputFile.toPath());
+		int n = new Random().nextInt(fileList.size());
+		File fileToMutate = new File(fileList.get(n));
+		ArrayList<String> mutatedInput = mutateFile(fileToMutate);
+		if (mutatedInput != null) {
+			writeFile(outputFile, mutatedInput);
+		}
+
+		deletePath = outputFile.getPath();
+
+		// write next ref file
+		File refFile = new File(outputFile + "_ref");
+		BufferedWriter bw = new BufferedWriter(new FileWriter(refFile));
+		for(int i = 0; i < fileList.size(); i++)
+		{
+			if(i == n)
+				bw.write(outputFile.getPath());
+			else
+				bw.write(fileList.get(i));
+			bw.newLine();
+			bw.flush();
+		}
+		bw.close();
 	}
 
 	/**
@@ -206,17 +266,13 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 
 	}
 
-	@Override
-	public void writeFile(File outputFile, List<String> fileRows) throws IOException {
-
-	}
-
 	/**
 	 * Writes mutated data into csv txt file.
 	 *
 	 * @param outputFile path of output file
 	 */
-	public void writeFile(String outputFile) throws IOException {
+
+	private void writeFile(String outputFile) throws IOException {
 		File fOut = new File(outputFile);
 		FileOutputStream fos = new FileOutputStream(fOut);
 		String[] mutationRows = levelData.get(currentLevel);
@@ -240,64 +296,12 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	}
 
 	public void deleteFile(String currentFile) throws IOException {
-		File del = new File(deletePath);
-		del.delete();
-	}
-
-	/**
-	 * Start mutating on a csv input file or continue mutating with previous mutation.
-	 *
-	 * @param outputFile path of output file written to by the class. Will contain mutated data
-	 * @throws IOException if file cannot be found
-	 */
-	@Override
-	public void mutate(File inputFile, File outputFile) throws IOException {
-		if (EVALUATE) {
-			System.out.print(evaluation());
+		// Check if delete is not null (which it is when the file is deleted in the first run)
+		if (deletePath != null) {
+			File del = new File(deletePath);
+			//noinspection ResultOfMethodCallIgnored
+			del.delete();
 		}
-		Mutation currentMutation = mutationTree.traverseTree();
-		currentLevel = currentMutation.getLevel();
-
-		//Start from seed after all mutations have been applied
-		if (currentLevel == 0) {
-			System.out.println("\nReached end of tree, restarting.");
-			runsBeforeRestart = runs;
-			runs = 0;
-
-			mutationTree = new MutationTree(levelData.get(0).length);
-			levelData.subList(1, levelData.size()).clear();
-			revertDelimiter();
-			currentMutation = mutationTree.traverseTree();
-			currentLevel = currentMutation.getLevel();
-		}
-
-		int columnsBefore = levelData.get(currentLevel - 1).length;
-		String[] mutationRows = new String[columnsBefore];
-		System.arraycopy(levelData.get(currentLevel - 1), 0, mutationRows, 0, columnsBefore);
-		mutationRows = applyMutation(mutationRows, currentMutation);
-
-		if (levelData.size() <= currentLevel) {
-			levelData.add(currentLevel, mutationRows);
-		} else {
-			levelData.set(currentLevel, mutationRows);
-		}
-		String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
-		writeFile(fileName);
-
-		String path = System.getProperty("user.dir") + "/" + fileName;
-
-		deletePath = path;
-		// write next input config
-		BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-		bw.write(path);
-		bw.close();
-
-		runs++;
-	}
-
-	@Override
-	public ArrayList<String> mutateFile(File inputFile) throws IOException {
-		return null;
 	}
 
 	/**
@@ -307,4 +311,18 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	public void mutate(ArrayList<String> rows) {
 	}
 
+	/**
+	 * Unused method to implement BigFuzzMutation interface.
+	 */
+	@Override
+	public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+	}
+
+	/**
+	 * Unused method to implement BigFuzzMutation interface.
+	 */
+	@Override
+	public ArrayList<String> mutateFile(File inputFile) throws IOException {
+		return null;
+	}
 }

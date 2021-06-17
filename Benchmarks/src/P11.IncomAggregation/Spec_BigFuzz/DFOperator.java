@@ -1,3 +1,4 @@
+package P11.IncomAggregation.Spec_BigFuzz;
 
 import P11.IncomAggregation.Spec_BigFuzz.DFOperatorCustomArray;
 import P11.IncomAggregation.Spec_BigFuzz.map2;

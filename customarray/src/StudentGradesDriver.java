@@ -16,10 +16,10 @@ public class StudentGradesDriver {
 
     @Fuzz
     public void testStudentGrades(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] StudentGradesDriver::testStudentGrades"); }
         StudentGrades analysis = new StudentGrades();
-        analysis.StudentGrades(inputFile.getPath());
+        analysis.StudentGrades(fileList.get(0));
     }
 
     public static void main(String[] args) throws IOException {
