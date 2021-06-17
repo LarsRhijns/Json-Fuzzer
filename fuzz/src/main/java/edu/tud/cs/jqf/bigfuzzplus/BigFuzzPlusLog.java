@@ -35,10 +35,10 @@ public class BigFuzzPlusLog {
     private static ArrayList<ArrayList<String>> mutatedColumns = new ArrayList<>();
     private static ArrayList<ArrayList<String>> mutationStacks = new ArrayList<>();
 
-    private final ArrayList<Long> errorInputCount = new ArrayList<>();
-    private final ArrayList<Long> validInputCount = new ArrayList<>();
-    private final ArrayList<Long> durations = new ArrayList<>();
-    private final ArrayList<Integer> uniqueFailures = new ArrayList<>();
+    private static ArrayList<Long> errorInputCount = new ArrayList<>();
+    private static ArrayList<Long> validInputCount = new ArrayList<>();
+    private static ArrayList<Long> durations = new ArrayList<>();
+    private static ArrayList<Integer> uniqueFailures = new ArrayList<>();
 
     private BigFuzzPlusLog() {}
 
