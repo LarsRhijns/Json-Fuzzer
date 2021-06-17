@@ -268,12 +268,6 @@ public class BigFuzzPlusLog {
             }
         }
 
-        // --------------- UNIQUE FAILURES --------------
-        summarized_results.append("\n\n UNIQUE FAILURES PER RUN");
-        for (int i = 0; i < uniqueFailures.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailures.get(i));
-        }
-
         if(PRINT_TO_CONSOLE)
             System.out.println(summarized_results);
     }
