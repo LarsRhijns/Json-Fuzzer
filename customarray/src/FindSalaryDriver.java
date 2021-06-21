@@ -17,7 +17,7 @@ public class FindSalaryDriver {
 
 @Fuzz
     public void testFindSalary(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.FindSalary.FindSalaryDriver::testFindSalary: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.FindSalary.FindSalaryDriver::testFindSalary: "+fileName);
 
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
         FindSalary analysis = new FindSalary();

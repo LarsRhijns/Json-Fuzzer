@@ -59,7 +59,7 @@ public class WordCountDriver {
 
     @Fuzz
     public void testWordCount(String fileName) throws Exception {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCount.WordCountDriver::testWordCount: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCount.WordCountDriver::testWordCount: "+fileName);
 
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
 
@@ -67,7 +67,7 @@ public class WordCountDriver {
             Scanner sc = new Scanner(new File(fileList.get(0)));
 
             while (sc.hasNextLine()) {
-                System.out.println(sc.nextLine());
+//                System.out.println(sc.nextLine());
 
             }
         } catch (FileNotFoundException e) {

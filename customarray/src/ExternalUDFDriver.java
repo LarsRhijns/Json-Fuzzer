@@ -14,11 +14,11 @@ public class ExternalUDFDriver {
 
 @Fuzz
     public void testExternalUDF(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.ExternalUDF.ExternalUDFDriver::testExternalUDF: "+fileName);
+//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.ExternalUDF.ExternalUDFDriver::testExternalUDF: "+fileName);
         ExternalUDF analysis = new ExternalUDF();
 
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-        System.out.println("file list: *****" + fileList.size());
+//        System.out.println("file list: *****" + fileList.size());
         analysis.ExternalUDF(fileList.get(0));
     }
 
