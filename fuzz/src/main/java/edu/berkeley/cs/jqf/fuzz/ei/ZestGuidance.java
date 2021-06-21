@@ -898,7 +898,7 @@ public class ZestGuidance implements Guidance {
          * redundant (can be computed using {@link Coverage#getNonZeroCount()}),
          * but we store it here for performance reasons.</p>
          */
-        int nonZeroCoverage = -1;
+        public int nonZeroCoverage = -1;
 
         /**
          * The number of mutant children spawned from this input that

@@ -20,6 +20,11 @@
             <artifactId>asm</artifactId>
             <version>6.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-instrument</artifactId>
+            <version>1.2</version>
+        </dependency>
     </dependencies>
 
 

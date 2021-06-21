@@ -11,25 +11,15 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+
 @RunWith(JQF.class)
 public class WordCountNewDriver {
 
-@Fuzz
+    @Fuzz
     public void testWordCountNew(String fileName) throws IOException {
-        System.out.println("edu.ucla.cs.bigfuzz.customarray.applicable.WordCountEXF.WordCountNewDriver::testWordCountNew: "+fileName);
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-
-    try {
-        Scanner sc = new Scanner(new File(fileList.get(0)));
-
-        while (sc.hasNextLine()) {
-            System.out.println(sc.nextLine());
-
-        }
-    } catch (FileNotFoundException e) {
-
-    }
-
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] WordCountNewDriver::testWordCountNew"); }
         WordCountNew analysis = new WordCountNew();
         analysis.WordCountNew(fileList.get(0));
     }

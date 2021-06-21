@@ -5,6 +5,17 @@
     <groupId>edu.berkeley.cs.jqf</groupId>
     <artifactId>jqf</artifactId>
     <version>1.2-SNAPSHOT</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.curious-odd-man</groupId>
+            <artifactId>rgxgen</artifactId>
+            <version>1.3</version>
+        </dependency></dependencies>
     <packaging>pom</packaging>
 
     <name>jqf</name>
@@ -67,6 +78,9 @@
         <module>maven-plugin</module>
         <module>transformer</module>
         <module>customarray</module>
+        <module>Benchmarks</module>
+        <module>faulty_benchmarks</module>
+        <module>big_fuzz_customarray</module>
     </modules>
 
     <dependencyManagement>
@@ -109,6 +123,11 @@
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>bigfuzz-dfcoverage</artifactId>
+                <version>1.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.berkeley.cs.jqf</groupId>
+                <artifactId>bigfuzz-Benchmarks</artifactId>
                 <version>1.2-SNAPSHOT</version>
             </dependency>
         </dependencies>
