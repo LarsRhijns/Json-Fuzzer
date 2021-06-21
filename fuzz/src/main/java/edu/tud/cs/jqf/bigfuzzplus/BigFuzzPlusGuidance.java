@@ -176,11 +176,10 @@ public class BigFuzzPlusGuidance implements Guidance {
 		switch (mutationMethodClassName) {
 			case "StackedMutation":
 				mutation = new StackedMutation();
-				// TODO: set mutation settings stacked
 				break;
 			case "SystematicMutation":
+			case "random":
 				mutation = new SystematicMutation(initialInputFile);
-				// TODO: set mutation settings systematic
 				break;
 			case "IncomeAggregationMutation":
 				mutation = new IncomeAggregationMutation();

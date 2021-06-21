@@ -2,6 +2,7 @@ package edu.tud.cs.jqf.bigfuzzplus.systematicMutation;
 
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.Mutation;
+import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationType;
 import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
 
 import java.io.*;
@@ -30,6 +31,8 @@ public class SystematicMutation implements BigFuzzMutation {
 	public static int MUTATION_DEPTH;
 	//apply mutations to all columns
 	public static boolean MUTATE_COLUMNS;
+	//apply random mutations for simulating BigFuzz
+	public static boolean MUTATE_RANDOM;
 
 	//print level and mutation type for every mutation
 	public static final boolean EVALUATE = false;
@@ -52,11 +55,15 @@ public class SystematicMutation implements BigFuzzMutation {
 			seedFile = br.readLine();
 			br = new BufferedReader(new FileReader(seedFile));
 			levelData.add(br.readLine().split(delimiter));
+			levelData.add(null);
 			br.close();
 		} catch (IOException e) {
 			System.out.println("Error loading mutation files.");
 		}
 		mutationTree = new MutationTree(levelData.get(0).length);
+		if (MUTATE_RANDOM) {
+			currentLevel = 1;
+		}
 	}
 
 	public String evaluation() {
@@ -73,7 +80,31 @@ public class SystematicMutation implements BigFuzzMutation {
 	 */
 	public void mutate(String inputFile, String outputFile) throws IOException {
 		if (EVALUATE) {
-			System.out.print(evaluation());
+			System.out.println(evaluation());
+		}
+		//for simulating BigFuzz
+		if (MUTATE_RANDOM) {
+			int columnsBefore = levelData.get(0).length;
+			String[] mutationRows = new String[columnsBefore];
+			System.arraycopy(levelData.get(0), 0, mutationRows, 0, columnsBefore);
+			mutationRows = randomMutation(mutationRows, columnsBefore);
+
+			levelData.set(1, mutationRows);
+
+			String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
+			writeFile(fileName);
+
+			String path = System.getProperty("user.dir") + "/" + fileName;
+
+			deletePath = path;
+			// write next input config
+			BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+			bw.write(path);
+			bw.close();
+			if (delimiter.equals("~")) {
+				changeDelimiter();
+			}
+			return;
 		}
 		Mutation currentMutation = mutationTree.traverseTree();
 		currentLevel = currentMutation.getLevel();
@@ -135,6 +166,43 @@ public class SystematicMutation implements BigFuzzMutation {
 				break;
 			case ChangeDelimiter:               //change delimiter
 				changeDelimiter();
+				break;
+			case InsertChar:                    //insert characters
+				insertChar(columnIndex, mutationRows);
+				break;
+			case RemoveElement:                 //remove column
+				mutationRows = removeOneElement(columnIndex, mutationRows);
+				break;
+			case AddElement:                    //add column
+				mutationRows = addOneElement(mutationRows);
+				break;
+			case EmptyColumn:                   //change to empty string
+				mutationRows[columnIndex] = "";
+				break;
+			case NoMutation:
+				throw new GuidanceException("Can not mutate without mutation");
+		}
+		return mutationRows;
+	}
+
+	private String[] randomMutation(String[] mutationRows, int columnAmount) {
+		r.setSeed(System.currentTimeMillis());
+		//can only mutate if data is present
+		assert mutationRows.length > 0;
+		int columnIndex = r.nextInt(columnAmount);
+
+		MutationType nextType = MutationType.values()[r.nextInt(MutationType.values().length - 1) + 1];
+		switch (nextType) {
+			case ChangeValue:       //change value
+				mutationRows[columnIndex] = Integer.toString(r.nextInt());
+				break;
+			case ChangeType:        //change data type
+				changeType(columnIndex, mutationRows);
+				break;
+			case ChangeDelimiter:               //change delimiter
+				if (delimiter.equals(",")) {
+					changeDelimiter();
+				}
 				break;
 			case InsertChar:                    //insert characters
 				insertChar(columnIndex, mutationRows);
@@ -253,7 +321,7 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	/**
-	 * Writes mutated data into csv txt file.
+	 * Writes mutated data into csv txt file, and writes next input file
 	 *
 	 * @param outputFile path of output file
 	 */

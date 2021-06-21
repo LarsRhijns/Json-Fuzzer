@@ -71,11 +71,19 @@ public class BigFuzzPlusDriver {
 			System.out.println("stackedMutationMethod: " + stackedMutationMethod);
 		}
 		if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
-			SystematicMutation.MUTATE_COLUMNS = Boolean.parseBoolean(args[4]);
-			System.out.println("Mutate columns: " + SystematicMutation.MUTATE_COLUMNS);
-			SystematicMutation.MUTATION_DEPTH = Integer.parseInt(args[5]);
-			System.out.println("Mutation depth: " + SystematicMutation.MUTATION_DEPTH);
-			outputDir = new File("output/" + testClassName + " - " + args[4] + ", " + args[5]);
+			if (args.length > 4) {
+				SystematicMutation.MUTATE_COLUMNS = Boolean.parseBoolean(args[4]);
+				System.out.println("Mutate columns: " + SystematicMutation.MUTATE_COLUMNS);
+			} if (args.length > 5) {
+				SystematicMutation.MUTATION_DEPTH = Integer.parseInt(args[5]);
+				System.out.println("Mutation depth: " + SystematicMutation.MUTATION_DEPTH);
+			}
+			outputDir = new File("output/" + testClassName + " - " + SystematicMutation.MUTATE_COLUMNS + ", " + SystematicMutation.MUTATION_DEPTH);
+		}
+		if (mutationMethodClassName.equalsIgnoreCase("random")) {
+			SystematicMutation.MUTATE_RANDOM = true;
+			System.out.println("Mutating randomly");
+			outputDir = new File("output/" + testClassName + " - " + "random testing");
 		}
 
 		// This variable is used for the stackedMutationMethod: Smart_mutate
@@ -117,17 +125,30 @@ public class BigFuzzPlusDriver {
 
 		String file;
 		switch (testClassName) {
+			case "WordCountDriver":
+			case "WordCountNewDriver":
+				file = "dataset/conf_wordcount";
+				break;
+			case "CommuteTypeDriver":
+				file = "dataset/commutetype";
+				break;
+			case "ExternalUDFDriver":
+				file = "dataset/conf_externaludf";
+				break;
+			case "FindSalaryDriver":
+				file = "dataset/conf_findsalary";
+				break;
+			case "StudentGradesDriver":
+				file = "dataset/conf_studentgrades";
+				break;
+			case "MovieRatingDriver":
+				file = "dataset/conf_movierating";
+				break;
 			case "SalaryAnalysisDriver":
 				file = "dataset/conf_salary";
 				break;
 			case "PropertyDriver":
 				file = "dataset/conf_property";
-				break;
-			case "StudentGradeDriver":
-				file = "dataset/conf_studentgrade";
-				break;
-			case "MovieRatingDriver":
-				file = "dataset/conf_movierating";
 				break;
 			default:
 				file = "dataset/conf";
