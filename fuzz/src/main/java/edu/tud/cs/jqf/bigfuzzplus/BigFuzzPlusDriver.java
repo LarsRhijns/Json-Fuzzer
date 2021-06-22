@@ -3,16 +3,12 @@ package edu.tud.cs.jqf.bigfuzzplus;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutationEnum;
-import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATE_COLUMNS;
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATION_DEPTH;
@@ -29,12 +25,19 @@ public class BigFuzzPlusDriver {
 	public static boolean PRINT_TEST_RESULTS = false;
 	public static boolean SAVE_INPUTS = false;
 
-    // ---------- LOGGING / STATS OUTPUT ------------
+    // ---------- MANUAL VARIABLES ------------
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
+    public static boolean SAVE_UNIQUE_FAILURES = false;
+	public static int NUMBER_OF_ITERATIONS = 2;
+	public static Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
+	public static SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
+	/** Favor rate is used to tweak boosted grey-box fuzzing. Only relevant if selection = COVERAGE_FILES.
+	 * 0 = only baseline selection. 1 = only boosted grey-box fuzzing. */
+	public static double favorRate = 0;
 
 
-    public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
+	public static BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
 
     /**
      * Run the BigFuzzPlus program with the following parameters for StackedMutation:
@@ -42,13 +45,16 @@ public class BigFuzzPlusDriver {
      * [1] - test method
      * [2] - mutation method           (StackedMutation)
      * [3] - max Trials                (default = Long.MAXVALUE)
-     * [4] - stacked mutation method   (default = 0)
+     * [4] - BigFuzz / TabFuzz
+     *          0= BigFuzz
+     *          1= TabFuzz
+     * [5] - stacked mutation method   (default = 0)
      *          0 = Disabled
      *          1 = Permute_random (permute between 1 and the max amount of mutations)
      *          2 = Permute_max (Always permute until the max amount of mutations)
      *          3 = Smart_stack (Apply higher-order mutation exclusion rules)
      *          4 = Single mutate (Only apply 1 mutation per column)
-     * [5] - max mutation stack        (default = 2)
+     * [6] - max mutation stack        (default = 2)
      *
      * * Run the BigFuzzPlus program with the following parameters for SystematicMutation:
      * [0] - test class
@@ -76,7 +82,7 @@ public class BigFuzzPlusDriver {
 
 		long programStartTime = System.currentTimeMillis();
         File allOutputDir = new File("fuzz-results");
-        File outputDir = new File(allOutputDir, "" + programStartTime);
+        File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName + " - " + mutationMethodClassName );
         if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
             System.err.println("Something went wrong with making the output directory for this run: " + allOutputDir);
             System.exit(0);
@@ -121,20 +127,13 @@ public class BigFuzzPlusDriver {
 
         log.printProgramArguments();
 
-        int NUMBER_OF_ITERATIONS = 5;
         for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
             int atIteration = i + 1;
             System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
 
             String file = "dataset/conf";
-            Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
             long iterationStartTime = System.currentTimeMillis();
             String iterationOutputDir = outputDir + "/Test" + atIteration;
-
-            SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
-            // 0 = only baseline selection. 1 = fully boosted grey-box fuzzing.
-            // Favor rate is irrelevant when baseline method is INIT_FILES.
-            double favorRate = 0;
 
             try {
                 File itOutputDir = new File(iterationOutputDir);
@@ -157,7 +156,7 @@ public class BigFuzzPlusDriver {
                 long endTime = System.currentTimeMillis();
 
                 // Evaluate the results
-//                log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
+                log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
                 log.writeToLists(guidance, maxTrials);
                 log.addDuration(endTime - iterationStartTime);
                 System.out.println("************************* END OF PROGRAM ITERATION ************************");

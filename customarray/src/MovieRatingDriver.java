@@ -16,10 +16,9 @@ public class MovieRatingDriver {
 
     @Fuzz
     public void testMovieRating(String fileName) throws IOException {
-        File inputFile = new File(fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] MovieRatingDriver::testMovieRating"); }
         MovieRating analysis = new MovieRating();
-        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         analysis.MovieRating(fileList.get(0));
     }
 

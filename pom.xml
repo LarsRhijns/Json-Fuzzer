@@ -130,11 +130,6 @@
                 <artifactId>bigfuzz-Benchmarks</artifactId>
                 <version>1.2-SNAPSHOT</version>
             </dependency>
-            <dependency>
-                <groupId>edu.berkeley.cs.jqf</groupId>
-                <artifactId>bigfuzz-faulty-benchmarks</artifactId>
-                <version>1.2-SNAPSHOT</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -156,9 +156,6 @@ public class GuidedFuzzing {
         }
 
         // Unset guidance and reset TraceLogger singleton such that the program can be run a second time
-        unsetGuidance();
-        TraceLogger.resetSingleton();
-
         // Set the static guided instance
         unsetGuidance();
         setGuidance(guidance);

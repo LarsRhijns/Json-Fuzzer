@@ -4,14 +4,18 @@ import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
 @RunWith(JQF.class)
 
 public class ExternalUDFDriver {
 
-@Fuzz
+    @Fuzz
     public void testExternalUDF(String fileName) throws IOException {
-//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.P7.InsideCircle.Spec_BigFuzz.ExternalUDF.ExternalUDFDriver::testExternalUDF: "+fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         ExternalUDF analysis = new ExternalUDF();
-        analysis.ExternalUDF(fileName);
+        analysis.ExternalUDF(fileList.get(0));
     }
 }

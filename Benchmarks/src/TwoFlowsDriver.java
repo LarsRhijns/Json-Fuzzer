@@ -4,14 +4,18 @@ import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
 @RunWith(JQF.class)
 
 public class TwoFlowsDriver {
 
-@Fuzz
+    @Fuzz
     public void testTwoFlows(String fileName) throws IOException {
-//        System.out.println("edu.ucla.cs.bigfuzz.customarray.inapplicable.P10.AgeAnalysis.Spec_BigFuzz.TwoFlows.TwoFlowsDriver::testTwoFlows: "+fileName);
+        List<String> fileList = Files.readAllLines(Paths.get(fileName));
         TwoFlows analysis = new TwoFlows();
-        analysis.TwoFlows(fileName);
+        analysis.TwoFlows(fileList.get(0));
     }
 }

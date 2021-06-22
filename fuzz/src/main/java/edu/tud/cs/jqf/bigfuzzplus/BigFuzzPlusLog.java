@@ -12,25 +12,33 @@ import java.util.*;
 
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusLog {
+    private static final boolean LOG_UNIQUE_FAILURES_PER_TRIAL = true;
+    private static final boolean LOG_INPUTS = true;
+    private static final boolean LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN = true;
+    private static final boolean LOG_MUTATION_STACKS = true;
+    private static final boolean LOG_ERROR_INPUT_COUNT = false;
+    private static final boolean LOG_VALID_INPUT_COUNT = false;
+    private static final boolean LOG_UNIQUE_FAILURE_AND_MUTATION = true;
+
+    private static final boolean PRINT_TO_CONSOLE = false;
 
     private static BigFuzzPlusLog INSTANCE;
 
+    private static StringBuilder program_configuration = new StringBuilder();
+    private static StringBuilder iteration_results = new StringBuilder();
+    private static StringBuilder summarized_results = new StringBuilder();
 
-    private final StringBuilder program_configuration = new StringBuilder();
-    private final StringBuilder iteration_results = new StringBuilder();
-    private final StringBuilder summarized_results = new StringBuilder();
 
+    private static ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> inputs = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> appliedMutationMethods = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> mutatedColumns = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> mutationStacks = new ArrayList<>();
 
-    private final ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> inputs = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> methods = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> columns = new ArrayList<>();
-    private final ArrayList<ArrayList<String>> mutationStacks = new ArrayList<>();
-
-    private final ArrayList<Long> errorInputCount = new ArrayList<>();
-    private final ArrayList<Long> validInputCount = new ArrayList<>();
-    private final ArrayList<Long> durations = new ArrayList<>();
-    private final ArrayList<Integer> uniqueFailures = new ArrayList<>();
+    private static ArrayList<Long> errorInputCount = new ArrayList<>();
+    private static ArrayList<Long> validInputCount = new ArrayList<>();
+    private static ArrayList<Long> durations = new ArrayList<>();
+    private static ArrayList<Integer> uniqueFailures = new ArrayList<>();
 
     private BigFuzzPlusLog() {}
 
@@ -39,6 +47,25 @@ public class BigFuzzPlusLog {
             INSTANCE = new BigFuzzPlusLog();
         }
         return INSTANCE;
+    }
+
+    public static void resetInstance() {
+        INSTANCE = new BigFuzzPlusLog();
+
+        // TODO: singleton has not been implemented correctly/might not be suited for the job.
+        program_configuration = new StringBuilder();
+        iteration_results = new StringBuilder();
+        summarized_results = new StringBuilder();
+
+        uniqueFailureResults = new ArrayList<>();
+        inputs = new ArrayList<>();
+        appliedMutationMethods = new ArrayList<>();
+        mutatedColumns = new ArrayList<>();
+        mutationStacks = new ArrayList<>();
+
+        errorInputCount = new ArrayList<>();
+        validInputCount = new ArrayList<>();
+        durations = new ArrayList<>();
     }
 
     public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
@@ -55,8 +82,6 @@ public class BigFuzzPlusLog {
         logProgramArguments(testClassName,testMethodName,mutationMethodClassName, outputDir, programStartTime);
         program_configuration.append("\n\tStackedMutation method: " + stackedMutationMethod);
         program_configuration.append("\n\tMaximal stacked mutations: " + intMutationStackCount);
-        program_configuration.append("\nOutput directory is set to: " + outputDir);
-        program_configuration.append("\nProgram is started at: " + programStartTime);
     }
 
     public void logProgramArgumentsSystematicMutation(String testClassName, String testMethodName, String mutationMethodClassName, boolean mutateColumns, int mutationDepth, File outputDir, long programStartTime) {
@@ -66,11 +91,24 @@ public class BigFuzzPlusLog {
     }
 
     public void printProgramArguments() {
-        System.out.println(program_configuration);
+        if(PRINT_TO_CONSOLE)
+            System.out.println(program_configuration);
     }
 
     public void writeToLists(BigFuzzPlusGuidance guidance, Long maxTrials) {
         // Unique failure results
+        if(LOG_UNIQUE_FAILURES_PER_TRIAL)
+            writeUniqueFailureResults(guidance,maxTrials);
+        if(LOG_INPUTS)
+            inputs.add(guidance.inputs);
+
+        // StackedMutation log
+        if (guidance.mutation instanceof StackedMutation) {
+            writeStackedMutationLists(guidance);
+        }
+    }
+
+    private void writeUniqueFailureResults(BigFuzzPlusGuidance guidance, Long maxTrials) {
         int cumulative = 0;
         ArrayList<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
         for (long j = 0; j < maxTrials; j++) {
@@ -80,99 +118,117 @@ public class BigFuzzPlusLog {
         }
 
         uniqueFailureResults.add(runFoundUniqueFailureCumulative);
-        uniqueFailures.add(cumulative);
-        // Methods and columns
-        if (guidance.mutation instanceof StackedMutation) {
+    }
 
-            ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker;
-            ArrayList<Integer> columnTracker;
-            methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
-            columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
+    private void writeStackedMutationLists(BigFuzzPlusGuidance guidance) {
+        if(LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN)
+            writeMutationAndColumnSummaryToList(guidance);
 
-            HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap<>();
-            HashMap<Integer, Integer> columnMap = new HashMap<>();
-            for (int i = 0; i < methodTracker.size(); i++) {
-                HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
-                int column = columnTracker.get(i);
-                if (methodMap.containsKey(method)) {
-                    methodMap.put(method, methodMap.get(method) + 1);
-                } else {
-                    methodMap.put(method, 1);
-                }
-                if (columnMap.containsKey(column)) {
-                    columnMap.put(column, columnMap.get(column) + 1);
-                } else {
-                    columnMap.put(column, 1);
-                }
-            }
-            Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
-            ArrayList<String> methodStringList = new ArrayList<>();
-            while (it.hasNext()) {
-                Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer> e = it.next();
-                methodStringList.add(e.getKey() + ": " + e.getValue());
-            }
-
-
-            Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
-            ArrayList<String> columnStringList = new ArrayList<>();
-            while (it2.hasNext()) {
-                Map.Entry<Integer, Integer> e = it2.next();
-                columnStringList.add(e.getKey() + ": " + e.getValue());
-            }
-            methods.add(methodStringList);
-            columns.add(columnStringList);
+        if(LOG_ERROR_INPUT_COUNT)
             errorInputCount.add((long)guidance.totalFailures);
+        if(LOG_UNIQUE_FAILURE_AND_MUTATION)
             validInputCount.add(guidance.numValid);
+
+        if(LOG_MUTATION_STACKS)
+            writeMutationStack(guidance);
+    }
+
+    private void writeMutationStack(BigFuzzPlusGuidance guidance) {
+        ArrayList<Integer> stackCountList = ((StackedMutation) guidance.mutation).getMutationStackTracker();
+        // Create a hashmap of the count and how many times it occured
+        HashMap<Integer,Integer> stackCount = new HashMap<>();
+        for (Integer integer : stackCountList) {
+            if (stackCount.containsKey(integer)) {
+                stackCount.put(integer, stackCount.get(integer) + 1);
+            } else {
+                stackCount.put(integer, 1);
+            }
+        }
+        Iterator<Map.Entry<Integer, Integer>> it3 = stackCount.entrySet().iterator();
+        ArrayList<String> mutationStackStringList = new ArrayList<>();
+        while (it3.hasNext()) {
+            Map.Entry<Integer, Integer> e = it3.next();
+            mutationStackStringList.add(e.getKey() + ": " + e.getValue());
+        }
+
+        mutationStacks.add(mutationStackStringList);
+    }
+
+    private void writeMutationAndColumnSummaryToList(BigFuzzPlusGuidance guidance) {
+        ArrayList<HighOrderMutation.HighOrderMutationMethod> methodTracker;
+        ArrayList<Integer> columnTracker;
+        methodTracker = ((StackedMutation) guidance.mutation).getMutationMethodTracker();
+        columnTracker = ((StackedMutation) guidance.mutation).getMutationColumnTracker();
+
+        HashMap<HighOrderMutation.HighOrderMutationMethod, Integer> methodMap = new HashMap<>();
+        HashMap<Integer, Integer> columnMap = new HashMap<>();
+        for (int i = 0; i < methodTracker.size(); i++) {
+            HighOrderMutation.HighOrderMutationMethod method = methodTracker.get(i);
+            int column = columnTracker.get(i);
+            if (methodMap.containsKey(method)) {
+                methodMap.put(method, methodMap.get(method) + 1);
+            } else {
+                methodMap.put(method, 1);
+            }
+            if (columnMap.containsKey(column)) {
+                columnMap.put(column, columnMap.get(column) + 1);
+            } else {
+                columnMap.put(column, 1);
+            }
+        }
+        Iterator<Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer>> it = methodMap.entrySet().iterator();
+        ArrayList<String> methodStringList = new ArrayList<>();
+        while (it.hasNext()) {
+            Map.Entry<HighOrderMutation.HighOrderMutationMethod, Integer> e = it.next();
+            methodStringList.add(e.getKey() + ": " + e.getValue());
         }
 
 
-        //Mutation stack
-        if (guidance.mutation instanceof StackedMutation) {
-            ArrayList<Integer> stackCountList = ((StackedMutation) guidance.mutation).getMutationStackTracker();
-            // Create a hashmap of the count and how many times it occured
-            HashMap<Integer,Integer> stackCount = new HashMap<>();
-            for (Integer integer : stackCountList) {
-                if (stackCount.containsKey(integer)) {
-                    stackCount.put(integer, stackCount.get(integer) + 1);
-                } else {
-                    stackCount.put(integer, 1);
-                }
-            }
-            Iterator<Map.Entry<Integer, Integer>> it = stackCount.entrySet().iterator();
-            ArrayList<String> mutationStackStringList = new ArrayList<>();
-            while (it.hasNext()) {
-                Map.Entry<Integer, Integer> e = it.next();
-                mutationStackStringList.add(e.getKey() + ": " + e.getValue());
-            }
-
-            mutationStacks.add(mutationStackStringList);
+        @SuppressWarnings("DuplicatedCode") Iterator<Map.Entry<Integer, Integer>> it2 = columnMap.entrySet().iterator();
+        ArrayList<String> columnStringList = new ArrayList<>();
+        while (it2.hasNext()) {
+            Map.Entry<Integer, Integer> e = it2.next();
+            columnStringList.add(e.getKey() + ": " + e.getValue());
         }
-
-
-
-        inputs.add(guidance.inputs);
+        appliedMutationMethods.add(methodStringList);
+        mutatedColumns.add(columnStringList);
     }
 
     public void summarizeProgramIterations() {
         summarized_results.append("\n#********* PROGRAM SUMMARY **********");
         // --------------- UNIQUE FAILURES --------------
         summarized_results.append("\n#CUMULATIVE UNIQUE FAILURE PER TEST PER ITERATION");
-        for (int i = 0; i < uniqueFailureResults.size(); i++) {
-            summarized_results.append("\n" + uniqueFailureResults.get(i));
+        if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
+            summarized_results.append("\nData log disabled");
+        } else {
+            for (int i = 0; i < uniqueFailureResults.size(); i++) {
+                summarized_results.append("\nRun_" + (i + 1) + "= " + uniqueFailureResults.get(i));
+            }
         }
 
         // --------------- INPUTS --------------
-        if (BigFuzzPlusDriver.SAVE_INPUTS) {
-            summarized_results.append("\n\n#MUTATION RESULTS PER ITERATION");
+        summarized_results.append("\n\n#MUTATION RESULTS PER ITERATION");
+        if(!LOG_INPUTS) {
+            summarized_results.append("\nData log disabled");
+        } else {
             summarized_results.append(dataPerIterationListToLog(inputs));
         }
+
         // --------------- MUTATION COUNTER --------------
         summarized_results.append("\n\n #MUTATED INPUTS PER ITERATION");
-        summarized_results.append(dataPerIterationListToLog(methods));
+        if(!LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN) {
+            summarized_results.append("\nData log disabled");
+        } else {
+            summarized_results.append(dataPerIterationListToLog(appliedMutationMethods));
+        }
 
         // --------------- COLUMN COUNTER --------------
         summarized_results.append("\n\n MUTATIONS APPLIED ON COLUMN PER ITERATION");
-        summarized_results.append(dataPerIterationListToLog(columns));
+        if(!LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN) {
+            summarized_results.append("\nData log disabled");
+        } else {
+            summarized_results.append(dataPerIterationListToLog(mutatedColumns));
+        }
 
         // --------------- DURATION --------------
         summarized_results.append("\n\n #DURATION PER ITERATION");
@@ -183,7 +239,11 @@ public class BigFuzzPlusLog {
 
         // --------------- MUTATION STACK ---------------------
         summarized_results.append("\n\n #STACKED COUNT PER MUTATION PER ITERATION");
-        summarized_results.append(dataPerIterationListToLog(mutationStacks));
+        if(!LOG_MUTATION_STACKS) {
+            summarized_results.append("\nData log disabled");
+        } else {
+            summarized_results.append(dataPerIterationListToLog(mutationStacks));
+        }
 
         // --------------- RESTARTS ---------------------
         summarized_results.append("\n\n RESTARTS");
@@ -191,23 +251,25 @@ public class BigFuzzPlusLog {
 
         // --------------- ERRORS ---------------------
         summarized_results.append("\n\n #ERROR/VALID COUNT PER ITERATION");
-        summarized_results.append("\ntotal_errors= " + errorInputCount);
-        for (int i = 0; i < errorInputCount.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + "= " + errorInputCount.get(i) + " ");
+        if(!LOG_ERROR_INPUT_COUNT) {
+            summarized_results.append("\nData log disabled");
+        } else {
+            summarized_results.append("\ntotal_errors= " + errorInputCount);
+            for (int i = 0; i < errorInputCount.size(); i++) {
+                summarized_results.append("\nRun_" + (i + 1) + "= " + errorInputCount.get(i) + " ");
+            }
+        }
+        if(!LOG_VALID_INPUT_COUNT) {
+            summarized_results.append("\nData log disabled");
+        } else {
+            summarized_results.append("\ntotal_valid_inputs: " + validInputCount);
+            for (int i = 0; i < validInputCount.size(); i++) {
+                summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
+            }
         }
 
-        summarized_results.append("\ntotal_valid_inputs: " + validInputCount);
-        for (int i = 0; i < validInputCount.size(); i++) {
-            summarized_results.append("\nRun_" + (i + 1) + "= " + validInputCount.get(i) + " ");
-        }
-
-        // --------------- UNIQUE FAILURES --------------
-        summarized_results.append("\n\n UNIQUE FAILURES PER RUN");
-        for (int i = 0; i < uniqueFailures.size(); i++) {
-            summarized_results.append("\nRun " + (i + 1) + ": " + uniqueFailures.get(i));
-        }
-
-        System.out.println(summarized_results);
+        if(PRINT_TO_CONSOLE)
+            System.out.println(summarized_results);
     }
 
 
@@ -349,14 +411,18 @@ public class BigFuzzPlusLog {
         if (guidance.mutation instanceof StackedMutation) {
             e_log.append("\n\tRandomization seed: " + ((StackedMutation) guidance.mutation).getRandomizationSeed());
         }
-        e_log.append("\n\tMutated inputs: [");
-        for (int i = 0; i < guidance.inputs.size(); i++) {
-            if (i != 0) {
-                e_log.append(", ");
+        if(!LOG_INPUTS) {
+            e_log.append("\n\tinput log disabled");
+        } else {
+            e_log.append("\n\tMutated inputs: [");
+            for (int i = 0; i < guidance.inputs.size(); i++) {
+                if (i != 0) {
+                    e_log.append(", ");
+                }
+                e_log.append("\"" + guidance.inputs.get(i) + "\"");
             }
-            e_log.append("\"" + guidance.inputs.get(i) + "\"");
+            e_log.append("]");
         }
-        e_log.append("]");
 
         // Print results
         e_log.append("\n---RESULTS---");
@@ -366,19 +432,23 @@ public class BigFuzzPlusLog {
         e_log.append("\n\tTotal Failures: " + guidance.totalFailures);
         e_log.append("\n\tTotal Valid: " + guidance.numValid);
         e_log.append("\n\tTotal Invalid: " + guidance.numDiscards);
-        e_log.append("\n\tUnique Failures: " + guidance.uniqueFailures.size());
-        e_log.append("\n\tUnique Failures found at: " + guidance.uniqueFailureRuns);
-        List<Boolean> runFoundUniqueFailure = new ArrayList<>();
-        int cumulative = 0;
-        List<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
-        for (long i = 0; i < maxTrials; i++) {
-            runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
-            if (guidance.uniqueFailureRuns.contains(i))
-                cumulative++;
-            runFoundUniqueFailureCumulative.add(cumulative);
+        if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
+            e_log.append("\nUnique failure log disabled");
+        } else {
+            e_log.append("\n\tUnique Failures: " + guidance.uniqueFailures.size());
+            e_log.append("\n\tUnique Failures found at: " + guidance.uniqueFailureRuns);
+            List<Boolean> runFoundUniqueFailure = new ArrayList<>();
+            int cumulative = 0;
+            List<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
+            for (long i = 0; i < maxTrials; i++) {
+                runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
+                if (guidance.uniqueFailureRuns.contains(i))
+                    cumulative++;
+                runFoundUniqueFailureCumulative.add(cumulative);
+            }
+            e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailure);
+            e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailureCumulative);
         }
-        e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailure);
-        e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailureCumulative);
 
         // Run time
         long totalDuration = endTime - iterationStartTime;
@@ -397,9 +467,11 @@ public class BigFuzzPlusLog {
         e_log.append("\n\tValid coverage: " + validCov);
         e_log.append("\n\tPercent valid coverage: " + (float) validCov / totalCov * 100 + "%");
 
-        e_log.append(printUniqueFailuresWithMutations(guidance));
+        if(LOG_UNIQUE_FAILURE_AND_MUTATION)
+            e_log.append(printUniqueFailuresWithMutations(guidance));
 
-        System.out.println(e_log);
+        if(PRINT_TO_CONSOLE)
+            System.out.println(e_log);
         iteration_results.append(e_log);
     }
 
