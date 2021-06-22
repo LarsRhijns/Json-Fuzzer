@@ -53,21 +53,6 @@ public class JsonPlusMutation implements BigFuzzPlusMutation {
             bw.flush();
         }
         bw.close();
-
-
-//        // Write next input config
-//        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
-//
-//        for (int i = 0; i < fileList.size(); i++) {
-//            if (i == n) {
-//                bw.write(path);
-//            } else {
-//                bw.write(fileList.get(i));
-//            }
-//            bw.newLine();
-//            bw.flush();
-//        }
-//        bw.close();
     }
 
     /**

@@ -21,8 +21,8 @@ public class JsonMovieRatingDriver {
 
         JsonMovieRating analysis = new JsonMovieRating();
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-        System.out.println(fileName);
-        System.out.println(fileList.size());
+//        System.out.println(fileName);
+//        System.out.println(fileList.size());
         analysis.JsonMovieRating(fileList.get(0));
     }
 }

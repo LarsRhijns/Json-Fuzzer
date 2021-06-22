@@ -19,8 +19,8 @@ public class JsonExternalUDFDriver {
 
         JsonExternalUDF analysis = new JsonExternalUDF();
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-        System.out.println(fileName);
-        System.out.println(fileList.size());
+//        System.out.println(fileName);
+//        System.out.println(fileList.size());
         analysis.JsonExternalUDF(fileList.get(0));
     }
 }
