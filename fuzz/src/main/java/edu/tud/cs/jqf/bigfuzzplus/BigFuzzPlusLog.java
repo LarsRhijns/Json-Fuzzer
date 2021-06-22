@@ -217,18 +217,9 @@ public class BigFuzzPlusLog {
 
     public void summarizeProgramIterations() {
         summarized_results.append("\n************ PROGRAM SUMMARY ************");
-        // --------------- UNIQUE FAILURES --------------
-        summarized_results.append("\nCUMULATIVE UNIQUE FAILURE RUN");
-        if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
-            summarized_results.append("\nData log disabled");
-        } else {
-            for (int i = 0; i < uniqueFailureResults.size(); i++) {
-                summarized_results.append("\n\tRun " + (i + 1) + ": " + uniqueFailureResults.get(i));
-            }
-        }
 
         // --------------- INPUTS --------------
-        summarized_results.append("\n\n#MUTATION RESULTS PER ITERATION");
+        summarized_results.append("\n\nMUTATION RESULTS PER ITERATION");
         if(!LOG_INPUTS) {
             summarized_results.append("\n\tData log disabled");
         } else {
@@ -286,6 +277,16 @@ public class BigFuzzPlusLog {
             summarized_results.append("\n\ttotal_valid_inputs: " + validInputCount);
             for (int i = 0; i < validInputCount.size(); i++) {
                 summarized_results.append("\n\tRun " + (i + 1) + ": " + validInputCount.get(i));
+            }
+        }
+
+        // --------------- UNIQUE FAILURES --------------
+        summarized_results.append("\nCUMULATIVE UNIQUE FAILURES PER RUN");
+        if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
+            summarized_results.append("\nData log disabled");
+        } else {
+            for (int i = 0; i < uniqueFailureResults.size(); i++) {
+                summarized_results.append("\n\tRun " + (i + 1) + ": " + uniqueFailureResults.get(i));
             }
         }
 
