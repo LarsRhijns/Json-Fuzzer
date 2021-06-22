@@ -27,29 +27,47 @@ public class JsonPlusMutation implements BigFuzzPlusMutation {
     @Override
     public void mutate(File inputFile, File nextInputFile) throws IOException {
         List<String> fileList = Files.readAllLines(Paths.get(inputFile.getPath()));
-        setSchema(inputFile.getPath());
+        if (!inputFile.getPath().contains("ref")) {
+            setSchema(inputFile.getPath());
+        }
         int n = r.nextInt(fileList.size());
         String fileToMutate = fileList.get(n);
         mutateFile(new File(fileToMutate));
 
-        String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/')+1);
+        String fileName = nextInputFile.getPath(); //+ "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/')+1);
         writeFile(new File(fileName), fileRows);
 
         String path = System.getProperty("user.dir") + "/" + fileName;
         delete = path;
-        // Write next input config
-        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
 
-        for (int i = 0; i < fileList.size(); i++) {
-            if (i == n) {
-                bw.write(path);
-            } else {
+        // write next ref file
+        File refFile = new File(nextInputFile + "_ref");
+        BufferedWriter bw = new BufferedWriter(new FileWriter(refFile));
+        for(int i = 0; i < fileList.size(); i++)
+        {
+            if(i == n)
+                bw.write(nextInputFile.getPath());
+            else
                 bw.write(fileList.get(i));
-            }
             bw.newLine();
             bw.flush();
         }
         bw.close();
+
+
+//        // Write next input config
+//        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
+//
+//        for (int i = 0; i < fileList.size(); i++) {
+//            if (i == n) {
+//                bw.write(path);
+//            } else {
+//                bw.write(fileList.get(i));
+//            }
+//            bw.newLine();
+//            bw.flush();
+//        }
+//        bw.close();
     }
 
     /**
@@ -61,7 +79,10 @@ public class JsonPlusMutation implements BigFuzzPlusMutation {
     private void setSchema(String inputFile) throws IOException {
         List<String> fileList = Files.readAllLines(Paths.get(inputFile));
         String file = fileList.get(0);
-        String schemaFile = file.substring(0, file.lastIndexOf('.')) + "_schema.json";
+        String schemaFile = file;
+        if (file.contains(".")) {
+            schemaFile = file.substring(0, file.lastIndexOf('.')) + "_schema.json";
+        }
         String schemaPath = schemaFile.substring(2);
         try {
             GeneratorConfig generatorConfig = GeneratorConfig.fromSchemaPath(schemaPath);

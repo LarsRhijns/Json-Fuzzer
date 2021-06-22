@@ -453,7 +453,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
         saveInput();
 
-        File refFile = new File(currentInputFile.getPath()); // + "_ref");
+        File refFile = new File(currentInputFile + "_ref");
         return new ByteArrayInputStream(refFile.getPath().getBytes());
     }
 
