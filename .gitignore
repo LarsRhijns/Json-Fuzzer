@@ -19,3 +19,4 @@ output/*
 # Ignores crash reports & sample data
 2021*
 fuzz-results/
+evaluation_code/

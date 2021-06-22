@@ -7,9 +7,11 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.tud.cs.jqf.bigfuzzplus.bigfuzzmutations.*;
+import edu.tud.cs.jqf.bigfuzzplus.jsonMutation.JsonPlusMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
+import edu.ucla.cs.jqf.bigfuzz.JsonMutation;
 import org.apache.commons.io.FileUtils;
 import org.scalatest.Entry;
 
@@ -321,6 +323,9 @@ public class BigFuzzPlusGuidance implements Guidance {
             case "WordCountMutation":
                 mutation = new WordCountPlusMutation();
                 break;
+            case "JsonMutation":
+                mutation = new JsonPlusMutation();
+                break;
             default:
                 System.err.println("could not match the provided mutation class to an existing class. Provided mutation class: " + mutationMethodClassName);
                 System.exit(0);
@@ -448,7 +453,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 
         saveInput();
 
-        File refFile = new File(currentInputFile + "_ref");
+        File refFile = new File(currentInputFile.getPath()); // + "_ref");
         return new ByteArrayInputStream(refFile.getPath().getBytes());
     }
 
