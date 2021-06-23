@@ -287,7 +287,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                 break;
             case "SystematicMutation":
 	        case "random":
-                mutation = new SystematicMutation(initialInputFile.getName());
+                mutation = new SystematicMutation(initialInputFile);
                 break;
             case "IncomeAggregationMutation":
                 mutation = new IncomeAggregationPlusMutation();
