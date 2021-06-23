@@ -590,9 +590,8 @@ public class BigFuzzPlusGuidance implements Guidance {
             String why = "";
 
             // Save if new combination of branches is found
-            if (nonZeroAfter > nonZeroBefore) {
-                // Must be responsible for some branch
-                assert(responsibilities.size() > 0);
+            if (branchesHitCount.get(responsibilities) == 1) { // responsibilities is only found once (this run)
+                assert(responsibilities.size() > 0); // Must be responsible for some branch
                 toSave = true;
                 why += "+cov";
             }
@@ -808,14 +807,15 @@ public class BigFuzzPlusGuidance implements Guidance {
         Collection<Integer> nonZeroIndices = runCoverage.getCounter().getNonZeroIndices();
         Set<Integer> hitBranches = new HashSet<>(nonZeroIndices);
         int hits = branchesHitCount.getOrDefault(hitBranches, 0);
-        branchesHitCount.put(hitBranches, hits + 1);
         if (PRINT_COVERAGE_DETAILS) {
             System.out.println("[COV] branches hit: " + hitBranches);
+            System.out.println("[COV] branches known: " + branchesHitCount.keySet());
             File equalCovFile = coverageFilePointer.get(hitBranches);
             if (equalCovFile != null) {
                 System.out.println("[COV] equal branches discovered as " + equalCovFile.getName());
             }
         }
+        branchesHitCount.put(hitBranches, hits + 1);
 
         return hitBranches;
     }
