@@ -29,9 +29,9 @@ public class SystematicMutation implements BigFuzzMutation {
 
 	//maximum depth of tree
 	public static int MUTATION_DEPTH;
-	//apply mutations to all columns
+	//explore all columns
 	public static boolean MUTATE_COLUMNS;
-	//apply random mutations for simulating BigFuzz
+	//apply random first order mutations for simulating BigFuzz
 	public static boolean MUTATE_RANDOM;
 
 	//print level and mutation type for every mutation
@@ -73,7 +73,7 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	/**
-	 * Start mutating on a csv input file or continue mutating with previous mutation.
+	 * Start mutating on a csv input file or continue mutating with previous mutant.
 	 *
 	 * @param outputFile path of output file written to by the class. Will contain mutated data
 	 * @throws IOException if file cannot be found
@@ -84,26 +84,7 @@ public class SystematicMutation implements BigFuzzMutation {
 		}
 		//for simulating BigFuzz
 		if (MUTATE_RANDOM) {
-			int columnsBefore = levelData.get(0).length;
-			String[] mutationRows = new String[columnsBefore];
-			System.arraycopy(levelData.get(0), 0, mutationRows, 0, columnsBefore);
-			mutationRows = randomMutation(mutationRows, columnsBefore);
-
-			levelData.set(1, mutationRows);
-
-			String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
-			writeFile(fileName);
-
-			String path = System.getProperty("user.dir") + "/" + fileName;
-
-			deletePath = path;
-			// write next input config
-			BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-			bw.write(path);
-			bw.close();
-			if (delimiter.equals("~")) {
-				changeDelimiter();
-			}
+			mutateRandom(outputFile);
 			return;
 		}
 		Mutation currentMutation = mutationTree.traverseTree();
@@ -145,11 +126,40 @@ public class SystematicMutation implements BigFuzzMutation {
 	}
 
 	/**
+	 * Applies random mutation type on seed input. Used for simulating BigFuzz.
+	 *
+	 * @param outputFile path of output file written to by the class, will contain mutated data
+	 * @throws IOException if file cannot be found
+	 */
+	private void mutateRandom(String outputFile) throws IOException {
+		int columnsBefore = levelData.get(0).length;
+		String[] mutationRows = new String[columnsBefore];
+		System.arraycopy(levelData.get(0), 0, mutationRows, 0, columnsBefore);
+		mutationRows = randomMutation(mutationRows, columnsBefore);
+
+		levelData.set(1, mutationRows);
+
+		String fileName = outputFile + "+" + seedFile.substring(seedFile.lastIndexOf('/') + 1);
+		writeFile(fileName);
+
+		String path = System.getProperty("user.dir") + "/" + fileName;
+
+		deletePath = path;
+		// write next input config
+		BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+		bw.write(path);
+		bw.close();
+		if (delimiter.equals("~")) {
+			changeDelimiter();
+		}
+	}
+
+	/**
 	 * Mutate on rows of an input file. Applies 7 mutations systematically.
 	 *
 	 * @param mutationRows input rows that will be mutated.
 	 * @param mutation     mutation to be applied
-	 * @return string array containing mutated columns
+	 * @return array of strings containing mutated data
 	 */
 	private String[] applyMutation(String[] mutationRows, Mutation mutation) {
 		r.setSeed(System.currentTimeMillis());
@@ -185,6 +195,13 @@ public class SystematicMutation implements BigFuzzMutation {
 		return mutationRows;
 	}
 
+	/**
+	 * Applies random mutation type on data from input file.
+	 *
+	 * @param mutationRows input data to mutate
+	 * @param columnAmount number of columns in input file
+	 * @return array of strings containing mutated data
+	 */
 	private String[] randomMutation(String[] mutationRows, int columnAmount) {
 		r.setSeed(System.currentTimeMillis());
 		//can only mutate if data is present
