@@ -4,15 +4,17 @@ import com.github.curiousoddman.rgxgen.RgxGen;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
-public class TabFuzzMutation implements BigFuzzMutation {
+public class TabFuzzMutation implements BigFuzzPlusMutation {
 
     private static final int MUTATIONS_AMOUNT = 6;
     private final DataFormat[] dataSpecification;
@@ -26,26 +28,6 @@ public class TabFuzzMutation implements BigFuzzMutation {
     public TabFuzzMutation(DataFormat[] dataSpecification, WriterSettings ws) {
         this.dataSpecification = dataSpecification;
         this.ws = ws;
-    }
-
-    public void mutateFile(String fileName, String newFileName) {
-        String currentFile = "";
-        try {
-            Scanner sc = new Scanner(new File(fileName));
-            currentFile = sc.nextLine().trim();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        String newFilePath = configurationFileGenerator(newFileName);
-
-        List<String[]> data;
-        try {
-            CSVReader reader = new CSVReader(new FileReader(currentFile));
-            data = reader.readAll();
-            performRandomMutation(data, newFilePath);
-        } catch (IOException | CsvException e) {
-            e.printStackTrace();
-        }
     }
 
     public String configurationFileGenerator(String filePath) {
@@ -232,13 +214,46 @@ public class TabFuzzMutation implements BigFuzzMutation {
         }
     }
 
-    @Override
-    public void mutate(String inputFile, String nextInputFile) {
-        mutateFile(inputFile, nextInputFile);
+    public void mutate(String inputFile, String nextInputFile) throws IOException {
+        mutate(new File(inputFile), new File(nextInputFile));
     }
 
     public void mutateFile(String inputFile, int index) {
         System.err.println("Don't think this is used?");
+    }
+
+    @Override
+    public void mutate(File inputFile, File outputFile) throws IOException {
+        List<String> fileList = Files.readAllLines(inputFile.toPath());
+        int n = new Random().nextInt(fileList.size());
+        File fileToMutate = new File(fileList.get(n));
+
+        try {
+            CSVReader reader = new CSVReader(new FileReader(fileToMutate));
+            List<String[]> data = reader.readAll();
+            performRandomMutation(data, outputFile.getPath());
+        } catch (IOException | CsvException e) {
+            e.printStackTrace();
+        }
+
+        // write next ref file
+        File refFile = new File(outputFile + "_ref");
+        BufferedWriter bw = new BufferedWriter(new FileWriter(refFile));
+        for(int i = 0; i < fileList.size(); i++)
+        {
+            if(i == n)
+                bw.write(outputFile.getPath());
+            else
+                bw.write(fileList.get(i));
+            bw.newLine();
+            bw.flush();
+        }
+        bw.close();
+    }
+
+    @Override
+    public ArrayList<String> mutateFile(File inputFile) throws IOException {
+        return null;
     }
 
     @Override
@@ -253,6 +268,11 @@ public class TabFuzzMutation implements BigFuzzMutation {
 
     public void randomGenerateRows(ArrayList<String> rows) {
         System.err.println("This should never be run");
+
+    }
+
+    @Override
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException {
 
     }
 
@@ -271,7 +291,6 @@ public class TabFuzzMutation implements BigFuzzMutation {
 
     }
 
-    @Override
     public void writeFile(String outputFile) {
 
     }

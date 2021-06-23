@@ -4,46 +4,41 @@
 
 package edu.tud.cs.jqf.bigfuzzplus.stackedMutation;
 
-//import org.apache.commons.lang.ArrayUtils;
 
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
-import org.apache.commons.lang.RandomStringUtils;
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
+
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
 import static edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation.*;
 
-public class StackedMutation implements BigFuzzMutation {
+public class StackedMutation implements BigFuzzPlusMutation {
     private final Random r = new Random();
     private long randomizationSeed;
-    ArrayList<String> fileRows = new ArrayList<>();
     String delete;
-    int maxGenerateTimes = 20;
     int maxDuplicatedTimes = 10;
     int maxMutationStack = 2;
     char delimiter = ',';
 
 
     // *********** REPRODUCIBILITY ****************
-    // TODO: extend this section such that runs can be hardcoded.
-
+    // Mutations will still be generated. Logging will show mutations being applied, but the provided input is used.
+    // If the number of trials exceed the result list, the last input is used repeatedly
+    // If the input file has multiple lines, the mutation result will be placed on a random line
     boolean useFixedMutationResult = false;
     String[] fixedMutationResultList = {};
     int fixedMutationResultPointer = 0;
     // ********************************************
 
 
-    @SuppressWarnings({"rawtypes"})
-    ArrayList<HighOrderMutationMethod> mutationMethodTracker = new ArrayList();
-    @SuppressWarnings({"rawtypes"})
-    ArrayList<Integer> mutationColumnTracker = new ArrayList();
-    ArrayList<Integer> mutationStackTracker = new ArrayList();
-    ArrayList<MutationPair> appliedMutations = new ArrayList();
+    ArrayList<HighOrderMutationMethod> mutationMethodTracker = new ArrayList<>();
+    ArrayList<Integer> mutationColumnTracker = new ArrayList<>();
+    ArrayList<Integer> mutationStackTracker = new ArrayList<>();
+    ArrayList<MutationPair> appliedMutations = new ArrayList<>();
 
     public StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
 
@@ -54,34 +49,29 @@ public class StackedMutation implements BigFuzzMutation {
      * @param nextInputFile File path where the new input should be stored
      * @throws IOException When method fails to write file name to directory "user.dir/"
      */
-    public void mutate(String inputFile, String nextInputFile) throws IOException {
-        // Select random row from input file to mutate over
-        List<String> fileList = Files.readAllLines(Paths.get(inputFile));
-
-        int n = r.nextInt(fileList.size());
-        String fileToMutate = fileList.get(n);
-
+    @Override
+    public void mutate(File inputFile, File nextInputFile) throws IOException
+    {
         // Empty applied mutations, as it is only containing the mutations performed in this cycle
         appliedMutations = new ArrayList<>();
 
-        // Mutate selected input file
-        mutateFile(fileToMutate);
+        List<String> fileList = Files.readAllLines(inputFile.toPath());
+        int n = new Random().nextInt(fileList.size());
+        File fileToMutate = new File(fileList.get(n));
+        ArrayList<String> mutatedInput = mutateFile(fileToMutate);
+        if (mutatedInput != null) {
+            writeFile(nextInputFile, mutatedInput);
+        }
 
-        //Create a file name for the about to be created input
-        String fileName = nextInputFile + "+" + fileToMutate.substring(fileToMutate.lastIndexOf('/') + 1);
-        writeFile(fileName);
+        delete = nextInputFile.getPath();
 
-        // Generate a path string, which can be used to delete the input file if it is not needed anymore
-        String path = System.getProperty("user.dir") + "/" + fileName;
-        delete = path;
-
-        // write next input config
-        BufferedWriter bw = new BufferedWriter(new FileWriter(nextInputFile));
-
-        // Write the input to the pre-defined path
-        for (int i = 0; i < fileList.size(); i++) {
-            if (i == n)
-                bw.write(path);
+        // write next ref file
+        File refFile = new File(nextInputFile + "_ref");
+        BufferedWriter bw = new BufferedWriter(new FileWriter(refFile));
+        for(int i = 0; i < fileList.size(); i++)
+        {
+            if(i == n)
+                bw.write(nextInputFile.getPath());
             else
                 bw.write(fileList.get(i));
             bw.newLine();
@@ -96,31 +86,32 @@ public class StackedMutation implements BigFuzzMutation {
      * @param inputFile path to input file
      * @throws IOException Throws exception if it fails to read to content of the input file
      */
-    public void mutateFile(String inputFile) throws IOException {
+    public ArrayList<String> mutateFile(File inputFile) throws IOException {
         // Create a reader for the file
-        File file = new File(inputFile);
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
 
         ArrayList<String> rows = new ArrayList<>();
 
         // If the file exists, add every line to the rows list. These will be all provided input seeds to the program
-        if (file.exists()) {
+        if (inputFile.exists()) {
             String readLine;
             while ((readLine = br.readLine()) != null) {
                 rows.add(readLine);
             }
         } else {
             System.out.println("File does not exist!");
-            return;
+            return null;
         }
 
         br.close();
 
+        // BigFuzz would generated rows with a certain amount of steps at this point in the process. However, because input specification is not implemented
+        // This step is skipped.
+
         // Mutate the loaded rows
-        //TODO: 50/50 chance of generating extra rows, but row generation is not implemented by BigFuzz
         mutate(rows);
 
-        fileRows = rows;
+        return rows;
     }
 
     /**
@@ -150,7 +141,7 @@ public class StackedMutation implements BigFuzzMutation {
             default:
                 mutatedElements = mutateLine(rowElements);
         }
-        //TODO: Dynamic delimiter
+        // Static delimiter, if input specifications would be loaded, the delimiter should be changed according to the input specification
         // Change the delimiter back to ',' after mutation
         delimiter = ',';
 
@@ -219,7 +210,8 @@ public class StackedMutation implements BigFuzzMutation {
                     rowElementId = rowElements.length-1;
                 } else {
                     mutationMethod = appliedMutationPerColumn.get(rowElements.length-1);
-                    appliedMutationPerColumn.set(rowElements.length-1, mutationMethod);
+                    appliedMutationPerColumn.set(rowElementId, mutationMethod);
+                    appliedMutationPerColumn.set(rowElements.length-1, HighOrderMutationMethod.NoMutation);
                 }
             }
 
@@ -281,25 +273,83 @@ public class StackedMutation implements BigFuzzMutation {
         // Apply a mutation amount between 1 and the max mutation amount
         int mutationStackRandomCount = r.nextInt(maxMutationStack ) + 1;
 
+        boolean[] stackedColumns = new boolean[rowElements.length];
+        int stackedColumnsCount = 0;
+
         for (int i = 0; i < mutationStackRandomCount; i++) {
             // If all the elements have been deleted, stop stacking mutations as no more mutations can be applied
             if (elementDeletionCount == rowElements.length) {
                 break;
             }
-            // Randomly select the column which will be mutated
-            int rowElementId = r.nextInt(rowElements.length - elementDeletionCount);
+            int rowElementId = 0;
+            HighOrderMutationMethod mutationMethod = HighOrderMutationMethod.NoMutation;
+            boolean canApplyMutation;
 
-            // Get a random mutations method which can still be applied to the randomly selected column
-            HighOrderMutationMethod mutationMethod = HighOrderMutation.getRandomSmartMutation(r, appliedMutationPerColumn.get(rowElementId));
+            do {
+                // Keep trying to apply a mutation, unless all the columns are fully stacked
+                if(rowElements.length <= stackedColumnsCount) {
+                    break;
+                }
 
-            // If No mutation is found, there can't be more mutations stacked. Stop trying to stack mutations
-            if (mutationMethod == HighOrderMutationMethod.NoMutation) {
+                //Reset can apply mutation. This will be set to false if it is not possible
+                canApplyMutation = true;
+
+                // Randomly select the column which will be mutated.
+                int rowElementIdPointer = r.nextInt(rowElements.length - stackedColumnsCount);
+                int loopPointer=0;
+
+                // Loop through all the row elements. If the column has already been mutated skip. If the loop pointer is equal to the rowElementIdPointer, use that element to mutate
+                for (int j = 0; j < rowElements.length; j++) {
+                    if(!stackedColumns[j]) {
+                        if(rowElementIdPointer == loopPointer) {
+                            rowElementId = j;
+                            break;
+                        }
+                        loopPointer++;
+                    }
+                }
+
+                // Get a random mutations method which can still be applied to the randomly selected column
+                mutationMethod = HighOrderMutation.getRandomSmartMutation(r, appliedMutationPerColumn.get(rowElementId));
+
+                // If No mutation is found, there can't be more mutations stacked. Stop trying to stack mutations
+                if (mutationMethod == HighOrderMutationMethod.NoMutation) {
+                    stackedColumns[rowElementId] = true;
+                    stackedColumnsCount++;
+                    canApplyMutation = false;
+                }
+
+                // If the mutation will delete an element, the mutation should be applied to the last column that is not yet deleted (if possible)
+                else if (mutationMethod == HighOrderMutationMethod.RemoveElement) {
+                    //Check if the column that is about to be removed has mutations. If so, remove element can't be applied
+                    ArrayList<HighOrderMutationMethod> appliedMutationsToDeletionColumn = appliedMutationPerColumn.get((appliedMutationPerColumn.size()-1) - elementDeletionCount);
+                    ArrayList<HighOrderMutationMethod> availableMutations = HighOrderMutation.getMutationListFromAppliedMutations(appliedMutationsToDeletionColumn);
+                    if (availableMutations.contains(HighOrderMutationMethod.RemoveElement)) {
+                        // Remove element is always applied to the last column
+                        rowElementId = (appliedMutationPerColumn.size()-1) - elementDeletionCount;
+                        elementDeletionCount++;
+                    } else {
+                        //If the removeElement can't be applied, none of the columns can apply a remove element anymore
+                        for (ArrayList<HighOrderMutationMethod> e :
+                                appliedMutationPerColumn) {
+                            e.add(mutationMethod);
+                        }
+                        canApplyMutation = false;
+                    }
+                }
+            }while(!canApplyMutation);
+
+            if(rowElements.length <= stackedColumnsCount) {
                 break;
             }
 
-            // If the mutation will delete an element, the next mutation should not
-            if (mutationMethod == HighOrderMutationMethod.RemoveElement) {
-                elementDeletionCount++;
+            // If the mutation will change the delimiter, it does not need to be applied again in one of the columns as it is not column specific but is applied to the input as a whole
+            // Therefore, add change Delimiter to all columns such that it won't be picked again.
+            if (mutationMethod == HighOrderMutationMethod.ChangeDelimiter) {
+                for (ArrayList<HighOrderMutationMethod> e :
+                        appliedMutationPerColumn) {
+                    e.add(mutationMethod);
+                }
             }
 
             mutations.add(new MutationPair(rowElementId, mutationMethod));
@@ -328,9 +378,7 @@ public class StackedMutation implements BigFuzzMutation {
         HighOrderMutationMethod method = selectMutationMethod();
 
         // Mutate the row using the selected mutation method
-        String[] mutationResult = applyMutationMethod(method, rowElements, rowElementId);
-
-        return mutationResult;
+        return applyMutationMethod(method, rowElements, rowElementId);
     }
 
     /**
@@ -361,7 +409,7 @@ public class StackedMutation implements BigFuzzMutation {
      * Changes delimiter that is different from default delimiter
      */
     private void changeDelimiter() {
-        //TODO Add dynamic delimiters
+        // Static delimiter, if input specifications would be loaded, the delimiter should be changed according to the input specification
         if (delimiter == ',') {
             delimiter = '~';
         }
@@ -402,22 +450,23 @@ public class StackedMutation implements BigFuzzMutation {
         String[] mutationResult = rowElements;
         switch (method) {
             case ChangeValue:
-                if (rowElements[elementId] != null && !rowElements[elementId].equals(""))
+                if (rowElements[elementId] != null && !rowElements[elementId].equals("")) {
                     mutationResult = changeToRandomValue(rowElements, elementId);
+                }
                 break;
             case ChangeType:
                 mutationResult = changeType(rowElements, elementId);
                 break;
             case RandomCharacter:
-                if (rowElements[elementId] != null && !rowElements[elementId].equals(""))
+                if (rowElements[elementId] != null && !rowElements[elementId].equals("")) {
                     mutationResult = changeToRandomInsert(rowElements, elementId);
+                }
                 break;
             case RemoveElement:
                 mutationResult = removeOneElement(rowElements);
                 break;
             case AddElement:
                 String one = Integer.toString(r.nextInt(10000));
-                int columnIndexNewElement = r.nextInt(rowElements.length + 1);
                 mutationResult = addOneElement(rowElements, one);
                 break;
             case EmptyColumn:
@@ -428,9 +477,7 @@ public class StackedMutation implements BigFuzzMutation {
                 break;
         }
 
-
         saveMutation(elementId, method);
-
         return mutationResult;
     }
 
@@ -480,15 +527,15 @@ public class StackedMutation implements BigFuzzMutation {
     private boolean isFloat(String rowElement) {
         // If there is a . in the element and the last and first index are the same, we know there is exactly 1 '.'
         if (rowElement.indexOf('.') >= 0 && rowElement.indexOf('.') == rowElement.indexOf('.')) {
-            String[] splitted = rowElement.split("\\.");
-            // To allow for .xxxx floats instead of xxx.xxx
-            for (int i = 0; i < splitted.length; i++) {
+            String[] split = rowElement.split("\\.");
+            // To allow for .xxx floats instead of xxx.xxx
+            for (String s : split) {
                 //To allow for -.xxx values
-                if (splitted[i].equals("-")) {
+                if (s.equals("-")) {
                     continue;
                 }
                 try {
-                    Integer.parseInt(splitted[i]);
+                    Integer.parseInt(s);
                 } catch (Exception e) {
                     return false;
                 }
@@ -558,43 +605,33 @@ public class StackedMutation implements BigFuzzMutation {
         return rowElements;
     }
 
-    public void randomDuplicateRows(ArrayList<String> rows) {
-        int ind = r.nextInt(rows.size());
-        int duplicatedTimes = r.nextInt(maxDuplicatedTimes) + 1;
-        String duplicatedValue = rows.get(ind);
-        for (int i = 0; i < duplicatedTimes; i++) {
-            int insertPos = r.nextInt(rows.size());
-            rows.add(insertPos, duplicatedValue);
-        }
-    }
-
     @Override
     public void randomGenerateRows(ArrayList<String> rows) {
-        int generatedTimes = r.nextInt(maxGenerateTimes) + 1;
-        for (int i = 0; i < generatedTimes; i++) {
-            int bits = (int) (r.nextDouble() * 6);
-            String tempRow = RandomStringUtils.randomNumeric(bits); // TODO: Fix string generation to use r field
-            int method = (int) (r.nextDouble()  * 2);
-            if (method == 0) {
-                int next = (int) (r.nextDouble()  * 2);
-                if (next == 0) {
-                    rows.add("$" + tempRow);
-                } else {
-                    rows.add(tempRow);
-                }
-            } else {
-                rows.add(RandomStringUtils.randomNumeric(3));
-            }
-        }
+        // If this method needs to be used, the 'RandomStringUtils.randomNumeric(bits)' should have the seed that is specified, otherwise
+        // the program can't be reproduced
+//        int generatedTimes = r.nextInt(maxGenerateTimes) + 1;
+//        for (int i = 0; i < generatedTimes; i++) {
+//            int bits = (int) (r.nextDouble() * 6);
+//            String tempRow = RandomStringUtils.randomNumeric(bits);
+//            int method = (int) (r.nextDouble()  * 2);
+//            if (method == 0) {
+//                int next = (int) (r.nextDouble()  * 2);
+//                if (next == 0) {
+//                    rows.add("$" + tempRow);
+//                } else {
+//                    rows.add(tempRow);
+//                }
+//            } else {
+//                rows.add(RandomStringUtils.randomNumeric(3));
+//            }
+//        }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
-    public void writeFile(String outputFile) throws IOException {
-        File f_out = new File(outputFile);
-        FileOutputStream fos = new FileOutputStream(f_out);
-
+    public void writeFile(File outputFile, List<String> fileRows) throws IOException {
+        FileOutputStream fos = new FileOutputStream(outputFile);
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
         for (String fileRow : fileRows) {
             if (fileRow == null) {
                 continue;
@@ -602,7 +639,6 @@ public class StackedMutation implements BigFuzzMutation {
             bw.write(fileRow);
             bw.newLine();
         }
-
         bw.close();
         fos.close();
     }
@@ -644,7 +680,7 @@ public class StackedMutation implements BigFuzzMutation {
 
     private void saveMutation(int rowElementId, HighOrderMutationMethod method) {
         appliedMutations.add(new MutationPair(rowElementId, method));
-        // TODO below lists become redundant
+        // Below lists can be extracted from the above list. If performance needs to be optimized, these lists can be removed and data can be retrieved from appliedMutations
         mutationColumnTracker.add(rowElementId);
         mutationMethodTracker.add(method);
     }

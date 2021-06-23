@@ -11,25 +11,15 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+
 @RunWith(JQF.class)
 public class InfiniteloopDriver {
 
     @Fuzz
     public void testInfiniteloop(String fileName) throws IOException {
-        System.out.println("InfiniteloopDriver::testInfiniteloop: "+fileName);
-
-        try {
-            Scanner sc = new Scanner(new File(fileName));
-            while (sc.hasNextLine()) {
-                System.out.println(sc.nextLine());
-
-            }
-        } catch (FileNotFoundException e) {
-
-        }
-
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
-
+        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] InfiniteloopDriver::testInfiniteloop"); }
         Infiniteloop analysis = new Infiniteloop();
         analysis.Infiniteloop(fileList.get(0));
     }

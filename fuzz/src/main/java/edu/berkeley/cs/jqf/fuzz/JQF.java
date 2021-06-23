@@ -86,7 +86,7 @@ public class JQF extends JUnitQuickcheck {
 
     @Override public Statement methodBlock(FrameworkMethod method) {
         if (method.getAnnotation(Fuzz.class) != null) {
-            if (PRINT_METHOD_NAMES) { System.out.println("JQF:methodBlock"); }
+            if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] JQF:methodBlock"); }
             return new FuzzStringStatement(method, getTestClass(), generatorRepository);
         }
         return super.methodBlock(method);

@@ -5,23 +5,15 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
-import edu.ucla.cs.jqf.bigfuzz.BigFuzzMutation;
+import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusMutation;
 //import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static java.lang.Math.ceil;
-import static java.lang.Math.log;
 
 /**
  * A guidance that performs coverage-guided fuzzing using JDU (Joint Dataflow and UDF)
@@ -94,7 +86,7 @@ public class TabFuzzGuidance implements Guidance {
 
     protected final String initialInputFile;
 
-    BigFuzzMutation mutation;
+    BigFuzzPlusMutation mutation;
     private String currentInputFile;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
@@ -145,7 +137,7 @@ public class TabFuzzGuidance implements Guidance {
             {
                 String nextInputFile = initialInputFile + "-mutation_" + numTrials;
                 System.out.println(nextInputFile);
-                mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
+                mutation.mutate(new File(initialInputFile), new File(nextInputFile));//currentInputFile
                 currentInputFile = nextInputFile;
 
             }
