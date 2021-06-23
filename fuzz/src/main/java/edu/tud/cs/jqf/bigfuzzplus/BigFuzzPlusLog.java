@@ -56,7 +56,7 @@ public class BigFuzzPlusLog {
     private final ArrayList<ArrayList<Long>> newDiscoveryTrials = new ArrayList<>();
 
 
-    private BigFuzzPlusLog() {}
+    BigFuzzPlusLog() {}
 
     public static BigFuzzPlusLog getInstance() {
         if (INSTANCE == null) {
