@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.RANDOM_INPUT_SEED;
 import static java.lang.Math.ceil;
 import static java.lang.Math.log;
 
@@ -122,6 +123,17 @@ public class BigFuzzGuidance implements Guidance {
         this.currentInputFile = initialInputFile;
         this.maxTrials = maxTrials;
         this.out = out;
+
+        // Set the schema if its Json typed
+        if (this.mutation instanceof JsonMutation) {
+            ((JsonMutation) mutation).setSchema(initialInputFile);
+        }
+
+        // Generate initial input if needed
+        if (RANDOM_INPUT_SEED) {
+            ((JsonMutation) mutation).randomInputGeneration(this.initialInputFile);
+        }
+
     }
 
     private static void copyFileUsingFileChannels(File source, File dest) throws IOException {

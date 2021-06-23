@@ -1,5 +1,6 @@
 package edu.ucla.cs.jqf.bigfuzz;
 
+import com.pholser.junit.quickcheck.generator.Gen;
 import com.smartentities.json.generator.GeneratorConfig;
 import com.smartentities.json.generator.GeneratorFactory;
 import com.smartentities.json.generator.generators.JsonValueGenerator;
@@ -8,6 +9,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.scalactic.Or;
 
 import javax.xml.bind.SchemaOutputResolver;
 import java.io.*;
@@ -21,7 +23,7 @@ public class JsonMutation implements BigFuzzMutation {
     ArrayList<String> fileRows = new ArrayList<>();
     JSONArray jsonRows = null;
     String delete;
-    ArraySchema jsonSchema;
+    ArraySchema json_schema;
     int maxGenerateTimes = 20;
 
     public void setJsonRows(JSONArray array) {
@@ -66,14 +68,14 @@ public class JsonMutation implements BigFuzzMutation {
      *                  the path to the schema.
      * @throws FileNotFoundException If the file does not exists, it throws an exception
      */
-    private void setSchema(String inputFile) throws IOException {
+    public void setSchema(String inputFile) throws IOException {
         List<String> fileList = Files.readAllLines(Paths.get(inputFile));
         String file = fileList.get(0);
         String schemaFile = file.substring(0, file.lastIndexOf('.')) + "_schema.json";
         String schemaPath = schemaFile.substring(2);
         try {
             GeneratorConfig generatorConfig = GeneratorConfig.fromSchemaPath(schemaPath);
-            jsonSchema = (ArraySchema) generatorConfig.getSchema();
+            json_schema = (ArraySchema) generatorConfig.getSchema();
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("Schema file not found. Please make sure there is also a json schema file present for the used input file");
         }
@@ -140,7 +142,7 @@ public class JsonMutation implements BigFuzzMutation {
         String propertyToMutate = keyIterator.next();
 
         int method = r.nextInt(6);
-        ObjectSchema objectSchema = (ObjectSchema) jsonSchema.getItemSchemas().get(0);
+        ObjectSchema objectSchema = (ObjectSchema) json_schema.getItemSchemas().get(0);
         Schema valueSchema = objectSchema.getPropertySchemas().get(propertyToMutate);
         switch (method) {
 //        Mutation options:
@@ -316,7 +318,7 @@ public class JsonMutation implements BigFuzzMutation {
     @Override
     public void randomGenerateRows(ArrayList<String> rows) {
         int generatedTimes = r.nextInt(maxGenerateTimes)+1;
-        JsonValueGenerator<?> gen = GeneratorFactory.getGenerator(jsonSchema.getItemSchemas().get(0));
+        JsonValueGenerator<?> gen = GeneratorFactory.getGenerator(json_schema.getItemSchemas().get(0));
         JSONArray newArray = getJsonRows();
         for (int i = 0; i < generatedTimes; i++) {
             newArray.add(gen.generate());
@@ -326,6 +328,15 @@ public class JsonMutation implements BigFuzzMutation {
         setJsonRows(newArray);
         rows.clear();
         rows.add(newArray.toString());
+    }
+
+    public void randomInputGeneration(String inputFile) throws IOException {
+        String jsonGen = GeneratorFactory.getGenerator(json_schema).generate().toString();
+        List<String> fileList = Files.readAllLines(Paths.get(inputFile));
+        String initialFile = fileList.get(0);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(initialFile));
+        bw.write(jsonGen);
+        bw.close();
     }
 
     @Override
