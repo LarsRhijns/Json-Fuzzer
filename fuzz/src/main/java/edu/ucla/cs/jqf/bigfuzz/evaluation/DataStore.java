@@ -54,7 +54,14 @@ public class DataStore {
     }
 
     public void addFailure(Throwable error, int trialNumber) {
-        Failure fail = new Failure(error.toString(), error.getStackTrace()[0].getClassName(), error.getStackTrace()[0].getLineNumber(), trialNumber);
+        String err = error.toString();
+        if (error.getStackTrace().length <= 0) {
+            // Weird bug happens sometimes with an empty exception, skip for now.
+            return;
+        }
+        String trace = error.getStackTrace()[0].getClassName();
+        int line = error.getStackTrace()[0].getLineNumber();
+        Failure fail = new Failure(err, trace, line, trialNumber);
         if (!uniqueFailures.contains(fail)) {
             uniqueFailures.add(fail);
             addDataPoint(trialNumber);
