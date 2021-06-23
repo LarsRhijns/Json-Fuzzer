@@ -20,7 +20,6 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	protected static final Random r = new Random();
 	private static String delimiter;
 	private String deletePath;
-	private String seedFile;
 
 	//mutation tree
 	private MutationTree mutationTree;
@@ -54,7 +53,7 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 		//reads files and sets seedFile and fileRows.
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(inputFile));
-			seedFile = br.readLine();
+			String seedFile = br.readLine();
 			br = new BufferedReader(new FileReader(seedFile));
 			levelData.add(br.readLine().split(delimiter));
 			levelData.add(null);
@@ -148,7 +147,7 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 	 * @param outputFile path of output file written to by the class, will contain mutated data
 	 * @throws IOException if file cannot be found
 	 */
-	private void mutateRandom(String outputFile) throws IOException {
+	private void mutateRandom(File outputFile) throws IOException {
 		int columnsBefore = levelData.get(0).length;
 		String[] mutationRows = new String[columnsBefore];
 		System.arraycopy(levelData.get(0), 0, mutationRows, 0, columnsBefore);
@@ -156,7 +155,7 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 
 		levelData.set(1, mutationRows);
 
-		List<String> fileList = Files.readAllLines(inputFile.toPath());
+		List<String> fileList = Files.readAllLines(outputFile.toPath());
 		int n = new Random().nextInt(fileList.size());
 		File fileToMutate = new File(fileList.get(n));
 		ArrayList<String> mutatedInput = mutateFile(fileToMutate);
@@ -358,16 +357,6 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 		return result;
 	}
 
-	//TODO merge random generation
-
-	/**
-	 * Randomly generate some rows and then randomly insert into the input lines.
-	 */
-	@Override
-	public void randomGenerateRows(ArrayList<String> rows) {
-
-	}
-
 	/**
 	 * Writes mutated data into csv txt file, and writes next input file
 	 *
@@ -403,6 +392,13 @@ public class SystematicMutation implements BigFuzzPlusMutation {
 			//noinspection ResultOfMethodCallIgnored
 			del.delete();
 		}
+	}
+
+	/**
+	 * Random input generation is not supported for this mutation class.
+	 */
+	@Override
+	public void randomGenerateRows(ArrayList<String> rows) {
 	}
 
 	/**

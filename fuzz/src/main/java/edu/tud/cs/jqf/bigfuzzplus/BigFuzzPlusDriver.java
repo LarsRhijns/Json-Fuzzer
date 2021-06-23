@@ -10,8 +10,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATE_COLUMNS;
-import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATION_DEPTH;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.*;
 
 public class BigFuzzPlusDriver {
 	// These booleans are for debugging purposes only, toggle them if you want to see the information
@@ -113,10 +112,10 @@ public class BigFuzzPlusDriver {
 		if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
 			if (args.length > 4) {
 				MUTATE_COLUMNS = Boolean.parseBoolean(args[4]);
-				System.out.println("Mutate columns: " + SystematicMutation.MUTATE_COLUMNS);
+				System.out.println("Mutate columns: " + MUTATE_COLUMNS);
 			} if (args.length > 5) {
 				MUTATION_DEPTH = Integer.parseInt(args[5]);
-				System.out.println("Mutation depth: " + SystematicMutation.MUTATION_DEPTH);
+				System.out.println("Mutation depth: " + MUTATION_DEPTH);
 			}
 			log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, MUTATE_COLUMNS, MUTATION_DEPTH, outputDir, programStartTime);
 		}
@@ -134,55 +133,41 @@ public class BigFuzzPlusDriver {
 
         log.printProgramArguments();
 
-//		boolean newOutputDirCreated = outputDir.mkdir();
-//		if (!newOutputDirCreated) {
-//			System.out.println("Something went wrong with making the output directory for this run");
-//			System.exit(0);
-//		}
-//
-//		ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
-//		ArrayList<ArrayList<String>> inputs = new ArrayList<>();
-//		ArrayList<ArrayList<String>> methods = new ArrayList<>();
-//		ArrayList<ArrayList<String>> columns = new ArrayList<>();
-//		ArrayList<Long> durations = new ArrayList<>();
-//		ArrayList<Integer> uniqueFailures = new ArrayList<>();
-//		int totalRestartAmount = 0;
-//
-//		String file;
-//		switch (testClassName) {
-//			case "WordCountDriver":
-//			case "WordCountNewDriver":
-//				file = "dataset/conf_wordcount";
-//				break;
-//			case "CommuteTypeDriver":
-//				file = "dataset/commutetype";
-//				break;
-//			case "ExternalUDFDriver":
-//				file = "dataset/conf_externaludf";
-//				break;
-//			case "FindSalaryDriver":
-//				file = "dataset/conf_findsalary";
-//				break;
-//			case "StudentGradesDriver":
-//				file = "dataset/conf_studentgrades";
-//				break;
-//			case "MovieRatingDriver":
-//				file = "dataset/conf_movierating";
-//				break;
-//			case "SalaryAnalysisDriver":
-//				file = "dataset/conf_salary";
-//				break;
-//			case "PropertyDriver":
-//				file = "dataset/conf_property";
-//				break;
-//			default:
-//				file = "dataset/conf";
-//		}
-        for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
-            int atIteration = i + 1;
-            System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
+		String file;
+		switch (testClassName) {
+			case "WordCountDriver":
+			case "WordCountNewDriver":
+				file = "dataset/conf_wordcount";
+				break;
+			case "CommuteTypeDriver":
+				file = "dataset/commutetype";
+				break;
+			case "ExternalUDFDriver":
+				file = "dataset/conf_externaludf";
+				break;
+			case "FindSalaryDriver":
+				file = "dataset/conf_findsalary";
+				break;
+			case "StudentGradesDriver":
+				file = "dataset/conf_studentgrades";
+				break;
+			case "MovieRatingDriver":
+				file = "dataset/conf_movierating";
+				break;
+			case "SalaryAnalysisDriver":
+				file = "dataset/conf_salary";
+				break;
+			case "PropertyDriver":
+				file = "dataset/conf_property";
+				break;
+			default:
+				file = "dataset/conf";
+		}
 
-            String file = "dataset/conf";
+	    for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
+	        int atIteration = i + 1;
+	        System.out.println("\n******** START OF PROGRAM ITERATION: " + atIteration + "**********************");
+
             long iterationStartTime = System.currentTimeMillis();
             String iterationOutputDir = outputDir + "/Test" + atIteration;
 

@@ -517,7 +517,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         }
 
 		// Stopping criteria
-		long currentMillis = System.currentTimeMillis() - startTime;
+		long currentMillis = System.currentTimeMillis() - startTime.getTime();
 		if (numTrials >= maxTrials
 				|| currentMillis >= this.maxDurationMillis) {
 			this.keepGoing = false;
