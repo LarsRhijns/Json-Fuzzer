@@ -45,7 +45,7 @@ import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.SAVE_UNIQUE_FAILURES;
 public class BigFuzzPlusGuidance implements Guidance {
 
 	/**
-	  The name of the test for display purposes.
+	 * The name of the test for display purposes.
 	 */
 	public final String testName;
 
@@ -286,7 +286,8 @@ public class BigFuzzPlusGuidance implements Guidance {
                 mutation = new StackedMutation();
                 break;
             case "SystematicMutation":
-                mutation = new SystematicMutation(initialInputFile.getName());
+	        case "random":
+                mutation = new SystematicMutation(initialInputFile);
                 break;
             case "IncomeAggregationMutation":
                 mutation = new IncomeAggregationPlusMutation();
@@ -515,12 +516,12 @@ public class BigFuzzPlusGuidance implements Guidance {
             numDiscards++;
         }
 
-        // Stopping criteria
-        long elapsedMillis = new Date().getTime() - startTime.getTime();
-        if (numTrials >= maxTrials - 1
-                || elapsedMillis >= this.maxDurationMillis) {
-            this.keepGoing = false;
-        }
+		// Stopping criteria
+		long currentMillis = System.currentTimeMillis() - startTime.getTime();
+		if (numTrials >= maxTrials
+				|| currentMillis >= this.maxDurationMillis) {
+			this.keepGoing = false;
+		}
 
         float maxDiscardRatio = 0.9f;
         if (numTrials > 10 && ((float) numDiscards)/((float) (numTrials)) > maxDiscardRatio) {
