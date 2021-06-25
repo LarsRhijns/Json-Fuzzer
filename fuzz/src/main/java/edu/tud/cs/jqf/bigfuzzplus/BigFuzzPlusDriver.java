@@ -12,12 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static edu.tud.cs.jqf.bigfuzzplus.SelectionMethod.BLACK_BOX;
-import static edu.tud.cs.jqf.bigfuzzplus.SelectionMethod.FULLY_BOOSTED_GREY_BOX;
-import static edu.tud.cs.jqf.bigfuzzplus.SelectionMethod.GREY_BOX;
-import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATE_COLUMNS;
-import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATE_RANDOM;
-import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATION_DEPTH;
+import static edu.tud.cs.jqf.bigfuzzplus.SelectionMethod.*;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.*;
 
 public class BigFuzzPlusDriver {
 	// These booleans are for debugging purposes only, toggle them if you want to see the information
@@ -27,14 +23,13 @@ public class BigFuzzPlusDriver {
     public static boolean PRINT_INPUT_SELECTION_DETAILS = false;
     public static boolean LOG_AND_PRINT_STATS = false;
 	public static boolean PRINT_ERRORS = false;
-	public static boolean PRINT_MUTATIONS = false;
 	public static boolean PRINT_TEST_RESULTS = false;
 
 	// ---------- MANUAL VARIABLES ------------
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
     public static boolean SAVE_UNIQUE_FAILURES = true;
-	public static int NUMBER_OF_ITERATIONS = 1;
+	public static int NUMBER_OF_ITERATIONS = 10;
 	public static Duration maxDuration = null; // example: Duration.of(30, ChronoUnit.MINUTES);
 	public static List<SelectionMethod> selections = new ArrayList<>(Arrays.asList(FULLY_BOOSTED_GREY_BOX));
 
@@ -81,8 +76,9 @@ public class BigFuzzPlusDriver {
 
 		long programStartTime = System.currentTimeMillis();
 
+	    BigFuzzPlusLog log = new BigFuzzPlusLog();
 		for (SelectionMethod selection : selections) {
-			BigFuzzPlusLog log = new BigFuzzPlusLog();
+			BigFuzzPlusLog.resetInstance();
 
 			String selectionMethodString;
 			if (selection == SelectionMethod.FULLY_BOOSTED_GREY_BOX) {
@@ -96,8 +92,8 @@ public class BigFuzzPlusDriver {
 			}
 
 			File allOutputDir = new File("fuzz-results");
-			File outputDir = new File(allOutputDir, "" + programStartTime + " - " + testClassName +
-					" - " + mutationMethodClassName + " " +
+			File outputDir = new File(allOutputDir, "" + programStartTime + " " + testClassName +
+					" " + mutationMethodClassName + " " +
 					" " + selectionMethodString + " " + NUMBER_OF_ITERATIONS + "x" + maxTrials);
 
 			if (!allOutputDir.exists() && !allOutputDir.mkdir()) {
@@ -118,13 +114,14 @@ public class BigFuzzPlusDriver {
 
 			StackedMutationEnum.StackedMutationMethod stackedMutationMethod = StackedMutationEnum.StackedMutationMethod.Disabled;
 			int intMutationStackCount = 0;
+			log.logProgramArguments(testClassName, testMethodName, mutationMethodClassName, outputDir, programStartTime);
 			if (mutationMethodClassName.equalsIgnoreCase("stackedmutation")) {
 				int intStackedMutationMethod = args.length > 4 ? Integer.parseInt(args[4]) : 0;
 				// This variable is used for the stackedMutationMethod: Smart_mutate
 				// If the selected stackedMutationMethod is smart_mutate and this argument is not given, default is set to 2. If smart_mutate is not selected, set to 0
 				stackedMutationMethod = StackedMutationEnum.intToStackedMutationMethod(intStackedMutationMethod);
 				intMutationStackCount = args.length > 5 ? Integer.parseInt(args[5]) : stackedMutationMethod == StackedMutationEnum.StackedMutationMethod.Smart_stack ? 2 : 0;
-				log.logProgramArgumentsStackedMutation(testClassName, testMethodName, mutationMethodClassName, stackedMutationMethod, intMutationStackCount, outputDir, programStartTime);
+				log.logProgramArgumentsStackedMutation(stackedMutationMethod, intMutationStackCount);
 			}
 			else if (mutationMethodClassName.equalsIgnoreCase("systematicmutation")) {
 				if (args.length > 4) {
@@ -132,15 +129,12 @@ public class BigFuzzPlusDriver {
 				} if (args.length > 5) {
 					MUTATION_DEPTH = Integer.parseInt(args[5]);
 				}
-				log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, MUTATE_COLUMNS, MUTATION_DEPTH, outputDir, programStartTime);
+				log.logProgramArgumentsSystematicMutation(MUTATE_COLUMNS, MUTATION_DEPTH);
 			}
 			else if (mutationMethodClassName.equalsIgnoreCase("random")) {
 				MUTATE_RANDOM = true;
 				System.out.println("Mutating randomly");
-				log.logProgramArgumentsSystematicMutation(testClassName, testMethodName, mutationMethodClassName, MUTATE_COLUMNS, MUTATION_DEPTH, outputDir, programStartTime);
-			}
-			else {
-				log.logProgramArguments(testClassName, testMethodName, mutationMethodClassName, outputDir, programStartTime);
+				log.logProgramArgumentsSystematicMutation(MUTATE_COLUMNS, MUTATION_DEPTH);
 			}
 
 			String file;
@@ -180,9 +174,10 @@ public class BigFuzzPlusDriver {
 			log.printProgramArguments();
 			System.out.println();
 
+			System.out.println("************ PROGRAM RUNNING ************");
 			for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
 				int atIteration = i + 1;
-				System.out.println("************ START OF PROGRAM ITERATION " + atIteration + " - " + selectionMethodString + " ************");
+				System.out.println("*** ITERATION " + atIteration + " - " + selectionMethodString);
 
 				long iterationStartTime = System.currentTimeMillis();
 				String iterationOutputDir = outputDir + "/Test" + atIteration;
@@ -208,7 +203,6 @@ public class BigFuzzPlusDriver {
 					long endTime = System.currentTimeMillis();
 
 					// Evaluate the results
-//					log.evaluation(testClassName, testMethodName, file, maxTrials, maxDuration, iterationStartTime, endTime, guidance, atIteration);
 					log.writeToLists(guidance, maxTrials);
 					log.addDuration(endTime - iterationStartTime);
 				} catch (Exception e) {

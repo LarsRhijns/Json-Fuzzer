@@ -12,7 +12,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,19 +27,18 @@ public class BigFuzzPlusLog {
     private static final boolean LOG_INPUTS = true;
     private static final boolean LOG_APPLIED_MUTATION_AND_MUTATED_COLUMN = true;
     private static final boolean LOG_MUTATION_STACKS = true;
-    private static final boolean LOG_ERROR_INPUT_COUNT = false;
-    private static final boolean LOG_VALID_INPUT_COUNT = false;
+    private static final boolean LOG_ERROR_INPUT_COUNT = true;
+    private static final boolean LOG_VALID_INPUT_COUNT = true;
     private static final boolean LOG_BRANCH_COVERAGE = true;
     private static final boolean LOG_UNIQUE_FAILURE_AND_MUTATION = true;
 
-    private static final boolean PRINT_TO_CONSOLE = false;
+    private static final boolean PRINT_TO_CONSOLE = true;
 
     private static BigFuzzPlusLog INSTANCE;
 
     private static StringBuilder program_configuration = new StringBuilder();
     private static StringBuilder iteration_results = new StringBuilder();
     private static StringBuilder summarized_results = new StringBuilder();
-
 
     private static ArrayList<ArrayList<Integer>> uniqueFailureResults = new ArrayList<>();
     private static ArrayList<ArrayList<String>> inputs = new ArrayList<>();
@@ -51,9 +49,9 @@ public class BigFuzzPlusLog {
     private static ArrayList<Long> errorInputCount = new ArrayList<>();
     private static ArrayList<Long> validInputCount = new ArrayList<>();
     private static ArrayList<Long> durations = new ArrayList<>();
-    private final ArrayList<Map<Set<Integer>, Integer>> branchesHit = new ArrayList<>();
-    private final ArrayList<Collection<Integer>> totalBranches = new ArrayList<>();
-    private final ArrayList<ArrayList<Long>> newDiscoveryTrials = new ArrayList<>();
+    private static ArrayList<Map<Set<Integer>, Integer>> branchesHit = new ArrayList<>();
+    private static ArrayList<Collection<Integer>> totalBranches = new ArrayList<>();
+    private static ArrayList<ArrayList<Long>> newDiscoveryTrials = new ArrayList<>();
 
 
     BigFuzzPlusLog() {}
@@ -82,10 +80,13 @@ public class BigFuzzPlusLog {
         errorInputCount = new ArrayList<>();
         validInputCount = new ArrayList<>();
         durations = new ArrayList<>();
+        branchesHit = new ArrayList<>();
+        totalBranches = new ArrayList<>();
+        newDiscoveryTrials = new ArrayList<>();
     }
 
     public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
-        program_configuration.append("************ PROGRAM CONFIGURATION ************");
+        program_configuration.append("\n\n************ PROGRAM CONFIGURATION ************");
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
 
@@ -95,14 +96,12 @@ public class BigFuzzPlusLog {
         program_configuration.append("\n\tMutation class: " + mutationMethodClassName);
     }
 
-    public void logProgramArgumentsStackedMutation(String testClassName, String testMethodName, String mutationMethodClassName, StackedMutationEnum.StackedMutationMethod stackedMutationMethod, int intMutationStackCount, File outputDir, long programStartTime) {
-        logProgramArguments(testClassName,testMethodName,mutationMethodClassName, outputDir, programStartTime);
+    public void logProgramArgumentsStackedMutation(StackedMutationEnum.StackedMutationMethod stackedMutationMethod, int intMutationStackCount) {
         program_configuration.append("\n\tStackedMutation method: " + stackedMutationMethod);
         program_configuration.append("\n\tMaximal stacked mutations: " + intMutationStackCount);
     }
 
-    public void logProgramArgumentsSystematicMutation(String testClassName, String testMethodName, String mutationMethodClassName, boolean mutateColumns, int mutationDepth, File outputDir, long programStartTime) {
-        logProgramArguments(testClassName,testMethodName,mutationMethodClassName, outputDir, programStartTime);
+    public void logProgramArgumentsSystematicMutation(boolean mutateColumns, int mutationDepth) {
         program_configuration.append("\n\tMutate columns: " + mutateColumns);
         program_configuration.append("\n\tMutate depth: " + mutationDepth);
     }
@@ -216,10 +215,10 @@ public class BigFuzzPlusLog {
     }
 
     public void summarizeProgramIterations() {
-        summarized_results.append("\n************ PROGRAM SUMMARY ************");
+        summarized_results.append("************ PROGRAM SUMMARY ************");
 
         // --------------- INPUTS --------------
-        summarized_results.append("\n\nMUTATION RESULTS PER ITERATION");
+        summarized_results.append("\nMUTATION RESULTS PER ITERATION");
         if(!LOG_INPUTS) {
             summarized_results.append("\n\tData log disabled");
         } else {
@@ -251,9 +250,12 @@ public class BigFuzzPlusLog {
 
         // --------------- MUTATION STACK ---------------------
         summarized_results.append("\n\nSTACKED COUNT PER MUTATION PER ITERATION");
-        if(!LOG_MUTATION_STACKS || mutationStacks.get(0).isEmpty()) {
+        if(!LOG_MUTATION_STACKS) {
             summarized_results.append("\n\tData log disabled");
-        } else {
+        } else if (mutationStacks.get(0).isEmpty()) {
+            summarized_results.append("\n\tMutation depth = 0");
+        }
+        else {
             summarized_results.append(dataPerIterationListToLog(mutationStacks));
         }
 
@@ -281,7 +283,7 @@ public class BigFuzzPlusLog {
         }
 
         // --------------- UNIQUE FAILURES --------------
-        summarized_results.append("\nCUMULATIVE UNIQUE FAILURES PER RUN");
+        summarized_results.append("\n\nCUMULATIVE UNIQUE FAILURES PER RUN");
         if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
             summarized_results.append("\nData log disabled");
         } else {
@@ -290,12 +292,12 @@ public class BigFuzzPlusLog {
             }
         }
 
-        // --------------- BRANCHES HIT -----------------
+        // --------------- COVERAGE INFORMATION -----------------
         ArrayList<ArrayList<Integer>> discoveriesCountAtTrial = new ArrayList<>();
         int totalBranchesSize = 0;
         int maxTrials = uniqueFailureResults.get(0).size();
 
-        summarized_results.append("\n\nBRANCHES HIT");
+        summarized_results.append("\n\nCOVERAGE INFORMATION");
         if (!LOG_BRANCH_COVERAGE) {
             summarized_results.append("\n\tData log disabled");
         }
@@ -317,18 +319,18 @@ public class BigFuzzPlusLog {
                         "\n\t\t# discovered branches = " + runDiscoveryTrials.size() +
                         "\n\t\tnew discovery trials = " + newDiscoveryTrials.get(i) +
                         "\n\t\ttotal branches = " + totalBranches.get(i) +
-                        "\n\t\tdistribution = " + branchesHit.get(i));
+                        "\n\t\tdistribution = " + branchesHit.get(i)
+                );
             }
         }
         float avgBranchesSize = (float) totalBranchesSize / totalBranches.size();
         summarized_results.append("\n\tAverage:" +
                 "\n\t\t# discovered branches: " + avgBranchesSize);
-        for (int i = 0; i < branchesHit.size(); i++) {
-            String printCovResults = discoveriesCountAtTrial.get(i).toString();
-            printCovResults = printCovResults.substring(1, printCovResults.length() - 1);
-            summarized_results.append("\n" + printCovResults);
+        for (int i = 0; i < discoveriesCountAtTrial.size(); i++) {
+            summarized_results.append("\n\t\tRun " + (i + 1) + ": " + discoveriesCountAtTrial.get(i));
         }
 
+        System.out.println();
         if(PRINT_TO_CONSOLE)
             System.out.println(summarized_results);
     }
@@ -443,97 +445,6 @@ public class BigFuzzPlusLog {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-
-    /**
-     * Prints the configuration and the results from the run to the Terminal.
-     *
-     * @param testClassName  Class name which is being tested
-     * @param testMethodName Test method name which is used to perform the test
-     * @param file           Input file for the testing
-     * @param maxTrials      maximal amount of trials configuration
-     * @param maxDuration       maximal duration of the trials configuration
-     * @param iterationStartTime      start time of the program
-     * @param endTime        end time of the program
-     * @param guidance       guidance class which is used to perform the BigFuzz testing
-     * @param atIteration    Counter indicating for which iteration this evaluation is.
-     */
-    public void evaluation(String testClassName, String testMethodName, String file, Long maxTrials, Duration maxDuration, long iterationStartTime, long endTime, BigFuzzPlusGuidance guidance, int atIteration) {
-        StringBuilder e_log = new StringBuilder();
-        // Print configuration
-        e_log.append("\n*** TEST " + atIteration + " LOG ***");
-        e_log.append("\n---CONFIGURATION---");
-        e_log.append("\nFiles used..." + "\n\tconfig:\t\t" + file + "\n\ttestClass:\t" + testClassName + "\n\ttestMethod:\t" + testMethodName);
-        e_log.append("\n\nMax trials: " + maxTrials);
-        e_log.append("\nMax duration: " + maxDuration.toMillis() + "ms");
-
-        e_log.append("\n---REPRODUCIBILITY---");
-        if (guidance.mutation instanceof StackedMutation) {
-            e_log.append("\n\tRandomization seed: " + ((StackedMutation) guidance.mutation).getRandomizationSeed());
-        }
-        if(!LOG_INPUTS) {
-            e_log.append("\n\tinput log disabled");
-        } else {
-            e_log.append("\n\tMutated inputs: [");
-            for (int i = 0; i < guidance.inputs.size(); i++) {
-                if (i != 0) {
-                    e_log.append(", ");
-                }
-                e_log.append("\"" + guidance.inputs.get(i) + "\"");
-            }
-            e_log.append("]");
-        }
-
-        // Print results
-        e_log.append("\n---RESULTS---");
-
-        // Failures
-        e_log.append("\nTotal run count: " + guidance.numTrials);
-        e_log.append("\n\tTotal Failures: " + guidance.totalFailures);
-        e_log.append("\n\tTotal Valid: " + guidance.numValid);
-        e_log.append("\n\tTotal Invalid: " + guidance.numDiscards);
-        if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
-            e_log.append("\nUnique failure log disabled");
-        } else {
-            e_log.append("\n\tUnique Failures: " + guidance.uniqueFailures.size());
-            e_log.append("\n\tUnique Failures found at: " + guidance.uniqueFailureRuns);
-            List<Boolean> runFoundUniqueFailure = new ArrayList<>();
-            int cumulative = 0;
-            List<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
-            for (long i = 0; i < maxTrials; i++) {
-                runFoundUniqueFailure.add(guidance.uniqueFailureRuns.contains(i));
-                if (guidance.uniqueFailureRuns.contains(i))
-                    cumulative++;
-                runFoundUniqueFailureCumulative.add(cumulative);
-            }
-            e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailure);
-            e_log.append("\n\tUnique Failure found per run: " + runFoundUniqueFailureCumulative);
-        }
-
-        // Run time
-        long totalDuration = endTime - iterationStartTime;
-        if (guidance.numTrials != maxTrials) {
-            e_log.append("Could not complete all trials in the given duration.");
-        }
-        e_log.append("\n\nRun time");
-        e_log.append("\n\tTotal run time：" + totalDuration + "ms");
-        e_log.append("\n\tAverage test run time: " + (float) totalDuration / guidance.numTrials + "ms");
-
-        // Coverage
-        int totalCov = guidance.totalCoverage.getNonZeroCount();
-        int validCov = guidance.validCoverage.getNonZeroCount();
-        e_log.append("\n\nCoverage: ");
-        e_log.append("\n\tTotal coverage: " + totalCov);
-        e_log.append("\n\tValid coverage: " + validCov);
-        e_log.append("\n\tPercent valid coverage: " + (float) validCov / totalCov * 100 + "%");
-
-        if(LOG_UNIQUE_FAILURE_AND_MUTATION)
-            e_log.append(printUniqueFailuresWithMutations(guidance));
-
-        if(PRINT_TO_CONSOLE)
-            System.out.println(e_log);
-        iteration_results.append(e_log);
     }
 
 }

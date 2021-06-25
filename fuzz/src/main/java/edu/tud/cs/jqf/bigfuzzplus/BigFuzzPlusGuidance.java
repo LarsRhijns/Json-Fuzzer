@@ -11,7 +11,6 @@ import edu.tud.cs.jqf.bigfuzzplus.jsonMutation.JsonPlusMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
-import edu.ucla.cs.jqf.bigfuzz.JsonMutation;
 import org.apache.commons.io.FileUtils;
 
 import java.io.ByteArrayInputStream;
@@ -33,7 +32,6 @@ import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAIL
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_ERRORS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_INPUT_SELECTION_DETAILS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
-import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_TEST_RESULTS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.SAVE_UNIQUE_FAILURES;
@@ -341,7 +339,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         //progress bar
         String completedTrialsString = "\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")";
         if (PRINT_INPUT_SELECTION_DETAILS || PRINT_COVERAGE_DETAILS || PRINT_MUTATION_DETAILS || PRINT_METHOD_NAMES
-                || PRINT_TEST_RESULTS || PRINT_ERRORS || LOG_AND_PRINT_STATS || PRINT_MUTATIONS) {
+                || PRINT_TEST_RESULTS || PRINT_ERRORS || LOG_AND_PRINT_STATS) {
             System.out.println("\n" + completedTrialsString);
         }
         else {
@@ -563,7 +561,6 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (result == Result.SUCCESS || result == Result.INVALID) {
 
             // Coverage before
-            int nonZeroBefore = totalCoverage.getNonZeroCount();
             int validNonZeroBefore = validCoverage.getNonZeroCount();
 
             // Compute a list of keys for which this input can assume responsibility.
@@ -860,28 +857,5 @@ public class BigFuzzPlusGuidance implements Guidance {
             ((StackedMutation) mutation).setSeed(seed);
         }
         r.setSeed(seed);
-    }
-}
-
-class Entry<A, B> {
-    A key;
-    B value;
-
-    Entry(A key, B value) {
-        this.key = key;
-        this.value = value;
-    }
-
-    public A getKey() {
-        return key;
-    }
-
-    public B getValue() {
-        return value;
-    }
-
-    @Override
-    public String toString() {
-        return "" + key + "=" + value;
     }
 }

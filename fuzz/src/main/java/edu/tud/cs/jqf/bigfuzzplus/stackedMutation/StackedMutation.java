@@ -12,8 +12,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 
-
-import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 import static edu.tud.cs.jqf.bigfuzzplus.stackedMutation.HighOrderMutation.*;
 
 public class StackedMutation implements BigFuzzPlusMutation {
@@ -148,7 +147,7 @@ public class StackedMutation implements BigFuzzPlusMutation {
         // Append all row elements together and set the mutation result in the original input list.
         String mutatedRowString = listToString(mutatedElements);
 
-        if (PRINT_MUTATIONS) {
+        if (PRINT_MUTATION_DETAILS) {
             System.out.println("Input before mutation:" + rowString);
             System.out.println("Input after mutation:" + mutatedRowString);
         }
