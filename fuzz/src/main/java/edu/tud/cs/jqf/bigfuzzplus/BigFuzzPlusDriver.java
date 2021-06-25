@@ -34,9 +34,9 @@ public class BigFuzzPlusDriver {
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
     public static boolean SAVE_UNIQUE_FAILURES = true;
-	public static int NUMBER_OF_ITERATIONS = 10;
+	public static int NUMBER_OF_ITERATIONS = 1;
 	public static Duration maxDuration = null; // example: Duration.of(30, ChronoUnit.MINUTES);
-	public static List<SelectionMethod> selections = new ArrayList<>(Arrays.asList(GREY_BOX));
+	public static List<SelectionMethod> selections = new ArrayList<>(Arrays.asList(FULLY_BOOSTED_GREY_BOX));
 
     /**
      * Run the BigFuzzPlus program with the following parameters for StackedMutation:
