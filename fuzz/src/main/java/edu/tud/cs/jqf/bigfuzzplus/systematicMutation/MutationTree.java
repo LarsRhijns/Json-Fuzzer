@@ -3,11 +3,13 @@ package edu.tud.cs.jqf.bigfuzzplus.systematicMutation;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationType.*;
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationExclusion.*;
+import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.MutationTree.MutationType.*;
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.MUTATION_DEPTH;
 
-//todo add breadth first search
+/**
+ * Provides the next mutation type for exploration of hihger order mutations. Also contains the mutation types and exclusion rules.
+ */
 public class MutationTree {
 	private Mutation currentMutation;
 
@@ -15,6 +17,11 @@ public class MutationTree {
 		this.currentMutation = new Mutation(columnAmount);
 	}
 
+	/**
+	 * Traverse the tree to find the next mutation type to be applied.
+	 *
+	 * @return mutation node to be applied next
+	 */
 	public Mutation traverseTree() {
 		if (!currentMutation.isVisited) {
 			if (currentMutation.level < MUTATION_DEPTH) {
@@ -42,10 +49,18 @@ public class MutationTree {
 		return currentMutation;
 	}
 
+	/**
+	 * Getter for current mutation in tree.
+	 *
+	 * @return mutation node of current tree search location
+	 */
 	public Mutation getCurrentMutation() {
 		return currentMutation;
 	}
 
+	/**
+	 * Mutation node for MutationTree.
+	 */
 	public static class Mutation {
 		private Mutation parent;
 		private final ArrayList<Mutation> children;
@@ -81,7 +96,7 @@ public class MutationTree {
 				this.prevMutations.addAll(parent.prevMutations);
 				this.prevMutations.add(new MutationPair(parent.mutationType, parent.column));
 			}
-			if (mutationType == MutationTree.MutationType.RemoveElement) {
+			if (mutationType == MutationTree.MutationType.RemoveElement && parent.columnAmount > 1) {
 				this.columnAmount = parent.columnAmount - 1;
 			} else {
 				this.columnAmount = parent.columnAmount;
@@ -89,8 +104,7 @@ public class MutationTree {
 		}
 
 		/**
-		 * Constructor for ChangeDelimiter and AddElement. Requires a separate constructor since the ChangeDelimiter
-		 * mutation is applied to all columns.
+		 * Constructor for ChangeDelimiter and AddElement. Requires a separate constructor since these mutations are applied to all columns.
 		 *
 		 * @param parent previous applied mutation.
 		 */
@@ -126,6 +140,12 @@ public class MutationTree {
 			this.column = -1;
 		}
 
+		/**
+		 * Returns the parent Mutation if the Mutation has a parent, otherwise throws NullPointerException.
+		 *
+		 * @return parent Mutation
+		 * @throws NullPointerException if the Mutation contains no parent
+		 */
 		public Mutation getParent() {
 			if (hasParent()) {
 				return parent;
@@ -133,42 +153,95 @@ public class MutationTree {
 			throw new NullPointerException("No parent to return");
 		}
 
+		/**
+		 * Getter for level of Mutation.
+		 *
+		 * @return integer representing level of mutation node in tree
+		 */
 		public int getLevel() {
 			return level;
 		}
 
+		/**
+		 * Getter for mutation type of Mutation.
+		 *
+		 * @return MutationType of Mutation.
+		 */
 		public MutationType getMutationType() {
 			return mutationType;
 		}
 
+		/**
+		 * Getter for column of Mutation.
+		 *
+		 * @return integer representing column number
+		 */
 		public int getColumn() {
 			return column;
 		}
 
+		/**
+		 * Getter for column amount of Mutation after mutation has been applied.
+		 *
+		 * @return integer representing column amount
+		 */
 		public int getColumnAmount() {
 			return columnAmount;
 		}
 
+		/**
+		 * Set Mutation node to be visited.
+		 */
 		public void setVisited() {
 			isVisited = true;
 		}
 
+		/**
+		 * Returns whether the Mutation has a parent.
+		 *
+		 * @return boolean representing whether the Mutation has a parent Mutation
+		 */
 		public boolean hasParent() {
 			return parent != null;
 		}
 
+		/**
+		 * Returns whether the Mutation has children.
+		 *
+		 * @return true of Mutation has at least one child Mutation, false otherwise.
+		 */
 		public boolean hasChildren() {
 			return !children.isEmpty();
 		}
 
+		/**
+		 * Adds child to Mutation to be mutated next.
+		 *
+		 * @param child to be added to Mutation
+		 */
 		public void addChild(Mutation child) {
 			this.children.add(child);
 		}
 
+		/**
+		 * Removes the first child of the Mutation.
+		 *
+		 * @return first Mutation child of this Mutation
+		 */
 		public Mutation removeChild() {
 			return children.remove(0);
 		}
 
+		/**
+		 * Add all mutation types as children.
+		 * When MUTATE_COLUMNS is true, children are added for all columns for mutation types 1-5.
+		 * However, only if the combination of column and mutation type has not been applied by a previous mutation or will be applied by the current mutation.
+		 * If MUTATE_COLUMNS is false, random columns are selected for mutation types 1-5 and all mutation types are only added once.
+		 * However, only if the mutation type has not been applied before, no matter which column it had been applied to.
+		 * Mutation types 6 and 7 apply to all columns, and thus the behaviour does not depend on MUTATE_COLUMNS.
+		 * They are added if they have not applied by a previous Mutation or the current Mutation.
+		 * After the mutations have been added, they are removed if they fit exclusion rules.
+		 */
 		public void addAllTypes() {
 			MutationPair nextValue;
 			MutationPair currentValue;
@@ -186,8 +259,7 @@ public class MutationTree {
 				} else {
 					//otherwise select one random column
 					int randomColumn = SystematicMutation.r.nextInt(columnAmount);
-					MutationType nextType =  MutationType.values()[i];
-					// TODO: debug this method
+					MutationType nextType = MutationType.values()[i];
 					if (this.prevMutations.stream().noneMatch(mutation -> mutation.getMutationType() == nextType) && !nextType.equals(this.mutationType)) {
 						this.addChild(new Mutation(this, MutationType.values()[i], randomColumn));
 					}
@@ -207,6 +279,9 @@ public class MutationTree {
 			this.excludeTypes();
 		}
 
+		/**
+		 * Removes children from Mutation that fit exclusion rules. These rules were made by considering illogical combinations of mutation types.
+		 */
 		private void excludeTypes() {
 			ArrayList<MutationPair> excludeMutations = new ArrayList<>(this.prevMutations);
 			excludeMutations.add(new MutationPair(this.mutationType, this.column));
@@ -224,7 +299,7 @@ public class MutationTree {
 	 *                    3: random insert value in element (M4)
 	 *                    4: random delete one column/element (M5)
 	 *                    5: Empty String (M6)
-	 *                    6: random add one column/element (?)
+	 *                    6: random add one column/element (M7)
 	 *                    7: change delimiter (M3)
 	 */
 	public enum MutationType {
@@ -245,6 +320,9 @@ public class MutationTree {
 
 	}
 
+	/**
+	 * Exclusions containing integer arrays referring to Mutation type indices.
+	 */
 	protected enum MutationExclusion {
 		ChangeValueExclusion(new int[]{4, 5}),
 		ChangeTypeExclusion(new int[]{1, 4, 5}),
