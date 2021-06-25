@@ -12,7 +12,7 @@ import java.time.temporal.ChronoUnit;
 public class BigFuzzDriver {
     public static DataStore ds;
     private static long folder;
-    public static boolean RANDOM_INPUT_SEED = true;
+    public static boolean RANDOM_INPUT_SEED = false;
 
     public static void main(String[] args) {
         if (args.length < 2) {
