@@ -36,7 +36,6 @@ import edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusGuidance;
 import org.junit.internal.TextListener;
 import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.*;
-
 import java.io.PrintStream;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
