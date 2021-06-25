@@ -14,8 +14,10 @@ target/*
 fuzz/target/
 conf
 conf+cov
+conf*
 
 output/*
 # Ignores crash reports & sample data
 2021*
 fuzz-results/
+evaluation_code/

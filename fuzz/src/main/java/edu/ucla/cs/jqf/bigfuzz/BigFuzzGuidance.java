@@ -6,7 +6,8 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
-//import org.apache.commons.io.FileUtils;
+import edu.ucla.cs.jqf.bigfuzz.evaluation.Failure;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 
@@ -20,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static edu.ucla.cs.jqf.bigfuzz.BigFuzzDriver.RANDOM_INPUT_SEED;
 import static java.lang.Math.ceil;
 import static java.lang.Math.log;
 
@@ -93,17 +95,26 @@ public class BigFuzzGuidance implements Guidance {
     static final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
 
     protected final String initialInputFile;
-    BigFuzzMutation mutation = new IncomeAggregationMutation();
+    BigFuzzMutation mutation = new JsonMutation();
     private String currentInputFile;
+    private final String outputDirName;
 
     ArrayList<String> testInputFiles = new ArrayList<String>();
 
 
-    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out) throws IOException {
+    public BigFuzzGuidance(String testName, String initialInputFile, long maxTrials, Duration duration, PrintStream out, String outputDirName) throws IOException {
 
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
-        //this.outputDirectory = outputDirectory;
+
+        // create or empty the output directory
+        this.outputDirName = outputDirName;
+        File outputDir = new File(outputDirName);
+        boolean newOutputDirCreated = outputDir.mkdir();
+        if (!newOutputDirCreated) {
+            FileUtils.cleanDirectory(FileUtils.getFile(outputDirName));
+        }
+
 
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
@@ -112,6 +123,17 @@ public class BigFuzzGuidance implements Guidance {
         this.currentInputFile = initialInputFile;
         this.maxTrials = maxTrials;
         this.out = out;
+
+        // Set the schema if its Json typed
+        if (this.mutation instanceof JsonMutation) {
+            ((JsonMutation) mutation).setSchema(initialInputFile);
+        }
+
+        // Generate initial input if needed
+        if (RANDOM_INPUT_SEED) {
+            ((JsonMutation) mutation).randomInputGeneration(this.initialInputFile);
+        }
+
     }
 
     private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
@@ -162,6 +184,7 @@ public class BigFuzzGuidance implements Guidance {
 //                mutation.writeFile(fileName);
 
                 String nextInputFile = new SimpleDateFormat("yyyyMMddHHmmss'_"+this.numTrials+"'").format(new Date());
+                nextInputFile = this.outputDirName + '/' + nextInputFile;
                 System.out.println(nextInputFile);
                 mutation.mutate(initialInputFile, nextInputFile);//currentInputFile
                 currentInputFile = nextInputFile;
@@ -347,13 +370,15 @@ public class BigFuzzGuidance implements Guidance {
                 int crashIdx = uniqueFailures.size() - 1;
 
                 infoLog("%s", "Found crash: " + error.getClass() + " - " + (msg != null ? msg : ""));
+                BigFuzzDriver.ds.addFailure(error, (int) numTrials);
 
 //                String how = currentInput.desc;
                 String why = result == Result.FAILURE ? "+crash" : "+hang";
 //                infoLog("Saved - %s %s %s", saveFile.getPath(), how, why);
 
                 File src = new File(currentInputFile);
-                currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + rootCause;
+                String cause = rootCause.getClass().toString();
+                currentInputFile = currentInputFile + why + "+" + crashIdx + "+" + cause;
                 File des = new File(currentInputFile);
                 src.renameTo(des);
             } else {

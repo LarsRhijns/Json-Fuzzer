@@ -28,7 +28,7 @@ public class BigFuzzPlusDriver {
     /** Cleans outputDirectory if true, else adds a new subdirectory in which the results are stored */
     public static boolean CLEAR_ALL_PREVIOUS_RESULTS_ON_START = false;
     public static boolean SAVE_UNIQUE_FAILURES = false;
-	public static int NUMBER_OF_ITERATIONS = 2;
+	public static int NUMBER_OF_ITERATIONS = 1;
 	public static Duration maxDuration = Duration.of(10, ChronoUnit.MINUTES);
 	public static SelectionMethod selection = SelectionMethod.COVERAGE_FILES;
 	/** Favor rate is used to tweak boosted grey-box fuzzing. Only relevant if selection = COVERAGE_FILES.

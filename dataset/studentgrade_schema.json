@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "title": "Studentgrade Object",
+      "description": "studentgrade data input",
+      "properties": {
+        "course": {
+          "type": "string",
+          "pattern": "^(EE|CS)([1-9]|10)$"
+        },
+        "grade": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    }
+  ]
+}
