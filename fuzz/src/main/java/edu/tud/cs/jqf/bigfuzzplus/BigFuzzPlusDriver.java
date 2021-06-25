@@ -69,7 +69,7 @@ public class BigFuzzPlusDriver {
 
         // LOAD PROGRAM ARGUMENTS
         if (args.length < 3) {
-            System.err.println("Usage: java " + BigFuzzPlusDriver.class + " TEST_CLASS TEST_METHOD MUTATION_CLASS [MAX_TRIALS]");
+            System.err.println("Missing necessary program arguments: testClassName testMethodName mutationMethodClassName");
             System.exit(1);
         }
 
