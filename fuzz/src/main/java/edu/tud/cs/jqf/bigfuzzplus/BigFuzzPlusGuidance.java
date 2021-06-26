@@ -682,9 +682,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                     }
                 }
             }
-            else {
-                currentInputFile = lastWorkingInputFile;
-            }
+            currentInputFile = lastWorkingInputFile;
         }
 
         if (LOG_AND_PRINT_STATS) {
