@@ -8,9 +8,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static edu.tud.cs.jqf.bigfuzzplus.SelectionMethod.*;
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.*;
@@ -140,6 +137,7 @@ public class BigFuzzPlusDriver {
 		switch (testClassName) {
 			case "WordCountDriver":
 			case "WordCountNewDriver":
+			case "OneDFOperatorDriver":
 				file = "dataset/conf_wordcount";
 				break;
 			case "CommuteTypeDriver":
@@ -159,6 +157,12 @@ public class BigFuzzPlusDriver {
 				break;
 			case "SalaryAnalysisDriver":
 				file = "dataset/conf_salary";
+				break;
+			case "InfiniteloopDriver":
+				file = "dataset/conf_numberseries";
+				break;
+			case "TwoFlowsDriver":
+				file = "conf_ageanalysis";
 				break;
 			case "DFOperatorDriver":
 				file = "dataset/conf_incomeaggregation";
