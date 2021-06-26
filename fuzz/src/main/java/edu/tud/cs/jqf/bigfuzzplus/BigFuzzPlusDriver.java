@@ -14,6 +14,7 @@ import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.*
 
 public class BigFuzzPlusDriver {
 	// These booleans are for debugging purposes only, toggle them if you want to see the information
+	public static boolean PRINT_LINE_FOR_EACH_TRIAL = true; // enable for less cluttered debugging
 	public static boolean PRINT_METHOD_NAMES = false;
 	public static boolean PRINT_MUTATION_DETAILS = false;
     public static boolean PRINT_COVERAGE_DETAILS = false;
