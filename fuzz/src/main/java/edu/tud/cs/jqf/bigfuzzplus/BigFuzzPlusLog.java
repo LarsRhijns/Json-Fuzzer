@@ -86,7 +86,7 @@ public class BigFuzzPlusLog {
     }
 
     public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
-        program_configuration.append("\n\n************ PROGRAM CONFIGURATION ************");
+        program_configuration.append("\n************ PROGRAM CONFIGURATION ************");
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
 

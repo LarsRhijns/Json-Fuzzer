@@ -85,8 +85,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     /** The directory where fuzzing results are written. */
     protected final File outputDirectory;
 
-    /** A percentage indicating how often the less frequent branches preferring method is applied over
-     * the baseline input selection method */
+    /** The input selection method used. */
     private final SelectionMethod selection;
 
     /** The directory where saved inputs are written. */
