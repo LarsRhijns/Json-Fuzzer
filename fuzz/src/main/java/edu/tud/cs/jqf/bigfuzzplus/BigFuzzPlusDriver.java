@@ -143,7 +143,7 @@ public class BigFuzzPlusDriver {
 				file = "dataset/conf_wordcount";
 				break;
 			case "CommuteTypeDriver":
-				file = "dataset/commutetype";
+				file = "dataset/conf_commutetype";
 				break;
 			case "ExternalUDFDriver":
 				file = "dataset/conf_externaludf";
@@ -159,6 +159,9 @@ public class BigFuzzPlusDriver {
 				break;
 			case "SalaryAnalysisDriver":
 				file = "dataset/conf_salary";
+				break;
+			case "DFOperatorDriver":
+				file = "dataset/conf_incomeaggregation";
 				break;
 			case "PropertyDriver":
 				file = "dataset/conf_property";
