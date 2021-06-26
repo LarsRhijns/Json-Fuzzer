@@ -13,8 +13,6 @@ public class CommuteTypeDriver {
 
     @Fuzz
     public void testCommuteType(String fileName) throws IOException {
-        System.out.println("CommuteTypeDriver::testCommuteType: "+fileName);
-
         List<String> fileList = Files.readAllLines(Paths.get(fileName));
 
         CommuteType analysis = new CommuteType();

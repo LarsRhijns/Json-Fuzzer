@@ -21,7 +21,6 @@ public class DFOperatorCustomArray {
 
     }
  public static ArrayList<Tuple3> Map1(ArrayList<String> result){
-        System.out.println("map1***********");
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
 
         int iid = CustomArray.class.hashCode(); // this should be a random value associated with a program location
@@ -34,11 +33,9 @@ public class DFOperatorCustomArray {
              ans.add(map3.apply(results));
          }
 
-System.out.println("ans size: "+ans.size());
 return ans;
 }
  public static ArrayList< Tuple3> Filter1(ArrayList< Tuple3> result){
-        System.out.println("filter1**********");
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
 
         int iid = CustomArray.class.hashCode(); // this should be a random value associated with a program location
@@ -53,7 +50,6 @@ for ( Tuple3 results: result){if (filter1.apply(results)) ans.add(results );}
 return ans;
 }
  public static ArrayList<map2> Map2(ArrayList< Tuple3> result){
-        System.out.println("map2*******8");
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
 
         int iid = CustomArray.class.hashCode(); // this should be a random value associated with a program location
@@ -65,7 +61,6 @@ for ( Tuple3 results: result){ans.add( map2.apply( results));}
 return ans;
 }
  public static ArrayList<Tuple2> MapValues1(ArrayList<map2> result){
-        System.out.println("map2****");
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
 
         int iid = CustomArray.class.hashCode(); // this should be a random value associated with a program location
