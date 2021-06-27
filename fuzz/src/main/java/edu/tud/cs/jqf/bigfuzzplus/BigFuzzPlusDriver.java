@@ -78,14 +78,16 @@ public class BigFuzzPlusDriver {
 		BigFuzzPlusLog.resetInstance();
 
 		String selectionMethodString;
-		if (selection == SelectionMethod.FULLY_BOOSTED_GREY_BOX) {
-			selectionMethodString = "FBGB";
-		} else if (selection == SelectionMethod.HALF_BOOSTED_GREY_BOX) {
-			selectionMethodString = "HBGB";
-		} else if (selection == GREY_BOX) {
-			selectionMethodString = "GB";
-		} else {
-			selectionMethodString = "BB";
+		switch (selection) {
+			case FULLY_BOOSTED_GREY_BOX: selectionMethodString = "FBGB";
+				break;
+			case HALF_BOOSTED_GREY_BOX: selectionMethodString = "HBGB";
+				break;
+			case GREY_BOX: selectionMethodString = "GB";
+				break;
+			case BLACK_BOX: selectionMethodString = "BB";
+				break;
+			default: selectionMethodString = "";
 		}
 
 		File allOutputDir = new File("fuzz-results");
