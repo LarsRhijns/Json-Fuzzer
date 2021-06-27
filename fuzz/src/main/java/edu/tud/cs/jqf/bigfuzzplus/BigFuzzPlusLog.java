@@ -273,7 +273,7 @@ public class BigFuzzPlusLog {
 
         // --------------- STACKED MUTATION ---------------------
         summarized_results.append("\n\nSTACKED COUNT PER MUTATION PER ITERATION");
-        if(!LOG_MUTATION_STACKS) {
+        if(!LOG_MUTATION_STACKS || mutationStacks.isEmpty()) {
             summarized_results.append("\n\tData log disabled");
         } else if (mutationStacks.get(0).isEmpty()) {
             summarized_results.append("\n\tMutation depth = 0");
