@@ -13,6 +13,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAILS;
+
 public class CustomArray {
 
     private ArrayList<String> list;
@@ -101,25 +103,20 @@ public class CustomArray {
     }
     public static ArrayList<SalaryItem> filter1(ArrayList<SalaryItem> items, String zipcode)
     {
-        ArrayList<SalaryItem> ret = new ArrayList<SalaryItem>();
-        int arm = 0;
-        for(SalaryItem item:items)
-        {
-            if(item.getZipcode().equals(zipcode))
-            {
+        ArrayList<SalaryItem> ret = new ArrayList<>();
+        for(SalaryItem item:items) {
+            if(item.getZipcode().equals(zipcode)) {
                 ret.add(item);
             }
         }
 
-//        System.out.println(ret.size());
-        if( !ret.isEmpty()) arm = 1;
-
+        int arm = ret.isEmpty() ? 0 : 1;
         int callersLineNumber = Thread.currentThread().getStackTrace()[1].getLineNumber();
-
         int iid = CustomArray.class.hashCode(); // this should be a random value associated with a program location
         MemberRef method = new METHOD_BEGIN(Thread.currentThread().getStackTrace()[1].getClassName(), Thread.currentThread().getStackTrace()[1].getMethodName(), "()V"); // containing method
 
         // Generate a custom event!
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] filter1 arm: " + arm); }
         TraceLogger.get().emit(new FilterEvent(iid, method, callersLineNumber, arm));
 
         return ret;

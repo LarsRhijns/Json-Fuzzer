@@ -84,7 +84,7 @@ public class Counter {
         return Hashing.hash(key, size);
     }
 
-    private int idx1(int k1, int k2) {
+    public int idx1(int k1, int k2) {
         return Hashing.hash1(k1, k2, size);
     }
 

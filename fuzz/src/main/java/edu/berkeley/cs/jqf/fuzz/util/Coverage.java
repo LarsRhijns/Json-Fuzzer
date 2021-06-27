@@ -38,7 +38,7 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEventVisitor;
 import edu.ucla.cs.bigfuzz.dataflow.*;
 
-import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAILS;
 
 /**
  * Utility class to collect branch and function coverage
@@ -93,38 +93,44 @@ public class Coverage implements TraceEventVisitor {
     @Override
     public void visitBranchEvent(BranchEvent b) {
         counter.increment1(b.getIid(), b.getArm());
-//        if (PRINT_METHODNAMES) { System.out.println("Coverage::visitBranchEvent"); }
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[EVENT] visit Branch: line " + b.getLineNumber() +
+                ", method " + b.getContainingMethodName().substring(b.getContainingMethodName().lastIndexOf("#")) +
+                ", arm " + b.getArm() +
+                ", branch " + counter.idx1(b.getIid(), b.getArm())); }
     }
 
     @Override
     public void visitCallEvent(CallEvent e) {
         counter.increment(e.getIid());
-//        if (PRINT_METHODNAMES) { System.out.println("Coverage::visitCallEvent"); }
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[EVENT] visit Call: line " + e.getLineNumber() + ", method " + e.getInvokedMethodName().substring(e.getInvokedMethodName().lastIndexOf("#"))); }
     }
 
     public void visitMapEvent(MapEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage: visitMap"); }
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[EVENT] visit Map: line " + e.getLineNumber() + ", method " + e.getInvokedMethodName().substring(e.getInvokedMethodName().lastIndexOf("#"))); }
     }
 
     public void visitReduceEvent(ReduceEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage: visitReduce"); }
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[EVENT] visit Reduce: line " + e.getLineNumber() + ", method " + e.getInvokedMethodName().substring(e.getInvokedMethodName().lastIndexOf("#"))); }
     }
 
     public void visitReduceByKeyEvent(ReduceByKeyEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage::visitReduceByKeyEvent"); }
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[EVENT] visit ReduceByKey: line " + e.getLineNumber() + ", method " + e.getInvokedMethodName().substring(e.getInvokedMethodName().lastIndexOf("#"))); }
     }
 
     public void visitFilterEvent(FilterEvent e) {
         counter.increment1(e.getIid(), e.getArm());
-        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage::visitFilterEvent"); }
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[EVENT] visit Filter: line " + e.getLineNumber() +
+                ", method " + e.getInvokedMethodName().substring(e.getInvokedMethodName().lastIndexOf("#")) +
+                ", arm " + e.getArm() +
+                ", branch " + counter.idx1(e.getIid(), e.getArm())); }
     }
 
     public void visitMapValuesEvent(MapValuesEvent e) {
         counter.increment(e.getIid());
-        if (PRINT_METHOD_NAMES) { System.out.println("[METHOD] Coverage::visitMapValuesEvent"); }
+        if (PRINT_COVERAGE_DETAILS) { System.out.println("[EVENT] visit MapValues: line " + e.getLineNumber() + ", method " + e.getInvokedMethodName().substring(e.getInvokedMethodName().lastIndexOf("#"))); }
     }
 
     /**

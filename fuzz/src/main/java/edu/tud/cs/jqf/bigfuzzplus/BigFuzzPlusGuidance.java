@@ -11,9 +11,7 @@ import edu.tud.cs.jqf.bigfuzzplus.jsonMutation.JsonPlusMutation;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.MutationPair;
 import edu.tud.cs.jqf.bigfuzzplus.stackedMutation.StackedMutation;
 import edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation;
-import edu.ucla.cs.jqf.bigfuzz.JsonMutation;
 import org.apache.commons.io.FileUtils;
-import org.scalatest.Entry;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -30,10 +28,9 @@ import java.util.function.Consumer;
 
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.LOG_AND_PRINT_STATS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_COVERAGE_DETAILS;
-import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_ERRORS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_INPUT_SELECTION_DETAILS;
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_LINE_FOR_EACH_TRIAL;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_METHOD_NAMES;
-import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATIONS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_MUTATION_DETAILS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.PRINT_TEST_RESULTS;
 import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.SAVE_UNIQUE_FAILURES;
@@ -51,7 +48,7 @@ public class BigFuzzPlusGuidance implements Guidance {
 	 */
 	public final String testName;
 
-	/**
+    /**
 	 * testClassName for error tracking purposes
 	 */
 	private String testClassName;
@@ -87,10 +84,8 @@ public class BigFuzzPlusGuidance implements Guidance {
     /** The directory where fuzzing results are written. */
     protected final File outputDirectory;
 
-    /** A percentage indicating how often the less frequent branches preferring method is applied over
-     * the baseline input selection method */
-    private final double favorRate;
-    private final SelectionMethod selection;
+    /** The input selection method used. */
+    private final GuidanceSelectionMethod selection;
 
     /** The directory where saved inputs are written. */
     protected File coverageInputsDirectory;
@@ -151,6 +146,9 @@ public class BigFuzzPlusGuidance implements Guidance {
     /** Map which tracks the amount of times each known branch is covered */
     protected Map<Set<Integer>, Integer> branchesHitCount = new HashMap<>();
 
+    /** List in which trial numbers are saved which discovered new Coverage. */
+    public ArrayList<Long> newDiscoveryTrials = new ArrayList<>();
+
     /** Map which is used to point to the initial File that discovered the combination of branches. */
     protected Map<Set<Integer>, File> coverageFilePointer = new HashMap<>();
 
@@ -204,11 +202,10 @@ public class BigFuzzPlusGuidance implements Guidance {
     private File lastWorkingInputFile;
     private final Random r = new Random();
 
-    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, double favorRate, SelectionMethod selection) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, GuidanceSelectionMethod selection) throws IOException {
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
 
-        this.favorRate = favorRate;
         this.selection = selection;
         if (maxTrials <= 0) {
             throw new IllegalArgumentException("maxTrials must be greater than 0");
@@ -334,14 +331,13 @@ public class BigFuzzPlusGuidance implements Guidance {
         }
     }
 
-    @SuppressWarnings({"SuspiciousMethodCalls", "unchecked"})
+    @SuppressWarnings({"SuspiciousMethodCalls"})
     @Override
     public InputStream getInput() throws IOException {
         //progress bar
         String completedTrialsString = "\rCompleted trials: " + numTrials * 100 / Math.max(1, maxTrials) + "% (" + numTrials + "/" + maxTrials + ")";
-        if (PRINT_INPUT_SELECTION_DETAILS || PRINT_COVERAGE_DETAILS || PRINT_MUTATION_DETAILS || PRINT_METHOD_NAMES
-                || PRINT_TEST_RESULTS || PRINT_ERRORS || LOG_AND_PRINT_STATS || PRINT_MUTATIONS) {
-            System.out.println(completedTrialsString);
+        if (PRINT_LINE_FOR_EACH_TRIAL) {
+            System.out.println("\n" + completedTrialsString);
         }
         else {
             if (!SystematicMutation.EVALUATE && numTrials % Math.max(1, maxTrials / 20) == 0) {
@@ -356,6 +352,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (numTrials == 0) {
             File initCopy = new File(initialInputsDirectory, initialInputFile.getName());
             FileUtils.copyFile(initialInputFile, initCopy);
+
             if (PRINT_INPUT_SELECTION_DETAILS) { System.out.println("[SELECT] selected config input: " + initialInputFile.getName());}
             return new ByteArrayInputStream(initialInputFile.getPath().getBytes());
         }
@@ -363,7 +360,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Start next cycle and refill pendingInputs if cycle is completed.
         if (pendingInputs.isEmpty()) {
             cyclesCompleted++;
-            if (selection == SelectionMethod.COVERAGE_FILES) {
+            if (selection != GuidanceSelectionMethod.BLACK_BOX) {
                 File[] covFiles = coverageInputsDirectory.listFiles();
                 if (Objects.requireNonNull(covFiles).length != 0) {
                     pendingInputs.addAll(Arrays.asList(covFiles));
@@ -371,7 +368,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                     pendingInputs.add(initialInputFile);
                 }
             }
-            else if (selection == SelectionMethod.INIT_FILES) {
+            else {
                 pendingInputs.add(initialInputFile);
             }
         }
@@ -381,12 +378,21 @@ public class BigFuzzPlusGuidance implements Guidance {
         }
 
         // Determine which input selection method to use.
-        boolean useFavoredSelection = r.nextDouble() <= favorRate;
+        boolean useFavoredSelection;
+        if (selection == GuidanceSelectionMethod.FULLY_BOOSTED_GREY_BOX) {
+            useFavoredSelection = true;
+        } else if (selection == GuidanceSelectionMethod.HALF_BOOSTED_GREY_BOX) {
+            useFavoredSelection = r.nextDouble() <= 0.5;
+        } else {
+            useFavoredSelection = false;
+        }
+
         if (PRINT_INPUT_SELECTION_DETAILS) {
             String method = useFavoredSelection ? "favored" : "baseline";
             System.out.println("[SELECT] Selection method used: " + method);
         }
-        if (!useFavoredSelection || selection != SelectionMethod.COVERAGE_FILES) {
+
+        if (!useFavoredSelection) {
             // Use baseline input selection method
             currentInputFile = pendingInputs.remove(0);
         }
@@ -417,9 +423,9 @@ public class BigFuzzPlusGuidance implements Guidance {
             }
 
             if (PRINT_INPUT_SELECTION_DETAILS) {
-                List<Map.Entry<String, Integer>> fileHits = new ArrayList<>();
-                List<Map.Entry<String, Double>> fileChance = new ArrayList<>();
-                List<Map.Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
+                List<Entry<String, Integer>> fileHits = new ArrayList<>();
+                List<Entry<String, Double>> fileChance = new ArrayList<>();
+                List<Entry<String, Double>> fileChanceBoundaries = new ArrayList<>();
                 double before = 0;
                 for (Map.Entry<Collection<Integer>, Double> entry : chancesAfterPref.entrySet()) {
                     before += entry.getValue();
@@ -536,7 +542,6 @@ public class BigFuzzPlusGuidance implements Guidance {
         if (result == Result.SUCCESS || result == Result.INVALID) {
 
             // Coverage before
-            int nonZeroBefore = totalCoverage.getNonZeroCount();
             int validNonZeroBefore = validCoverage.getNonZeroCount();
 
             // Compute a list of keys for which this input can assume responsibility.
@@ -563,9 +568,8 @@ public class BigFuzzPlusGuidance implements Guidance {
             String why = "";
 
             // Save if new combination of branches is found
-            if (nonZeroAfter > nonZeroBefore) {
-                // Must be responsible for some branch
-                assert(responsibilities.size() > 0);
+            if (branchesHitCount.get(responsibilities) == 1) { // responsibilities is only found once (this run)
+                assert(responsibilities.size() > 0); // Must be responsible for some branch
                 toSave = true;
                 why += "+cov";
             }
@@ -592,6 +596,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                         try {
                             if (PRINT_COVERAGE_DETAILS) { System.out.println("[COV] " + des.getName() + " created for " + responsibilities); }
                             FileUtils.copyFile(src, des);
+                            newDiscoveryTrials.add(numTrials);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -656,9 +661,7 @@ public class BigFuzzPlusGuidance implements Guidance {
                     }
                 }
             }
-            else {
-                currentInputFile = lastWorkingInputFile;
-            }
+            currentInputFile = lastWorkingInputFile;
         }
 
         if (LOG_AND_PRINT_STATS) {
@@ -776,13 +779,15 @@ public class BigFuzzPlusGuidance implements Guidance {
         Collection<Integer> nonZeroIndices = runCoverage.getCounter().getNonZeroIndices();
         Set<Integer> hitBranches = new HashSet<>(nonZeroIndices);
         int hits = branchesHitCount.getOrDefault(hitBranches, 0);
-        branchesHitCount.put(hitBranches, hits + 1);
         if (PRINT_COVERAGE_DETAILS) {
+            System.out.println("[COV] branches hit: " + hitBranches);
+            System.out.println("[COV] branches known: " + branchesHitCount.keySet());
             File equalCovFile = coverageFilePointer.get(hitBranches);
             if (equalCovFile != null) {
                 System.out.println("[COV] equal branches discovered as " + equalCovFile.getName());
             }
         }
+        branchesHitCount.put(hitBranches, hits + 1);
 
         return hitBranches;
     }
