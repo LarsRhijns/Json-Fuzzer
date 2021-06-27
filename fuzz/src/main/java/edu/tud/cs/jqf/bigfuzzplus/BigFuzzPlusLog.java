@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
+import static edu.tud.cs.jqf.bigfuzzplus.BigFuzzPlusDriver.maxDuration;
 
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class BigFuzzPlusLog {
@@ -49,6 +52,7 @@ public class BigFuzzPlusLog {
     private static ArrayList<Long> errorInputCount = new ArrayList<>();
     private static ArrayList<Long> validInputCount = new ArrayList<>();
     private static ArrayList<Long> durations = new ArrayList<>();
+    private static ArrayList<Long> randomizationSeeds = new ArrayList<>();
     private static ArrayList<Map<Set<Integer>, Integer>> branchesHit = new ArrayList<>();
     private static ArrayList<Collection<Integer>> totalBranches = new ArrayList<>();
     private static ArrayList<ArrayList<Long>> newDiscoveryTrials = new ArrayList<>();
@@ -80,12 +84,13 @@ public class BigFuzzPlusLog {
         errorInputCount = new ArrayList<>();
         validInputCount = new ArrayList<>();
         durations = new ArrayList<>();
+        randomizationSeeds = new ArrayList<>();
         branchesHit = new ArrayList<>();
         totalBranches = new ArrayList<>();
         newDiscoveryTrials = new ArrayList<>();
     }
 
-    public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime) {
+    public void logProgramArguments(String testClassName, String testMethodName, String mutationMethodClassName, File outputDir, long programStartTime, String configfile, long maxTrials) {
         program_configuration.append("\n************ PROGRAM CONFIGURATION ************");
         program_configuration.append("\nOutput directory is set to: " + outputDir);
         program_configuration.append("\nProgram is started at: " + programStartTime);
@@ -94,6 +99,13 @@ public class BigFuzzPlusLog {
         program_configuration.append("\n\tTest class: " + testClassName);
         program_configuration.append("\n\tTest method: " + testMethodName);
         program_configuration.append("\n\tMutation class: " + mutationMethodClassName);
+        program_configuration.append("\n\tFiles used..." +
+                "\n\t\tconfig:\t\t" + configfile +
+                "\n\t\ttestClass:\t" + testClassName +
+                "\n\t\ttestMethod:\t" + testMethodName);
+        program_configuration.append("\n\tMax trials: " + maxTrials);
+        String durationString = maxDuration == null ? "inf " : Long.toString(maxDuration.toMillis());
+        program_configuration.append("\n\tMax duration: " + durationString + "ms");
     }
 
     public void logProgramArgumentsStackedMutation(StackedMutationEnum.StackedMutationMethod stackedMutationMethod, int intMutationStackCount) {
@@ -148,6 +160,9 @@ public class BigFuzzPlusLog {
         if(LOG_MUTATION_STACKS)
             writeMutationStack(guidance);
 
+        if (guidance.mutation instanceof StackedMutation) {
+            randomizationSeeds.add(((StackedMutation) guidance.mutation).getRandomizationSeed());
+        }
         branchesHit.add(guidance.branchesHitCount);
         totalBranches.add(guidance.totalCoverage.getCounter().getNonZeroIndices());
         newDiscoveryTrials.add(guidance.newDiscoveryTrials);
@@ -216,6 +231,7 @@ public class BigFuzzPlusLog {
 
     public void summarizeProgramIterations() {
         summarized_results.append("************ PROGRAM SUMMARY ************");
+        int maxTrials = uniqueFailureResults.get(0).size();
 
         // --------------- INPUTS --------------
         summarized_results.append("\nMUTATION RESULTS PER ITERATION");
@@ -242,13 +258,20 @@ public class BigFuzzPlusLog {
         }
 
         // --------------- DURATION --------------
-        summarized_results.append("\n\nDURATION PER ITERATION");
-        summarized_results.append("\n\tdurations: " + durations);
-        for (int i = 0; i < durations.size(); i++) {
-            summarized_results.append("\n\tRun " + (i + 1) + ": " + durations.get(i) + " ms");
+        summarized_results.append("\n\nDURATION PER ITERATION (in ms)");
+        summarized_results.append("\n\tDurations: " + durations);
+        float[] averageTestDuration = new float[durations.size()];
+        for(int a = 0; a < durations.size(); a++) {
+            averageTestDuration[a] = (float) durations.get(a) / maxTrials;
         }
+        summarized_results.append("\n\tAverage duration per test: " + Arrays.toString(averageTestDuration));
+        for (int i = 0; i < durations.size(); i++) {
+            summarized_results.append("\n\tRun " + (i + 1) + ": " + durations.get(i));
+        }
+        // Run time
 
-        // --------------- MUTATION STACK ---------------------
+
+        // --------------- STACKED MUTATION ---------------------
         summarized_results.append("\n\nSTACKED COUNT PER MUTATION PER ITERATION");
         if(!LOG_MUTATION_STACKS) {
             summarized_results.append("\n\tData log disabled");
@@ -257,6 +280,10 @@ public class BigFuzzPlusLog {
         }
         else {
             summarized_results.append(dataPerIterationListToLog(mutationStacks));
+        }
+
+        if (!randomizationSeeds.isEmpty()) {
+            summarized_results.append("\n\tRandomization seeds: " + randomizationSeeds);
         }
 
         // --------------- RESTARTS ---------------------
@@ -295,7 +322,6 @@ public class BigFuzzPlusLog {
         // --------------- COVERAGE INFORMATION -----------------
         ArrayList<ArrayList<Integer>> discoveriesCountAtTrial = new ArrayList<>();
         int totalBranchesSize = 0;
-        int maxTrials = uniqueFailureResults.get(0).size();
 
         summarized_results.append("\n\nCOVERAGE INFORMATION");
         if (!LOG_BRANCH_COVERAGE) {
@@ -354,12 +380,11 @@ public class BigFuzzPlusLog {
 
     private static StringBuilder printUniqueFailuresWithMutations(BigFuzzPlusGuidance guidance) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n\n # Unique errors");
         Iterator<List<StackTraceElement>> uFailuresIterator = guidance.uniqueFailures.iterator();
         int counter = 1;
         while(uFailuresIterator.hasNext()) {
             List<StackTraceElement> e = uFailuresIterator.next();
-            sb.append("\n*** UNIQUE FAILURE #" + counter + " ***");
+            sb.append("\n\nUNIQUE FAILURE #" + counter);
             sb.append("\n-- failure triggered at trial " + Math.toIntExact(guidance.uniqueFailuresWithTrial.get(e)) + " --");
             StringBuilder headerRow = new StringBuilder("\n#\t\t");
             StringBuilder classRow = new StringBuilder("\nFile\t");
@@ -447,4 +472,44 @@ public class BigFuzzPlusLog {
         }
     }
 
+    /**
+     * Prints the configuration and the results from the run to the Terminal.
+     *
+     * @param maxTrials      maximal amount of trials configuration
+     * @param guidance       guidance class which is used to perform the BigFuzz testing
+     * @param atIteration    Counter indicating for which iteration this evaluation is.
+     */
+    public void evaluation(Long maxTrials, BigFuzzPlusGuidance guidance, int atIteration) {
+        StringBuilder e_log = new StringBuilder();
+        // Print configuration
+        e_log.append("*** ITERATION " + atIteration + " LOG");
+
+        // Print results
+        e_log.append("\nTotal run count: " + guidance.numTrials);
+        e_log.append("\n\tTotal Failures: " + guidance.totalFailures);
+        e_log.append("\n\tTotal Valid: " + guidance.numValid);
+        e_log.append("\n\tTotal Invalid: " + guidance.numDiscards);
+        if(!LOG_UNIQUE_FAILURES_PER_TRIAL) {
+            e_log.append("\nUnique failure log disabled");
+        } else {
+            e_log.append("\n\tUnique Failures: " + guidance.uniqueFailures.size());
+            e_log.append("\n\tUnique Failures found at: " + guidance.uniqueFailureRuns);
+            int cumulative = 0;
+            List<Integer> runFoundUniqueFailureCumulative = new ArrayList<>();
+            for (long i = 0; i < maxTrials; i++) {
+                if (guidance.uniqueFailureRuns.contains(i))
+                    cumulative++;
+                runFoundUniqueFailureCumulative.add(cumulative);
+            }
+            e_log.append("\n\tUnique Failures found per run: " + runFoundUniqueFailureCumulative);
+        }
+
+        if(LOG_UNIQUE_FAILURE_AND_MUTATION)
+            e_log.append(printUniqueFailuresWithMutations(guidance));
+
+        if(PRINT_TO_CONSOLE)
+            System.out.println(e_log);
+
+        iteration_results.append(e_log);
+    }
 }
