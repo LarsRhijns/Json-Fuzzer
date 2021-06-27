@@ -74,7 +74,7 @@ public class BigFuzzPlusDriver {
 
 		long programStartTime = System.currentTimeMillis();
 
-	    BigFuzzPlusLog log = new BigFuzzPlusLog();
+	    BigFuzzPlusLog log = BigFuzzPlusLog.getInstance();
 		BigFuzzPlusLog.resetInstance();
 
 		String selectionMethodString;
