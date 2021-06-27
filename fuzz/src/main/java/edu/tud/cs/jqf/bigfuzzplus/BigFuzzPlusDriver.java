@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 
-import static edu.tud.cs.jqf.bigfuzzplus.SelectionMethod.*;
+import static edu.tud.cs.jqf.bigfuzzplus.GuidanceSelectionMethod.*;
 import static edu.tud.cs.jqf.bigfuzzplus.systematicMutation.SystematicMutation.*;
 
 public class BigFuzzPlusDriver {
@@ -29,7 +29,7 @@ public class BigFuzzPlusDriver {
     public static boolean SAVE_UNIQUE_FAILURES = true;
 	public static int NUMBER_OF_ITERATIONS = 10;
 	public static Duration maxDuration = null; // example: Duration.of(30, ChronoUnit.MINUTES);
-	public static SelectionMethod selection = FULLY_BOOSTED_GREY_BOX;
+	public static GuidanceSelectionMethod selection = FULLY_BOOSTED_GREY_BOX;
 
     /**
      * Run the BigFuzzPlus program with the following parameters for StackedMutation:

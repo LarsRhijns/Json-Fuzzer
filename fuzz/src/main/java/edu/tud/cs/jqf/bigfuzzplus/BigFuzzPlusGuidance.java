@@ -85,7 +85,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     protected final File outputDirectory;
 
     /** The input selection method used. */
-    private final SelectionMethod selection;
+    private final GuidanceSelectionMethod selection;
 
     /** The directory where saved inputs are written. */
     protected File coverageInputsDirectory;
@@ -202,7 +202,7 @@ public class BigFuzzPlusGuidance implements Guidance {
     private File lastWorkingInputFile;
     private final Random r = new Random();
 
-    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, SelectionMethod selection) throws IOException {
+    public BigFuzzPlusGuidance(String testName, String initialInputFileName, long maxTrials, Duration duration, File outputDirectory, String mutationMethodClassName, GuidanceSelectionMethod selection) throws IOException {
         this.testName = testName;
         this.maxDurationMillis = duration != null ? duration.toMillis() : Long.MAX_VALUE;
 
@@ -360,7 +360,7 @@ public class BigFuzzPlusGuidance implements Guidance {
         // Start next cycle and refill pendingInputs if cycle is completed.
         if (pendingInputs.isEmpty()) {
             cyclesCompleted++;
-            if (selection != SelectionMethod.BLACK_BOX) {
+            if (selection != GuidanceSelectionMethod.BLACK_BOX) {
                 File[] covFiles = coverageInputsDirectory.listFiles();
                 if (Objects.requireNonNull(covFiles).length != 0) {
                     pendingInputs.addAll(Arrays.asList(covFiles));
@@ -379,9 +379,9 @@ public class BigFuzzPlusGuidance implements Guidance {
 
         // Determine which input selection method to use.
         boolean useFavoredSelection;
-        if (selection == SelectionMethod.FULLY_BOOSTED_GREY_BOX) {
+        if (selection == GuidanceSelectionMethod.FULLY_BOOSTED_GREY_BOX) {
             useFavoredSelection = true;
-        } else if (selection == SelectionMethod.HALF_BOOSTED_GREY_BOX) {
+        } else if (selection == GuidanceSelectionMethod.HALF_BOOSTED_GREY_BOX) {
             useFavoredSelection = r.nextDouble() <= 0.5;
         } else {
             useFavoredSelection = false;
